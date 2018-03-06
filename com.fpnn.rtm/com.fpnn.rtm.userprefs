@@ -1,0 +1,23 @@
+﻿<Properties StartupItem="com.fpnn.rtm.csproj">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Rtm/RTMMsgStruct.cs">
+    <Files>
+      <File FileName="Rtm/RTMClient.cs" Line="623" Column="3" />
+      <File FileName="../../../infra-fpnn-sdk/csharp/com.fpnn.sdk/Fpnn/Connection/TCPClient.cs" Line="226" Column="45" />
+      <File FileName="../../../infra-fpnn-sdk/csharp/com.fpnn.sdk/Fpnn/Connection/CallbackDictionary.cs" Line="10" Column="2" />
+      <File FileName="Rtm/RTMQuestCallback.cs" Line="77" Column="11" />
+      <File FileName="Demo.cs" Line="39" Column="42" />
+      <File FileName="Rtm/RTMPushDispatcher.cs" Line="102" Column="45" />
+      <File FileName="Rtm/RTMException.cs" Line="21" Column="4" />
+      <File FileName="Rtm/RTMPushCache.cs" Line="52" Column="15" />
+      <File FileName="Rtm/RTMClosedCallback.cs" Line="1" Column="1" />
+      <File FileName="Rtm/RTMEventHandler.cs" Line="20" Column="1" />
+      <File FileName="Rtm/RTMMsgStruct.cs" Line="52" Column="2" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.com.fpnn.rtm PreferredExecutionTarget="MonoDevelop.Default" />
+</Properties>
