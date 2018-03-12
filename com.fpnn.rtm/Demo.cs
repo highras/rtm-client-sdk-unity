@@ -73,7 +73,7 @@ namespace com.fpnn.rtm
 
 				if (success)
 				{
-					client.sendMessage(1, 51, "test msg", "test attrs", this);
+					client.sendMessage(2, 51, "test msg", "test attrs", this);
 				}
 			}
 			public override void authException(RTMException e) { 
@@ -100,16 +100,19 @@ namespace com.fpnn.rtm
 
 		public static void Main(string[] args)
 		{
-			RTMClient client = new RTMClient("35.167.185.139:13999", "cluster", true);
+			RTMClient client = new RTMClient("117.50.4.158:13325", "", true);
 			
 			client.setEventHandler(new MyEventHandler());
 			client.setClosedCallback(new MyClosedCallback());
 
-			int pid = 1000001;
-			long uid = 123;
-			string token = "110C13CB1F15F03C44433FC0805A5934";
+			int pid = 1000008;
+			long uid = 1;
+			string token = "E9DB6F6F8075B9591B1F015C5D902583";
 
-			client.auth(pid, uid, token, false, new MyQuestCallback(client));
+			client.auth(pid, uid, token, true, new MyQuestCallback(client));
+
+			//client.setAuthCallback(new MyQuestCallback(client));
+			//client.auth(pid, uid, token, true);
 
 			while (true)
 				System.Threading.Thread.Sleep(1000);

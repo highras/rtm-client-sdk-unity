@@ -161,17 +161,18 @@ namespace com.fpnn.rtm
 
 		private string getGateEndpoint()
 		{
-
-			// TODO test
-			return "35.167.185.139:13321";
-
 			if (this.publicKeyData != null)
 				this.dispatch.enableEncryptor(this.publicKeyData);
 			
 			this.dispatch.connect();
 
-			FPQWriter qw = new FPQWriter(1, "which");
-			qw.param("which", "rtmGated@" + this.cluster);
+			FPQWriter qw = new FPQWriter(2, "which");
+			if (this.cluster == "")
+				qw.param("what", "rtmGated");
+			else
+				qw.param("what", "rtmGated@" + this.cluster);
+			qw.param("addrType", "ipv4");
+
 			FPAReader reader = this.dispatch.sendQuestSync(qw.take());
 
 			if (reader.isError())
@@ -181,6 +182,10 @@ namespace com.fpnn.rtm
 				try
 				{
 					string endpoint = reader.want<string>("endpoint");
+
+					if (endpoint == "")
+						throw new RTMException("get rtmGated endpoint error");
+					
 					return endpoint;
 				}
 				catch (Exception e)
@@ -277,7 +282,6 @@ namespace com.fpnn.rtm
 			MethodInfo mi = cb.GetType().GetMethod(method + "Callback");
 			if (mi != null)
 			{
-
 				mi.Invoke(cb, args);
 			}
 		}
@@ -365,11 +369,73 @@ namespace com.fpnn.rtm
 						this.lastRecvPingTime = PackCommon.getMilliTimestamp();
 						this.startPing();
 					}
+					else
+					{
+						string endpoint = reader.get<string>("gate", "");
+						if (endpoint != "")
+						{
+							lock (connectLock)
+							{
+								this.connectToGate(endpoint);
+							}
+							this.sendAuth(isReconnect);
+							return;
+						}
+					}
 
 					if (this.authCb != null)
 						this.procCallback(this.authCb, "auth", new object[] { ok, isReconnect });
 				}
 			});
+		}
+
+		private void sendAuthSync(bool isReconnect)
+		{
+			FPQWriter qw = new FPQWriter(5, "auth");
+			qw.param("pid", this.pid);
+			qw.param("uid", this.uid);
+			qw.param("token", this.token);
+			qw.param("version", SDK_VERSION);
+			qw.param("unread", this.pushUnread);
+
+			FPAReader reader = this.sendQuest(qw.take());
+
+			if (reader.isError())
+			{
+				if (this.authCb != null)
+					this.procException(this.authCb, "auth", reader);
+			}
+			else
+			{
+				bool ok = reader.want<bool>("ok");
+
+				if (ok)
+				{
+					this.lastRecvPingTime = PackCommon.getMilliTimestamp();
+					this.startPing();
+				}
+				else
+				{
+					string endpoint = reader.get<string>("gate", "");
+					if (endpoint != "")
+					{
+						lock (connectLock)
+						{
+							this.connectToGate(endpoint);
+						}
+						this.sendAuthSync(isReconnect);
+						return;
+					}
+				}
+
+				if (this.authCb != null)
+					this.procCallback(this.authCb, "auth", new object[] { ok, isReconnect });
+			}
+		}
+
+		public void setAuthCallback(RTMQuestCallback cb)
+		{
+			this.authCb = cb;
 		}
 
 		public void auth(int pid, long uid, string token, bool pushUnread, RTMQuestCallback cb)
@@ -383,6 +449,18 @@ namespace com.fpnn.rtm
 			this.connect();
 
 			this.sendAuth(false);
+		}
+
+		public void auth(int pid, long uid, string token, bool pushUnread)
+		{
+			this.pid = pid;
+			this.uid = uid;
+			this.token = token;
+			this.pushUnread = pushUnread;
+
+			this.connect();
+
+			this.sendAuthSync(false);
 		}
 
 		public void sendMessage(long to, byte mtype, string msg, string attrs, RTMQuestCallback cb)
