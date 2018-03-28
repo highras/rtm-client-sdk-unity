@@ -105,9 +105,9 @@ namespace com.fpnn.rtm
 			client.setEventHandler(new MyEventHandler());
 			client.setClosedCallback(new MyClosedCallback());
 
-			int pid = 1000008;
+			int pid = 1003;
 			long uid = 1;
-			string token = "E9DB6F6F8075B9591B1F015C5D902583";
+			string token = "B1138363A0BD5DA11283987258F92A0D";
 
 			client.auth(pid, uid, token, true, new MyQuestCallback(client));
 

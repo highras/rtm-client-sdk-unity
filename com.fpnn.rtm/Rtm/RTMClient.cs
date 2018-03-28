@@ -23,8 +23,8 @@ namespace com.fpnn.rtm
 		private object midLock = new Object();
 		private uint midSeq = 0;
 		private System.Timers.Timer pingTimer = null;
-		private int pingIntervalSecond = 5;
-		private long lastRecvPingTime = 0;
+		private int idleTimeoutSecond = 15;
+		public long lastRecvPingTime = 0;
 
 		private string publicKeyData = null;
 		private int pid = -1;
@@ -70,17 +70,17 @@ namespace com.fpnn.rtm
 			this.timeout = questTimeout;
 		}
 
-		public int pingInterval()
+		public int idleTimeout()
 		{
-			return pingIntervalSecond;
+			return idleTimeoutSecond;
 		}
 
-		public void setPingInterval(int seconds)
+		public void setidleTimeout(int seconds)
 		{
 			if (seconds <= 0)
 				throw new Exception("ping interval must be greater than 0");
 			
-			this.pingIntervalSecond = seconds;
+			this.idleTimeoutSecond = seconds;
 		}
 
 		public void setClosedCallback(RTMClosedCallback cb)
@@ -103,36 +103,38 @@ namespace com.fpnn.rtm
 			if (this.pingTimer == null)
 			{
 				this.pingTimer = new System.Timers.Timer();
-				this.pingTimer.Elapsed += new System.Timers.ElapsedEventHandler(sendPing);
-				this.pingTimer.Interval = this.pingIntervalSecond * 1000;
+				this.pingTimer.Elapsed += new System.Timers.ElapsedEventHandler(checkPing);
+				this.pingTimer.Interval = this.idleTimeoutSecond * 1000 / 2;
 				this.pingTimer.Start();
 				this.pingTimer.Enabled = true;
 			}
 		}
 
-		private void sendPing(object source, ElapsedEventArgs e)
+		private void checkPing(object source, ElapsedEventArgs e)
 		{
-			FPQWriter qw = new FPQWriter(0, "ping");
-
-			this.gate.sendQuest(qw.take(), delegate (FPAReader reader)
-			{
-				if (!reader.isError())
-				{
-					this.lastRecvPingTime = PackCommon.getMilliTimestamp();
-				}
-			});
-
-			this.checkPing();
-		}
-
-		private void checkPing()
-		{
-			long maxLiveInterval = this.pingIntervalSecond * 1000 + 3000;
+			long maxLiveInterval = this.idleTimeoutSecond * 1000;
 			if (PackCommon.getMilliTimestamp() - this.lastRecvPingTime > maxLiveInterval)
 			{
 				this.gate.close();
-				if (this.closedCallback != null)
-					this.closedCallback.RTMClosed(false);
+
+				if (this.autoReconnect)
+				{
+					try
+					{
+						this.gate.reconnect();
+						this.sendAuth(true);
+					}
+					catch (Exception)
+					{
+						if (this.closedCallback != null)
+							this.closedCallback.RTMClosed(true);
+					}
+				}
+				else
+				{
+					if (this.closedCallback != null)
+						this.closedCallback.RTMClosed(true);
+				}
 			}
 		}
 
@@ -236,7 +238,7 @@ namespace com.fpnn.rtm
 			});
 
 			if (this.processor != null)
-				this.gate.setProcessor(new RTMPushDispatcher(this.processor));
+				this.gate.setProcessor(new RTMPushDispatcher(this.processor, this));
 
 			this.gate.connect();
 		}

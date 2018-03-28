@@ -9,10 +9,12 @@ namespace com.fpnn.rtm
 	{
 		RTMEventHandler processor;
 		RTMPushCache midCache;
+		RTMClient client;
 
-		public RTMPushDispatcher(RTMEventHandler processor)
+		public RTMPushDispatcher(RTMEventHandler processor, RTMClient client)
 		{
 			this.processor = processor;
+			this.client = client;
 			this.midCache = new RTMPushCache(1000); // cache mid num
 		}
 
@@ -23,6 +25,11 @@ namespace com.fpnn.rtm
 			{
 				mi.Invoke(this.processor, args);
 			}
+		}
+
+		public void ping(FPQReader reader)
+		{
+			this.client.lastRecvPingTime = PackCommon.getMilliTimestamp();
 		}
 
 		public void bye(FPQReader reader)
