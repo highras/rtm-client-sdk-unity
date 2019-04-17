@@ -1,91 +1,78 @@
 using System;
-using System.Collections;
-using System.Threading;
 
-namespace com.fpnn
-{
-    public delegate void FPProcessorDelegate(FPData data);
+namespace com.fpnn {
 
-    public class FPProcessor
-    {
-        private Hashtable EventMap { get; set; }
+	public delegate void AnswerDelegate(object payload, bool exception);
 
-        public FPProcessor()
-        {
-            EventMap = new Hashtable();
-        }
+	public class FPProcessor {
 
-        public void AddListener(string type, FPProcessorDelegate cb)
-        {
-            lock(EventMap)
-            {
-                ArrayList queue;
-                if (!EventMap.ContainsKey(type))
-                {
-                    queue = new ArrayList();
-                    EventMap[type] = queue;
+	    public interface IProcessor {
+
+	        void Service(FPData data, AnswerDelegate answer);
+	        void OnSecond(long timestamp);
+	        FPEvent GetEvent();
+	    }
+
+	    private class BaseProcessor:IProcessor {
+
+	    	private FPEvent _event = new FPEvent();
+
+	    	public void Service(FPData data, AnswerDelegate answer) {
+
+                if (data.GetFlag() == 0) {
+
+                    this._event.FireEvent(new EventData(data.GetMethod(), data.JsonPayload()));
                 }
-                else
-                {
-                    queue = (ArrayList)EventMap[type];
-                }
-                queue.Add(cb);
-            }
-        }
 
-        public void RemoveListener() {
-            lock(EventMap) {
-                EventMap.Clear();
-            }
-        }
+                if (data.GetFlag() == 1) {
 
-        public void RemoveListener(string type) {
-
-            lock(EventMap)
-            {
-                EventMap.Remove(type);
-            }
-        }
-
-        public void RemoveListener(string type, FPProcessorDelegate cb)
-        {
-            lock(EventMap)
-            {
-                if (EventMap.ContainsKey(type))
-                {
-                    ArrayList queue = ((ArrayList)EventMap[type]);
-                    int index = queue.IndexOf(cb);
-                    if (index != -1)
-                        queue.Remove(index);
+                    this._event.FireEvent(new EventData(data.GetMethod(), data.MsgpackPayload()));
                 }
             }
-        }
 
-        public void FireEvent(string type, FPData data)
-        {
-            lock(EventMap)
-            {
-                if (!EventMap.ContainsKey(type))
-                    return;
+            public FPEvent GetEvent() {
 
-                ArrayList queue = (ArrayList)EventMap[type];
-                IEnumerator ie = queue.GetEnumerator();
-                while(ie.MoveNext())
-                {
-                    FPProcessorDelegate cb = (FPProcessorDelegate)ie.Current;
-                    ThreadPool.QueueUserWorkItem( (state) =>
-                    {
-                        try
-                        {
-                            cb(data);
-                        }
-                        catch (Exception e)
-                        {
-                            ErrorRecorderHolder.recordError(e);
-                        }
-                    });
-                }
+                return this._event;
             }
-        }
-    }
+
+            public void OnSecond(long timestamp) {}
+	    }
+
+	    private IProcessor _processor;
+
+	    public FPEvent GetEvent() {
+
+		    if (this._processor != null) {
+
+		        return this._processor.GetEvent();
+		    }
+
+		    return null;
+		}
+
+		public void SetProcessor(IProcessor processor) {
+
+	        this._processor = processor;
+	    }
+
+	    public void Service(FPData data, AnswerDelegate answer) {
+
+	    	if (this._processor == null) {
+
+	    		this._processor = new BaseProcessor();	
+	    	}
+
+	    	this._processor.Service(data, answer);
+	    }
+
+	    public void OnSecond(long timestamp) {
+
+	        if (this._processor != null) {
+
+	            this._processor.OnSecond(timestamp);
+	        }
+	    }
+
+	    public void Destroy() {}
+	}
 }

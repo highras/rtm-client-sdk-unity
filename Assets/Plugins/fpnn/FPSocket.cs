@@ -1,266 +1,292 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Collections;
 
-namespace com.fpnn
-{
+namespace com.fpnn {
 
-    public delegate void ConnectedCallbackDelegate();
-    public delegate void ClosedCallbackDelegate();
-    public delegate void ErrorCallbackDelegate(Exception e);
-    public delegate void OnReadDelegate(FPData data);
+    public delegate void OnDataDelegate(NetworkStream stream);
 
-    public class FPSocket
-    {
-        TcpClient Client { get; set; }  = null;
-        NetworkStream Stream { get; set; }
-        string Host { get; set; }
-        int Port { get; set; }
-        int Timeout { get; set; }
-        public ConnectedCallbackDelegate ConnectedCallback { get; set; } = null;
-        public ClosedCallbackDelegate ClosedCallback { get; set; } = null;
-        public ErrorCallbackDelegate ErrorCallback  { get; set; } = null;
-        public OnReadDelegate OnRead { get; set; } = null;
+    public class FPSocket {
 
-        private Thread WriteThread = null;
-        private bool IsDisposed = false;
-        private ArrayList SendQueue = new ArrayList();
-        private ManualResetEvent SendEvent = new ManualResetEvent(false);
-        private FPData ReadData;
-        private bool IsClosedCallbackRun = false;
-        private bool IsConnecting = false;
-        private object ConnectingLock = new object();
+        private int _port;
+        private string _host;
+        private int _timeout;
+        private OnDataDelegate _onData;
 
-        public FPSocket(string host, int port, int timeout, bool isEncryptor = false)
-        {
-            Host = host;
-            Port = port;
-            Timeout = timeout;
-            ReadData = new FPData(isEncryptor);
-            Client = new TcpClient();
+        private FPEvent _event;
+        private TcpClient _socket;
+        private NetworkStream _stream;
+
+        private bool _isClosed = true;
+        private bool _isConnecting = false;
+        private Thread _writeThread = null;
+        private ArrayList _sendQueue = new ArrayList();
+        private ManualResetEvent _sendEvent = new ManualResetEvent(false);
+        private object _lock_obj = new object();
+
+        public FPSocket(OnDataDelegate onData, string host, int port, int timeout) {
+
+            this._host = host;
+            this._port = port;
+            this._timeout = timeout;
+            this._onData = onData;
+
+            this._event = new FPEvent();
         }
 
-        public void Open()
-        {
-            if (String.IsNullOrEmpty(Host)) {
-                if (ErrorCallback != null)
-				    ErrorCallback(new Exception("Cannot open null host"));
-                return;
-			}
-			
-			if (Port <= 0) {
-                if (ErrorCallback != null)
-				    ErrorCallback(new Exception("Cannot open without port"));
-                return;
-			}
+        public void Open() {
 
-            ThreadPool.QueueUserWorkItem(new WaitCallback(o => {
+            if (String.IsNullOrEmpty(this._host)) {
+
+                this.OnError(new Exception("Cannot open null host"));
+                return;
+            }
+            
+            if (this._port <= 0) {
+
+                this.OnError(new Exception("Cannot open without port"));
+                return;
+            }
+
+            if (this._socket != null && (this.IsOpen() || this.IsConnecting())) {
+
+                this.OnError(new Exception("has been connect!"));
+                return;
+            }
+
+            this._isClosed = false;
+            this._socket = new TcpClient();
+
+            FPSocket self = this;
+
+            ThreadPool.Instance.Execute((state) => {
+
                 IAsyncResult result;
-                try
-                {
-                    result = Client.BeginConnect(Host, Port, null, null);
-                    lock(ConnectingLock)
-                    {
-                        IsConnecting = true;
+
+                try {
+
+                    result = self._socket.BeginConnect(self._host, self._port, null, null);
+
+                    lock(self._lock_obj) {
+
+                        self._isConnecting = true;
                     }
-                    var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds((double)this.Timeout));
-                    if (!success)
-                    {
-                        lock(ConnectingLock)
-                        {
-                            IsConnecting = false;
+
+                    var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds((double)self._timeout));
+
+                    if (!success) {
+
+                        lock(self._lock_obj) {
+
+                            self._isConnecting = false;
                         }
-                        Client.Close();
-                        if (ErrorCallback != null)
-                            ErrorCallback(new Exception("Connect Timeout"));
+
+                        self.Close(new Exception("Connect Timeout"));
                         return;
                     }
-                    Client.EndConnect(result);
-                    Stream = Client.GetStream();
 
-                    lock(ConnectingLock)
-                    {
-                        IsConnecting = false;
+                    self._socket.EndConnect(result);
+                    self._stream = self._socket.GetStream();
+
+                    lock(self._lock_obj) {
+
+                        self._isConnecting = false;
                     }
 
-                    StartWriteThread(); 
-                    ListenForRead();
+                    self.StartWriteThread();
+                    self.OnRead(self._stream);
 
-                    if (ConnectedCallback != null)
-                        ConnectedCallback();                    
-                }
-                catch (Exception e)
-                {
-                    lock(ConnectingLock)
-                    {
-                        IsConnecting = false;
+                    self.OnConnect();
+                } catch (Exception ex) {
+
+                    lock(self._lock_obj) {
+
+                        self._isConnecting = false;
                     }
-                    if (Client != null)
-                        Client.Close();
-                    if (ErrorCallback != null)
-                        ErrorCallback(e);
+
+                    self.Close(ex);
                 }
-            }));
+            });
         }
 
-        public bool IsOpen()
-        {
-            return Client.Connected;
+        public bool IsOpen() {
+
+            if (this._socket != null) {
+
+                return this._socket.Connected;
+            }
+
+            return false;
         }
 
-        public bool HasConnect()
-        {
-            return IsOpen() || IsConnecting;
+        public bool IsConnecting() {
+
+            return this._isConnecting;
         }
 
-        public void Send(byte[] buffer)
-        {
-            lock(SendQueue)
-            {
-                SendQueue.Add(buffer);
-                SendEvent.Set();
+        public void Close(Exception ex) {
+
+            if (!this._isClosed) {
+
+                this._isClosed = true;
+
+                if (this._socket != null) {
+
+                    this._socket.Close(); 
+                    this._socket = null;
+                }
+
+                this.OnClose(ex);
             }
         }
 
-        private void ListenForRead()
-        {
-            try
-            {
-                byte[] buffer = new byte[ReadData.nextLength];
-                Stream.BeginRead(buffer, 0, (int)ReadData.nextLength, (ar) =>
-                {
-                    try
-                    {
-                        int readBytes = Stream.EndRead(ar);
+        public void Write(byte[] buffer) {
 
-                        if (readBytes == 0)
-                        {
-                            Dispose();
-                            RunClosedCallback();
-                        }
-                        else
-                        {
-                            if (ReadData.Decode(buffer))
-                            {
-                                if (OnRead != null)
-                                {
-                                    FPData dataClone = (FPData)ReadData.Clone();
-                                    OnRead(dataClone);
-                                }
-                                    
-                                ReadData.Reset();
-                            }
-                            ListenForRead();
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        Dispose();
-                        RunClosedCallback();
-                    }
-                }, null);
-            } 
-            catch (Exception)
-            {
-                Dispose();
-                RunClosedCallback();
+            lock(this._sendQueue) {
+
+                this._sendQueue.Add(buffer);
+                this._sendEvent.Set();
             }
         }
 
-        private void StartWriteThread()
-        {
-            WriteThread = new Thread(new ThreadStart(ListenForWrite));
-            WriteThread.Start();
+        public void Destroy() {
+
+            this._onData = null;
+            this._event.RemoveListener();
+
+            this.Close(null);
         }
 
-        private void RunClosedCallback()
-        {
-            lock(ClosedCallback)
-            {
-                if (!IsClosedCallbackRun)
-                {
-                    IsClosedCallbackRun = true;
-                    if (ClosedCallback != null)
-                        ClosedCallback();
-                }
+        public FPEvent GetEvent() {
+
+            return this._event;
+        }
+
+        public string GetHost() {
+
+            return this._host;
+        }
+
+        public int GetPort() {
+
+            return this._port;
+        }
+
+        public int GetTimeout() {
+
+            return this._timeout;
+        }
+
+        private void OnConnect() {
+
+            this._event.FireEvent(new EventData("connect"));
+        }
+
+        private void OnClose(Exception ex) {
+
+            lock(this._sendQueue) {
+
+                this._sendEvent.Set();
             }
+
+            if (this._socket != null) {
+
+                this._socket.Close(); 
+                this._socket = null;
+            }
+
+            if (this._writeThread != null) {
+                
+                this._writeThread.Join(); 
+                this._writeThread = null;
+            }
+
+            if (ex != null) {
+
+                this.OnError(ex);
+            }
+
+            this._event.FireEvent(new EventData("close"));
         }
 
-        private void ListenForWrite()
-        {
-            SendEvent.WaitOne();
+        private void OnRead(NetworkStream stream) {
+
+            this._onData(stream);
+        }
+
+        private void OnError(Exception ex) {
+
+            this._event.FireEvent(new EventData("error", ex));
+        }
+
+        private void StartWriteThread() {
+
+            this._writeThread = new Thread(new ThreadStart(OnWrite));
+            this._writeThread.Start();
+        }
+
+        private void OnWrite() {
+
+            this._sendEvent.WaitOne();
             
-            if (IsDisposed)
+            if (this._isClosed) {
+
                 return;
+            }
 
             ArrayList tmpQueue = new ArrayList();
-            lock(SendQueue)
-            {
-                for (int i = 0; i < SendQueue.Count; i++)
-                    for (int j = 0; j < ((byte[])SendQueue[i]).Length; j++)
-                        tmpQueue.Add(((byte[])SendQueue[i])[j]);
-                SendQueue.Clear();
-                SendEvent.Reset();
+
+            lock(this._sendQueue) {
+
+                for (int i = 0; i < this._sendQueue.Count; i++) {
+
+                    for (int j = 0; j < ((byte[])this._sendQueue[i]).Length; j++) {
+
+                        tmpQueue.Add(((byte[])this._sendQueue[i])[j]);
+                    }
+                }
+
+                this._sendQueue.Clear();
+                this._sendEvent.Reset();
             }
 
-            byte[] buffer = FPCommon.GetBytes(tmpQueue);
+            byte[] buffer = this.GetBytes(tmpQueue);
 
-            try
-            {
-                if (buffer != null && buffer.Length > 0)
-                {
-                    Stream.BeginWrite(buffer, 0, buffer.Length, (ar) =>
-                    {
-                        try
-                        {
-                            Stream.EndWrite(ar);
-                            ListenForWrite();
-                        }
-                        catch (Exception e)
-                        {
-                            if (ErrorCallback != null)
-                                ErrorCallback(new Exception("send error(01): " + e.Message));
+            try {
 
-                            Dispose();
-                            RunClosedCallback();
+                if (buffer != null && buffer.Length > 0) {
+
+                    FPSocket self = this;
+
+                    this._stream.BeginWrite(buffer, 0, buffer.Length, (ar) => {
+
+                        try {
+
+                            self._stream.EndWrite(ar);
+                            self.OnWrite();
+                        } catch (Exception ex) {
+
+                            self.Close(ex);
                         }
                     }, null);
+                } else {
+
+                    this.OnWrite();
                 }
-                else
-                {
-                    ListenForWrite();
-                }
-            } 
-            catch (Exception e)
-            {
-                if (ErrorCallback != null)
-                    ErrorCallback(new Exception("send error(02): " + e.Message));
-                Dispose();
-                RunClosedCallback();
+            } catch (Exception ex) {
+
+                this.Close(ex);
             }
         }
 
-        public void Dispose()
-        {
-            IsDisposed = true;
-            lock(SendQueue)
-            {
-                SendEvent.Set();
-            }
-            if (Client != null)
-            {
-                Client.Close();
-                Client = null;
-            }
-                
-            if (WriteThread != null)
-            {
-                WriteThread.Join(); 
-                WriteThread = null;
-            }
+        private byte[] GetBytes(ArrayList array) {
+
+            byte[] bytes = new byte[array.Count];
+            bytes = (byte[])array.ToArray(typeof(byte));
+            return bytes;
         }
     }
 }

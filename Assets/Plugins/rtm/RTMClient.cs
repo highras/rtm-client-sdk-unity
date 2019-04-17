@@ -6,11 +6,10 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using GameDevWare.Serialization;
 using com.fpnn;
+
 using UnityEngine;
 
 namespace com.rtm {
-
-    public delegate void CallbackDelegate(Hashtable ht);
 
     public class RTMClient {
 
@@ -44,48 +43,16 @@ namespace com.rtm {
                         strFix = "0" + strFix;
                     }
 
-                    return Convert.ToInt64(Convert.ToString(FPCommon.GetMilliTimestamp()) + strFix);
+                    return Convert.ToInt64(Convert.ToString(ThreadPool.Instance.GetMilliTimestamp()) + strFix);
                 }
             }
         }
 
-        public ConnectedCallbackDelegate ConnectedCallback { 
+        private FPEvent _event = new FPEvent();
 
-            get { 
+        public FPEvent GetEvent() {
 
-                return this._onConnect; 
-            }
-
-            set {
-
-                this._onConnect = value;
-            }
-        }
-
-        public ClosedCallbackDelegate ClosedCallback { 
-
-            get { 
-
-                return this._onClose; 
-            }
-
-            set {
-
-                this._onClose = value;
-            }
-        }
-
-        public ErrorCallbackDelegate ErrorCallback { 
-
-            get { 
-
-                return this._onError; 
-            }
-
-            set {
-
-                this._onError = value;
-            }
+            return this._event;
         }
 
         private string _dispatch;
@@ -97,19 +64,16 @@ namespace com.rtm {
         private bool _reconnect;
         private int _timeout;
 
+        private bool _startTimerThread;
+
         private bool _ipv6;
         private bool _isClose;
         private string _endpoint;
 
-        private RTMProcessor _psr;
+        private RTMProcessor _processor;
 
         private BaseClient _baseClient;
         private DispatchClient _dispatchClient;
-
-        private ConnectedCallbackDelegate _onConnect;
-        private ClosedCallbackDelegate _onClose;
-        private ErrorCallbackDelegate _onError;
-
 
         /**
          * @param {string}                      dispatch
@@ -120,8 +84,9 @@ namespace com.rtm {
          * @param {Dictionary(string,string)}   attrs
          * @param {bool}                        reconnect
          * @param {int}                         timeout
+         * @param {bool}                        startTimerThread
          */
-        public RTMClient(string dispatch, int pid, long uid, string token, string version, Dictionary<string, string> attrs, bool reconnect, int timeout) {
+        public RTMClient(string dispatch, int pid, long uid, string token, string version, Dictionary<string, string> attrs, bool reconnect, int timeout, bool startTimerThread) {
 
             this._dispatch = dispatch;
             this._pid = pid;
@@ -131,6 +96,7 @@ namespace com.rtm {
             this._attrs = attrs;
             this._reconnect = reconnect;
             this._timeout = timeout;
+            this._startTimerThread = startTimerThread;
 
             this.InitProcessor();
         }
@@ -139,8 +105,8 @@ namespace com.rtm {
 
             RTMClient self = this;
 
-            this._psr = new RTMProcessor();
-            this._psr.AddPushListener(RTMConfig.SERVER_PUSH.kickOut, (data) => {
+            this._processor = new RTMProcessor(this._event);
+            this._processor.GetEvent().AddListener(RTMConfig.SERVER_PUSH.kickOut, (evd) => {
 
                 self._isClose = true;
                 self._baseClient.Close();
@@ -149,7 +115,17 @@ namespace com.rtm {
 
         public RTMProcessor GetProcessor() {
 
-            return this._psr;
+            return this._processor;
+        }
+
+        public FPPackage GetPackage() {
+
+            if (this._baseClient != null) {
+
+                return this._baseClient.GetPackage();
+            }
+
+            return null;
         }
 
         public void SendQuest(FPData data, CallbackDelegate callback, int timeout) {
@@ -160,21 +136,33 @@ namespace com.rtm {
             }
         }
 
+        public CallbackData SendQuest(FPData data, int timeout) {
+
+            if (this._baseClient != null) {
+
+                return this._baseClient.SendQuest(data, timeout);
+            }
+
+            return null;
+        }
+
         public void Destroy() {
 
             this.Close();
 
             if (this._baseClient != null) {
 
-                this._baseClient.Close();
+                this._baseClient.Destroy();
                 this._baseClient = null;
             }
 
             if (this._dispatchClient != null) {
 
-                this._dispatchClient.Close();
+                this._dispatchClient.Destroy();
                 this._dispatchClient = null;
             }
+
+            this._event.RemoveListener();
         }
 
         /**
@@ -197,24 +185,24 @@ namespace com.rtm {
 
             if (this._dispatchClient == null) {
 
-                this._dispatchClient = new DispatchClient(this._dispatch, false, this._timeout);
+                this._dispatchClient = new DispatchClient(this._dispatch, this._timeout, this._startTimerThread);
 
-                this._dispatchClient.ClosedCallback = delegate() {
+                this._dispatchClient.GetEvent().AddListener("close", (evd) => {
 
                     Debug.Log("[DispatchClient] closed!");
 
                     if (self._dispatchClient != null) {
 
-                        self._dispatchClient.Close();
+                        self._dispatchClient.Destroy();
                         self._dispatchClient = null;
                     }
 
                     if (string.IsNullOrEmpty(self._endpoint)) {
 
-                        self._dispatchClient.ErrorCallback(new Exception("dispatch client close with err!"));
+                        self.GetEvent().FireEvent(new EventData("error", new Exception("dispatch client close with err!")));
                         self.Reconnect();
                     }
-                };
+                });
             }
 
             Dictionary<string, object> payload = new Dictionary<string, object>();
@@ -225,19 +213,20 @@ namespace com.rtm {
             payload.Add("addrType", this._ipv6 ? "ipv6" : "ipv4");
             payload.Add("version", this._version);
 
-            this._dispatchClient.Which(payload, this._timeout, (Hashtable ht) => {
+            this._dispatchClient.Which(payload, this._timeout, (cbd) => {
 
-                if (ht.Contains("exception")) {
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                    Exception ex = (Exception)ht["exception"];
-                    self._dispatchClient.ErrorCallback(ex);
-                    return;
+                if (dict != null) {
+
+                    self.Login(Convert.ToString(dict["endpoint"]), self._ipv6);
                 }
 
-                if (ht.Contains("payload")) {
+                Exception ex = cbd.GetException();
 
-                    Dictionary<string, object> data = (Dictionary<string, object>)ht["payload"];
-                    self.Login(Convert.ToString(data["endpoint"]), self._ipv6);
+                if (ex != null) {
+
+                    self.GetEvent().FireEvent(new EventData("error", ex));
                 }
             });
         }
@@ -255,13 +244,13 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht 
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary(mtime:long)}  payload 
          * @param {Exception}               exception
          * @param {long}                    mid
-         * </Hashtable>
+         * </CallbackData>
          */
         public void SendMessage(long to, byte mtype, String msg, String attrs, long mid, int timeout, CallbackDelegate callback) {
 
@@ -286,20 +275,19 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("sendmsg");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
-                ht.Add("mid", mid);
+                cbd.SetMid(mid);
 
                 if (callback != null) {
 
-                    callback(ht);
+                    callback(cbd);
                 }
-
             }, timeout);
         }
 
@@ -316,13 +304,13 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary(mtime:long)}  payload 
          * @param {Exception}               exception
          * @param {long}                    mid
-         * </Hashtable>
+         * </CallbackData>
          */
         public void SendGroupMessage(long gid, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
 
@@ -347,20 +335,19 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("sendgroupmsg");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
-                ht.Add("mid", mid);
+                cbd.SetMid(mid);
 
                 if (callback != null) {
 
-                    callback(ht);
+                    callback(cbd);
                 }
-
             }, timeout);
         }
 
@@ -377,13 +364,13 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary(mtime:long)}  payload 
          * @param {Exception}               exception
          * @param {long}                    mid
-         * </Hashtable>
+         * </CallbackData>
          */
         public void SendRoomMessage(long rid, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
 
@@ -408,20 +395,19 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("sendroommsg");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
-                ht.Add("mid", mid);
+                cbd.SetMid(mid);
 
                 if (callback != null) {
 
-                    callback(ht);
+                    callback(cbd);
                 }
-
             }, timeout);
         }
 
@@ -433,13 +419,13 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {long}                    mid
          * @param {Exception}               exception
          * @param {Dictionary(p2p:Dictionary(String,int),group:Dictionary(String,int))} payload
-         * </Hashtable>
+         * </CallbackData>
          */
         public void GetUnreadMessage(int timeout, CallbackDelegate callback) {
 
@@ -453,8 +439,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getunreadmsg");
             data.SetPayload(bytes);
 
@@ -469,13 +455,13 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
          * @param {long}                    mid
-         * </Hashtable>
+         * </CallbackData>
          */
         public void CleanUnreadMessage(int timeout, CallbackDelegate callback) {
 
@@ -489,8 +475,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("cleanunreadmsg");
             data.SetPayload(bytes);
 
@@ -505,13 +491,13 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {long}                    mid
          * @param {Exception}               exception
          * @param {Dictionary(p2p:Map(String,long),Dictionary:Map(String,long))}    payload
-         * </Hashtable>
+         * </CallbackData>
          */
         public void GetSession(int timeout, CallbackDelegate callback) {
 
@@ -525,8 +511,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getsession");
             data.SetPayload(bytes);
 
@@ -547,12 +533,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}               exception
          * @param {Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(GroupMsg))} payload
-         * </Hashtable>
+         * </CallbackData>
          *
          * <GroupMsg>
          * @param {long}                    id
@@ -596,21 +582,21 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getgroupmsg");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
 
                     return;
                 }
 
-                if (ht.Contains("payload")) {
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
+                if (dict != null) {
 
                     List<ArrayList> ol = (List<ArrayList>)dict["msgs"];
                     List<Hashtable> nl = new List<Hashtable>();
@@ -634,7 +620,7 @@ namespace com.rtm {
                     dict["msgs"] = nl;
                 }
 
-                callback(ht);
+                callback(cbd);
             }, timeout);
         }
 
@@ -652,12 +638,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}               exception
          * @param {Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(RoomMsg))} payload
-         * </Hashtable>
+         * </CallbackData>
          *
          * <RoomMsg>
          * @param {long}                    id
@@ -701,21 +687,21 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getroommsg");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
 
                     return;
                 }
 
-                if (ht.Contains("payload")) {
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
+                if (dict != null) {
 
                     List<ArrayList> ol = (List<ArrayList>)dict["msgs"];
                     List<Hashtable> nl = new List<Hashtable>();
@@ -739,7 +725,7 @@ namespace com.rtm {
                     dict["msgs"] = nl;
                 }
 
-                callback(ht);
+                callback(cbd);
             }, timeout);
         }
 
@@ -756,12 +742,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}               exception
          * @param {Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(BroadcastMsg))} payload
-         * </Hashtable>
+         * </CallbackData>
          *
          * <BroadcastMsg>
          * @param {long}                    id
@@ -804,21 +790,21 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getbroadcastmsg");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
 
                     return;
                 }
 
-                if (ht.Contains("payload")) {
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
+                if (dict != null) {
 
                     List<ArrayList> ol = (List<ArrayList>)dict["msgs"];
                     List<Hashtable> nl = new List<Hashtable>();
@@ -842,7 +828,7 @@ namespace com.rtm {
                     dict["msgs"] = nl;
                 }
 
-                callback(ht);
+                callback(cbd);
             }, timeout);
         }
 
@@ -860,12 +846,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}               exception
          * @param {Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(P2PMsg))} payload
-         * </Hashtable>
+         * </CallbackData>
          *
          * <P2PMsg>
          * @param {long}                    id
@@ -909,21 +895,21 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getp2pmsg");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
 
                     return;
                 }
 
-                if (ht.Contains("payload")) {
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
+                if (dict != null) {
 
                     List<ArrayList> ol = (List<ArrayList>)dict["msgs"];
                     List<Hashtable> nl = new List<Hashtable>();
@@ -947,7 +933,7 @@ namespace com.rtm {
                     dict["msgs"] = nl;
                 }
 
-                callback(ht);
+                callback(cbd);
             }, timeout);
         }
 
@@ -964,16 +950,40 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}               exception
          * @param {Dictionary(token:string,endpoint:string)}   payload
-         * </Hashtable>
+         * </CallbackData>
          */
         public void FileToken(string cmd, List<long> tos, long to, long rid, long gid, int timeout, CallbackDelegate callback) {
 
-            //TODO
+            Dictionary<string, object> payload = new Dictionary<string, object>();
+
+            payload.Add("cmd", cmd);
+
+            if (tos != null && tos.Count > 0) {
+
+                payload.Add("tos", tos);
+            }
+
+            if (to > 0) {
+
+                payload.Add("to", to);
+            }
+
+            if (rid > 0) {
+
+                payload.Add("rid", rid);
+            }
+
+            if (gid > 0) {
+
+                payload.Add("gid", gid);
+            }
+
+            this.Filetoken(payload, callback, timeout);
         }
 
         /**
@@ -993,17 +1003,17 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("bye");
             data.SetPayload(bytes);
 
             RTMClient self = this;
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 self._baseClient.Close();
-            }, 5 * 1000);
+            }, 0);
         }
 
         /**
@@ -1015,12 +1025,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}                callback
          *
          * @callback
-         * @param {Hashtable}                       ht
+         * @param {CallbackData}                    cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}                       exception
          * @param {Dictionary}                      payload
-         * </Hashtable>
+         * </CallbackData>
          */
         public void AddAttrs(Dictionary<string, string> attrs, int timeout, CallbackDelegate callback) {
 
@@ -1036,8 +1046,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("addattrs");
             data.SetPayload(bytes);
 
@@ -1052,12 +1062,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}               exception
          * @param {Dictionary(attrs:List(Hashtable))}    payload
-         * </Hashtable>
+         * </CallbackData>
          *
          * <Hashtable>
          * @param {string}                  ce
@@ -1077,8 +1087,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getattrs");
             data.SetPayload(bytes);
 
@@ -1095,12 +1105,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void AddDebugLog(string msg, string attrs, int timeout, CallbackDelegate callback) {
 
@@ -1117,8 +1127,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("adddebuglog");
             data.SetPayload(bytes);
 
@@ -1135,12 +1145,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void AddDevice(string apptype, string devicetoken, int timeout, CallbackDelegate callback) {
 
@@ -1157,8 +1167,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("adddevice");
             data.SetPayload(bytes);
 
@@ -1174,12 +1184,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void RemoveDevice(string devicetoken, int timeout, CallbackDelegate callback) {
 
@@ -1195,8 +1205,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("removedevice");
             data.SetPayload(bytes);
 
@@ -1212,12 +1222,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void SetTranslationLanguage(string targetLanguage, int timeout, CallbackDelegate callback) {
 
@@ -1233,8 +1243,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("setlang");
             data.SetPayload(bytes);
 
@@ -1252,12 +1262,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}               exception
          * @param {Dictionary(stext:string,src:string,dtext:string,dst:string)}    payload
-         * </Hashtable>
+         * </CallbackData>
          */
         public void Translate(string originalMessage, string originalLanguage, string targetLanguage, int timeout, CallbackDelegate callback) {
 
@@ -1279,8 +1289,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("translate");
             data.SetPayload(bytes);
 
@@ -1296,12 +1306,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void AddFriends(List<long> friends, int timeout, CallbackDelegate callback) {
 
@@ -1317,8 +1327,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("addfriends");
             data.SetPayload(bytes);
 
@@ -1334,12 +1344,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void DeleteFriends(List<long> friends, int timeout, CallbackDelegate callback) {
 
@@ -1355,8 +1365,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("delfriends");
             data.SetPayload(bytes);
 
@@ -1371,12 +1381,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}               exception
          * @param {List(long)}              payload
-         * </Hashtable>
+         * </CallbackData>
          */
         public void GetFriends(int timeout, CallbackDelegate callback) {
 
@@ -1390,30 +1400,28 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getfriends");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
-
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
 
                     return;
                 }
 
-                List<long> ids = new List<long>();
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                if (ht.Contains("payload")) {
+                if (dict != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
-                    ids = (List<long>)dict["uids"];
+                    List<long> ids = (List<long>)dict["uids"];
+                    callback(new CallbackData(ids));
+                    return;
                 }
 
-                ht["payload"] = ids;
-                callback(ht);
+                callback(cbd);
             }, timeout);
         }
 
@@ -1427,12 +1435,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void AddGroupMembers(long gid, List<long> uids, int timeout, CallbackDelegate callback) {
 
@@ -1449,8 +1457,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("addgroupmembers");
             data.SetPayload(bytes);
 
@@ -1467,12 +1475,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void DeleteGroupMembers(long gid, List<long> uids, int timeout, CallbackDelegate callback) {
 
@@ -1489,8 +1497,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("delgroupmembers");
             data.SetPayload(bytes);
 
@@ -1506,12 +1514,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {List(long)}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void GetGroupMembers(long gid, int timeout, CallbackDelegate callback) {
 
@@ -1527,30 +1535,28 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getgroupmembers");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
-
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
 
                     return;
                 }
 
-                List<long> ids = new List<long>();
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                if (ht.Contains("payload")) {
+                if (dict != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
-                    ids = (List<long>)dict["uids"];
+                    List<long> ids = (List<long>)dict["uids"];
+                    callback(new CallbackData(ids));
+                    return;
                 }
 
-                ht["payload"] = ids;
-                callback(ht);
+                callback(cbd);
             }, timeout);
         }
 
@@ -1562,12 +1568,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {List(long)}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void GetUserGroups(int timeout, CallbackDelegate callback) {
 
@@ -1581,30 +1587,28 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getusergroups");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
-
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
 
                     return;
                 }
 
-                List<long> ids = new List<long>();
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                if (ht.Contains("payload")) {
+                if (dict != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
-                    ids = (List<long>)dict["gids"];
+                    List<long> ids = (List<long>)dict["gids"];
+                    callback(new CallbackData(ids));
+                    return;
                 }
 
-                ht["payload"] = ids;
-                callback(ht);
+                callback(cbd);
             }, timeout);
         }
 
@@ -1617,12 +1621,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void EnterRoom(long rid, int timeout, CallbackDelegate callback) {
 
@@ -1638,8 +1642,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("enterroom");
             data.SetPayload(bytes);
 
@@ -1655,12 +1659,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void LeaveRoom(long rid, int timeout, CallbackDelegate callback) {
 
@@ -1676,8 +1680,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("leaveroom");
             data.SetPayload(bytes);
 
@@ -1692,12 +1696,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {List(long)}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void GetUserRooms(int timeout, CallbackDelegate callback) {
 
@@ -1711,30 +1715,28 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getuserrooms");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
-
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
 
                     return;
                 }
 
-                List<long> ids = new List<long>();
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                if (ht.Contains("payload")) {
+                if (dict != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
-                    ids = (List<long>)dict["rooms"];
+                    List<long> ids = (List<long>)dict["rooms"];
+                    callback(new CallbackData(ids));
+                    return;
                 }
 
-                ht["payload"] = ids;
-                callback(ht);
+                callback(cbd);
             }, timeout);
         }
 
@@ -1747,12 +1749,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {List(long)}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void GetOnlineUsers(List<long> uids, int timeout, CallbackDelegate callback) {
 
@@ -1768,30 +1770,30 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("getonlineusers");
             data.SetPayload(bytes);
 
             this.SendQuest(data, callback, timeout);
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
 
                     return;
                 }
 
-                List<long> ids = new List<long>();
+                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
 
-                if (ht.Contains("payload")) {
+                if (dict != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
-                    ids = (List<long>)dict["uids"];
+                    List<long> ids = (List<long>)dict["uids"];
+                    callback(new CallbackData(ids));
+                    return;
                 }
 
-                ht["payload"] = ids;
-                callback(ht);
+                callback(cbd);
             }, timeout);            
         }
 
@@ -1806,12 +1808,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback) {
 
@@ -1829,8 +1831,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("delmsg");
             data.SetPayload(bytes);
 
@@ -1846,12 +1848,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void Kickout(string ce, int timeout, CallbackDelegate callback) {
 
@@ -1867,8 +1869,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("kickout");
             data.SetPayload(bytes);
 
@@ -1884,12 +1886,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Exception}               exception
          * @param {Dictionary(val:String)}  payload
-         * </Hashtable>
+         * </CallbackData>
          */
         public void DBGet(string key, int timeout, CallbackDelegate callback) {
 
@@ -1905,8 +1907,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("dbget");
             data.SetPayload(bytes);
 
@@ -1923,12 +1925,12 @@ namespace com.rtm {
          * @param {CallbackDelegate}        callback
          *
          * @callback
-         * @param {Hashtable}               ht
+         * @param {CallbackData}            cbd
          *
-         * <Hashtable>
+         * <CallbackData>
          * @param {Dictionary}              payload
          * @param {Exception}               exception
-         * </Hashtable>
+         * </CallbackData>
          */
         public void DBSet(string key, string value, int timeout, CallbackDelegate callback) {
 
@@ -1945,8 +1947,8 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("dbset");
             data.SetPayload(bytes);
 
@@ -1977,44 +1979,34 @@ namespace com.rtm {
             byte[] bytes = outputStream.ToArray();
 
             FPData data = new FPData();
-            data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-            data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
             data.SetMethod("auth");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, (Hashtable ht) => {
+            this.SendQuest(data, (cbd) => {
 
-                if (ht.Contains("exception")) {
+                Exception exception = cbd.GetException();
 
-                    Exception ex = (Exception)ht["exception"];
+                if (exception != null) {
 
-                    if (self._onError != null) {
-
-                        self._onError(ex);
-                    }
-
+                    self.GetEvent().FireEvent(new EventData("error", exception));
                     self.Reconnect();
                     return;
                 }
 
-                if (ht.Contains("payload")) {
+                object obj = cbd.GetPayload();
 
-                    bool ok = false;
-                    Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
+                if (obj != null) {
 
-                    if (dict.ContainsKey("ok")) {
+                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
 
-                        ok = Convert.ToBoolean(dict["ok"]);
+                    bool ok = Convert.ToBoolean(dict["ok"]);
 
-                        if (ok) {
+                    if (ok) {
 
-                            if (self._onConnect != null) {
-
-                                self._onConnect();
-                            }
-
-                            return;
-                        }
+                        self.GetEvent().FireEvent(new EventData("login", self._endpoint));
+                        return;
                     }
 
                     if (dict.ContainsKey("gate")) {
@@ -2025,26 +2017,18 @@ namespace com.rtm {
 
                             self._endpoint = gate;
                             self.Reconnect();
-
                             return;
                         }
                     }
 
                     if (!ok) {
 
-                        if (self._onError != null) {
-
-                            self._onError(new Exception("token error!"));
-                        }
-
+                        self.GetEvent().FireEvent(new EventData("login", new Exception("token error!")));
                         return;
                     }
                 }
 
-                if (self._onError != null) {
-
-                    self._onError(new Exception("auth error!"));
-                }
+                self.GetEvent().FireEvent(new EventData("error", new Exception("auth error!")));
             }, timeout);
         }
 
@@ -2052,31 +2036,138 @@ namespace com.rtm {
 
             if (this._baseClient != null) {
 
-                this._baseClient.Close();
+                this._baseClient.Destroy();
             }
-
-            this._baseClient = new BaseClient(this._endpoint, false, timeout);
-            this._baseClient.Processor = this._psr.Processor;
 
             RTMClient self = this;
 
-            this._baseClient.ErrorCallback = this._onError;
-            this._baseClient.ConnectedCallback = delegate() {
+            this._baseClient = new BaseClient(this._endpoint, false, timeout, this._startTimerThread);
+
+            this._baseClient.GetEvent().AddListener("connect", (evd) => {
 
                 self.Auth(timeout);
-            };
-            this._baseClient.ClosedCallback = delegate() {
+            });
 
-                if (this._onClose != null) {
+            this._baseClient.GetEvent().AddListener("close", (evd) => {
 
-                    this._onClose();
-                }
+                self.GetEvent().FireEvent(new EventData("close", !self._isClose && self._reconnect));
 
                 self._endpoint = null;
                 self.Reconnect();
-            };
+            });
 
-            this._baseClient.Connect();
+            this._baseClient.GetEvent().AddListener("error", (evd) => {
+
+                self.GetEvent().FireEvent(new EventData("error", evd.GetException()));
+            });
+
+            this._baseClient.GetProcessor().SetProcessor(this._processor);
+            this._baseClient.EnableConnect();
+        }
+
+        private void FileSendProcess(Hashtable ops, long mid, int timeout, CallbackDelegate callback) {
+
+            Dictionary<string, object> payload = new Dictionary<string, object>();
+
+            payload.Add("cmd", ops["cmd"]);
+
+            if (ops.Contains("tos")) {
+
+                payload.Add("tos", ops["tos"]);
+            }
+
+            if (ops.Contains("to")) {
+
+                payload.Add("to", ops["to"]);
+            }
+
+            if (ops.Contains("rid")) {
+
+                payload.Add("rid", ops["rid"]);
+            }
+
+            if (ops.Contains("gid")) {
+
+                payload.Add("gid", ops["gid"]);
+            }
+
+            RTMClient self = this;
+
+            this.Filetoken(payload, (cbd) => {
+
+                Exception exception = cbd.GetException();
+
+                if (exception != null) {
+
+                    self.GetEvent().FireEvent(new EventData("error", exception));
+                    return;
+                }
+
+                object obj = cbd.GetPayload();
+
+                if (obj != null) {
+
+                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
+
+                    string token = Convert.ToString(dict["token"]);
+                    string endpoint = Convert.ToString(dict["endpoint"]);
+
+                    if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(endpoint)) {
+
+                        self.GetEvent().FireEvent(new EventData("error", new Exception("file token error!")));
+                        return;
+                    }
+
+                    FileClient fileClient = new FileClient(endpoint, timeout, false);
+
+                    dict = new Dictionary<string, object>();
+
+                    dict.Add("pid", self._pid);
+                    dict.Add("mtype", ops["mtype"]);
+                    dict.Add("mid", mid != 0 ? mid : MidGenerator.Gen());
+                    dict.Add("from", self._uid);
+
+                    if (ops.Contains("tos")) {
+
+                        dict.Add("tos", ops["tos"]);
+                    }
+
+                    if (ops.Contains("to")) {
+
+                        dict.Add("to", ops["to"]);
+                    }
+
+                    if (ops.Contains("rid")) {
+
+                        dict.Add("rid", ops["rid"]);
+                    }
+
+                    if (ops.Contains("gid")) {
+
+                        dict.Add("gid", ops["gid"]);
+                    }
+
+                    fileClient.Send(Convert.ToString(ops["cmd"]), (byte[])ops["file"], token, dict, timeout, callback);
+                }
+            }, timeout);
+        }
+
+        private void Filetoken(Dictionary<string, object> payload, CallbackDelegate callback, int timeout) {
+
+            MemoryStream msgpackStream = new MemoryStream();
+
+            MsgPack.Serialize(payload, msgpackStream);
+            msgpackStream.Position = 0; 
+            
+            byte[] bytes = msgpackStream.ToArray();
+
+            FPData data = new FPData();
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
+            data.SetMethod("filetoken");
+            data.SetPayload(bytes);
+
+            this.SendQuest(data, callback, timeout);
         }
 
         private void Reconnect() {
@@ -2096,29 +2187,27 @@ namespace com.rtm {
 
         private class DispatchClient:BaseClient {
 
-			public DispatchClient(string hostport):base(hostport){}
-        	public DispatchClient(string hostport, bool autoReconnect):base(hostport, autoReconnect) {}
-        	public DispatchClient(string hostport, bool autoReconnect, int connectionTimeout):base(hostport, autoReconnect, connectionTimeout) {}
-        	public DispatchClient(string host, int port, bool autoReconnect = true, int connectionTimeout = 5000):base(host, port, autoReconnect, connectionTimeout) {}
+            public DispatchClient(string endpoint, int timeout, bool startTimerThread):base(endpoint, false, timeout, startTimerThread) {}
+            public DispatchClient(string host, int port, int timeout, bool startTimerThread):base(host, port, false, timeout, startTimerThread) {}
 
         	public override void AddListener() {
 
-        		this.ErrorCallback = delegate(Exception e) {
-
-                    Debug.Log(e.Message);
-                };
-
-                this.ConnectedCallback = delegate() {
+                base.GetEvent().AddListener("connect", (evd) => {
 
                     Debug.Log("[DispatchClient] connected!");
-                };
+                });
+
+                base.GetEvent().AddListener("error", (evd) => {
+
+                    Debug.Log(evd.GetException().Message);
+                });
         	}
 
             public void Which(Dictionary<string, object> payload, int timeout, CallbackDelegate callback) {
 
                 if (!base.HasConnect()) {
 
-                    base.Connect();
+                    base.EnableConnect();
                 }
 
                 MemoryStream outputStream = new MemoryStream();
@@ -2129,8 +2218,8 @@ namespace com.rtm {
                 byte[] bytes = outputStream.ToArray();
 
                 FPData data = new FPData();
-                data.SetFlag(FP_FLAG.FP_FLAG_MSGPACK);
-                data.SetMType(FP_MSG_TYPE.FP_MT_TWOWAY);
+                data.SetFlag(0x1);
+                data.SetMtype(0x1);
                 data.SetMethod("which");
                 data.SetPayload(bytes);
 
@@ -2138,134 +2227,187 @@ namespace com.rtm {
         	}
         }
 
+        private class FileClient:BaseClient {
+
+            public FileClient(string endpoint, int timeout, bool startTimerThread):base(endpoint, false, timeout, startTimerThread) {}
+            public FileClient(string host, int port, int timeout, bool startTimerThread):base(host, port, false, timeout, startTimerThread) {}
+
+            public override void AddListener() {
+
+                base.GetEvent().AddListener("connect", (evd) => {
+
+                    Debug.Log("[FileClient] connected!");
+                });
+
+                base.GetEvent().AddListener("close", (evd) => {
+
+                    Debug.Log("[FileClient] closed!");
+                });
+
+                base.GetEvent().AddListener("error", (evd) => {
+
+                    Debug.Log(evd.GetException().Message);
+                });
+            }
+
+            public void Send(string method, byte[] fileBytes, string token, Dictionary<string, object> payload, int timeout, CallbackDelegate callback) {
+
+                String fileMd5 = base.CalcMd5(fileBytes, false);
+                String sign = base.CalcMd5(fileMd5 + ":" + token, false);
+
+                if (string.IsNullOrEmpty(sign)) {
+
+                    base.GetEvent().FireEvent(new EventData("error", new Exception("wrong sign!")));
+                    return;
+                }
+
+                if (!base.HasConnect()) {
+
+                    base.EnableConnect();
+                }
+
+                Dictionary<string, string> attrs = new Dictionary<string, string>();
+                attrs.Add("sign", sign);
+
+                MemoryStream jsonStream = new MemoryStream();
+                Json.Serialize(attrs, jsonStream);
+
+                string jsonStr = System.Text.Encoding.UTF8.GetString(jsonStream.ToArray());
+
+                payload.Add("token", token);
+                payload.Add("file", fileBytes);
+                payload.Add("attrs", jsonStr);
+
+                long mid = (long)Convert.ToInt64(payload["mid"]);
+
+                MemoryStream msgpackStream = new MemoryStream();
+
+                MsgPack.Serialize(payload, msgpackStream);
+                msgpackStream.Position = 0; 
+
+                byte[] bytes = msgpackStream.ToArray();
+
+                FPData data = new FPData();
+                data.SetFlag(0x1);
+                data.SetMtype(0x1);
+                data.SetMethod(method);
+                data.SetPayload(bytes);
+
+                FileClient self = this;
+
+                base.SendQuest(data, base.QuestCallback((cbd) => {
+
+                    cbd.SetMid(mid);
+                    self.Destroy();
+
+                    if (callback != null) {
+
+                        callback(cbd);
+                    }
+                }), timeout);
+            }
+        }
+
         private class BaseClient:FPClient {
 
-        	public BaseClient(string hostport):base(hostport) {
+            public BaseClient(string endpoint, bool reconnect, int timeout, bool startTimerThread):base(endpoint, reconnect, timeout) {
 
-        		this.AddListener();
-        	}
+                if (startTimerThread) {
 
-        	public BaseClient(string hostport, bool autoReconnect):base(hostport, autoReconnect) {
+                    ThreadPool.Instance.StartTimerThread();
+                }
 
-        		this.AddListener();
-        	}
+                this.AddListener();
+            }
 
-        	public BaseClient(string hostport, bool autoReconnect, int connectionTimeout):base(hostport, autoReconnect, connectionTimeout) {
+            public BaseClient(string host, int port, bool reconnect, int timeout, bool startTimerThread):base(host, port, reconnect, timeout) {
 
-        		this.AddListener();
-        	}
+                if (startTimerThread) {
 
-        	public BaseClient(string host, int port, bool autoReconnect = true, int connectionTimeout = 5000):base(host, port, autoReconnect, connectionTimeout) {
+                    ThreadPool.Instance.StartTimerThread();
+                }
 
-        		this.AddListener();
-        	}
+                this.AddListener();
+            }
 
         	public virtual void AddListener() {}
 
-            protected virtual void OnSecond(int timestamp) {
+            public void EnableConnect() {
 
+                base.Connect();
             }
 
-        	private Exception CheckException(Dictionary<string, object> dict) {
+            public string CalcMd5(string str, bool upper) {
 
-	            if (dict.ContainsKey("ex") && dict.ContainsKey("code")) {
+                byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(str);
+                return CalcMd5(inputBytes, upper);
+            }
 
-	                int errorCode = Convert.ToInt32(dict["code"]);
-	                string errorMsg = Convert.ToString(errorCode) + " : " + dict["ex"];
+            public string CalcMd5(byte[] bytes, bool upper) {
 
-	                return new Exception(errorMsg);
-	            }
+                MD5 md5 = System.Security.Cryptography.MD5.Create();
+                byte[] hash = md5.ComputeHash(bytes);
+                
+                string f = "x2";
 
-	            return null;
-	        }
+                if (upper) {
 
-        	private Hashtable CheckFPCallback(CallbackData cbd) {
-
-        		bool isAnswerException = false;
-                Hashtable result = new Hashtable();
-
-        		if (cbd.Exception != null) {
-
-        			result.Add("exception", cbd.Exception);
-        			return result;
+                    f = "X2";
                 }
 
-                FPData data = cbd.Data;
+                StringBuilder sb = new StringBuilder();
+
+                for (int i = 0; i < hash.Length; i++) {
+
+                    sb.Append(hash[i].ToString(f));
+                }
+
+                return sb.ToString();
+            }
+
+        	private void CheckFPCallback(CallbackData cbd) {
+
+                bool isAnswerException = false;
+                FPData data = cbd.GetData();
                 Dictionary<string, object> payload = null;
 
-                if (data.payload != null) {
+                if (data != null) {
 
-            		MemoryStream inputStream = new MemoryStream(data.payload);
+                	if (data.GetFlag() == 0) {
 
-                	if ((data.flag & Convert.ToByte(FP_FLAG.FP_FLAG_JSON)) != 0) {
-
-                		payload = Json.Deserialize<Dictionary<string, object>>(inputStream);
+                		payload = Json.Deserialize<Dictionary<string, object>>(data.JsonPayload());
                 	}
 
-                	if ((data.flag & Convert.ToByte(FP_FLAG.FP_FLAG_MSGPACK)) != 0) {
+                	if (data.GetFlag() == 1) {
 
+                        MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
 		                payload = MsgPack.Deserialize<Dictionary<string, object>>(inputStream);
                 	}
 
-                	if (data.IsAnswer()) {
+                	if (base.GetPackage().IsAnswer(data)) {
 
-                		isAnswerException = data.ss != 0;
+                		isAnswerException = data.GetSS() != 0;
                 	}
                 }
 
-                if (isAnswerException) {
-
-                	cbd.Exception = CheckException(payload);
-                    result.Add("exception", cbd.Exception);
-                    return result;
-                }
-                	
-            	result.Add("payload", payload);
-                return result;
+                cbd.CheckException(isAnswerException, payload);
         	}
 
-        	public FPCallback QuestCallback(CallbackDelegate callback) {
+        	public CallbackDelegate QuestCallback(CallbackDelegate callback) {
 
         		BaseClient self = this;
 
-        		return (CallbackData cbd) => {
+        		return (cbd) => {
 
         			if (callback == null) {
 
         				return;
         			}
 
-    				callback(self.CheckFPCallback(cbd));
+                    self.CheckFPCallback(cbd);
+    				callback(cbd);
 	            };
         	}
-
-        	public string CalcMd5(string str, bool upper) {
-
-	            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(str);
-	            return CalcMd5(inputBytes, upper);
-	        }
-
-	        public string CalcMd5(byte[] bytes, bool upper) {
-
-	            MD5 md5 = System.Security.Cryptography.MD5.Create();
-	            byte[] hash = md5.ComputeHash(bytes);
-	            
-	            string f = "x2";
-
-	            if (upper) {
-
-	                f = "X2";
-	            }
-
-	            StringBuilder sb = new StringBuilder();
-
-				for (int i = 0; i < hash.Length; i++) {
-
-					sb.Append(hash[i].ToString(f));
-				}
-
-				return sb.ToString();
-	        }
         }
     }
 }

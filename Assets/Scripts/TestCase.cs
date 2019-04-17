@@ -19,37 +19,47 @@ namespace com.test {
                 "52.83.245.22:13325",
                 1000012,
                 654321,
-                "BC53223CC192F2F14B63216A92A8CDB3",
+                "3993142515BD88A7156629A3AE550B9B",
                 null,
                 new Dictionary<string, string>(),
                 true,
-                20 * 1000
+                20 * 1000,
+                true
 	        );
 
-			this._client.GetProcessor().AddPushListener(RTMConfig.SERVER_PUSH.recvPing, (dict) => {
+	        RTMProcessor processor = this._client.GetProcessor();
+
+			processor.GetEvent().AddListener(RTMConfig.SERVER_PUSH.recvPing, (evd) => {
 
 				MemoryStream jsonStream = new MemoryStream();
-                Json.Serialize(dict, jsonStream);
+                Json.Serialize((Dictionary<string, object>)evd.GetPayload(), jsonStream);
 
 	        	Debug.Log("[PUSH] ping: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
             });
 
-	        this._client.ErrorCallback = delegate(Exception e) {
+            this._client.GetEvent().AddListener("login", (evd) => {
 
-                Debug.Log("TestCase error: " + e.Message);
-            };
+            	Exception ex = evd.GetException();
 
-            this._client.ClosedCallback = delegate() {
+            	if (ex != null) {
 
-                Debug.Log("TestCase closed!");
-            };
+            		Debug.Log("TestCase connect err: " + ex.Message);
+            	} else {
 
-            this._client.ConnectedCallback = delegate() {
+	            	Debug.Log("TestCase connect!");
+	            	OnLogin();
+            	}
+            });
 
-            	Debug.Log("TestCase connect!");
+            this._client.GetEvent().AddListener("close", (evd) => {
 
-            	onLogin();
-            };
+            	Debug.Log("TestCase closed!");
+            });
+
+            this._client.GetEvent().AddListener("error", (evd) => {
+
+            	Debug.Log("TestCase error: " + evd.GetException().Message);
+            });
 
             this._client.Login(null, false);
 		}
@@ -59,7 +69,7 @@ namespace com.test {
 			this._client.Destroy();
 		}
 
-		private void onLogin() {
+		private void OnLogin() {
 
 			long to = 778899;
 			long gid = 999;
@@ -73,23 +83,21 @@ namespace com.test {
 
 			//rtmGate (2)
 	        //---------------------------------SendMessage--------------------------------------
-	        this._client.SendMessage(to, (byte) 8, "hello !", "", 0, timeout, (Hashtable ht) => {
+	        this._client.SendMessage(to, (byte) 8, "hello !", "", 0, timeout, (cbd) => {
 
+	        	object obj = cbd.GetPayload();
 
-	        	if (ht.Contains("exception")) {
+	        	if (obj != null) {
 
-	        		Exception ex = (Exception)ht["exception"];
-	        		Debug.Log("[ERR] SendMessage: " + ex.Message);
-	        	}
-
-	        	if (ht.Contains("payload")) {
-
-	        		Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
+	        		Dictionary<string, object> dict = (Dictionary<string, object>)obj;
 
                     MemoryStream jsonStream = new MemoryStream();
                     Json.Serialize(dict, jsonStream);
 
-	        		Debug.Log("[DATA] SendMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()) + ", mid: " + ht["mid"]);
+	        		Debug.Log("[DATA] SendMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()) + ", mid: " + cbd.GetMid());
+	        	} else {
+
+	        		Debug.Log("[ERR] SendMessage: " + cbd.GetException().Message);
 	        	}
 	        });
 
@@ -97,23 +105,21 @@ namespace com.test {
 
 			//rtmGate (3)
 	        //---------------------------------SendGroupMessage--------------------------------------
-	        this._client.SendGroupMessage(gid, (byte) 8, "hello !", "", 0, timeout, (Hashtable ht) => {
+	        this._client.SendGroupMessage(gid, (byte) 8, "hello !", "", 0, timeout, (cbd) => {
 
+	        	object obj = cbd.GetPayload();
 
-	        	if (ht.Contains("exception")) {
+	        	if (obj != null) {
 
-	        		Exception ex = (Exception)ht["exception"];
-	        		Debug.Log("[ERR] SendGroupMessage: " + ex.Message);
-	        	}
-
-	        	if (ht.Contains("payload")) {
-
-	        		Dictionary<string, object> dict = (Dictionary<string, object>)ht["payload"];
+	        		Dictionary<string, object> dict = (Dictionary<string, object>)obj;
 
                     MemoryStream jsonStream = new MemoryStream();
                     Json.Serialize(dict, jsonStream);
 
-	        		Debug.Log("[DATA] SendGroupMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()) + ", mid: " + ht["mid"]);
+	        		Debug.Log("[DATA] SendGroupMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()) + ", mid: " + cbd.GetMid());
+	        	} else {
+
+	        		Debug.Log("[ERR] SendGroupMessage: " + cbd.GetException().Message);
 	        	}
 	        });
 		}
