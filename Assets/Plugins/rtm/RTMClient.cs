@@ -33,6 +33,8 @@ namespace com.rtm {
 
                     StringBuilder sb = new StringBuilder(20);
 
+                    sb.Append(Convert.ToString(ThreadPool.Instance.GetMilliTimestamp()));
+
                     if (c < 100) {
 
                         sb.Append("0");
@@ -45,7 +47,7 @@ namespace com.rtm {
 
                     sb.Append(Convert.ToString(c));
 
-                    return Convert.ToInt64(Convert.ToString(ThreadPool.Instance.GetMilliTimestamp()) + sb.ToString());
+                    return Convert.ToInt64(sb.ToString());
                 }
             }
         }
@@ -2176,7 +2178,7 @@ namespace com.rtm {
             });
 
             this._baseClient.GetProcessor().SetProcessor(this._processor);
-            this._baseClient.EnableConnect();
+            this._baseClient.Connect();
         }
 
         private void FileSendProcess(Hashtable ops, long mid, int timeout, CallbackDelegate callback) {
@@ -2321,7 +2323,7 @@ namespace com.rtm {
 
                 if (!base.HasConnect()) {
 
-                    base.EnableConnect();
+                    base.Connect();
                 }
 
                 MemoryStream outputStream = new MemoryStream();
@@ -2377,7 +2379,7 @@ namespace com.rtm {
 
                 if (!base.HasConnect()) {
 
-                    base.EnableConnect();
+                    base.Connect();
                 }
 
                 Dictionary<string, string> attrs = new Dictionary<string, string>();
@@ -2445,11 +2447,6 @@ namespace com.rtm {
             }
 
         	public virtual void AddListener() {}
-
-            public void EnableConnect() {
-
-                base.Connect();
-            }
 
             public string CalcMd5(string str, bool upper) {
 
