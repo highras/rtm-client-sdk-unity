@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -241,18 +242,21 @@ namespace com.rtm {
 
 	    private bool CheckMid(int type, long mid, long uid, long rgid) {
 
-	        string key = Convert.ToString(type);
+	        StringBuilder sb = new StringBuilder(50);
 
-	        key = key + "_";
-	        key = key + Convert.ToString(mid);
-	        key = key + "_";
-	        key = key + Convert.ToString(uid);
+	        sb.Append(Convert.ToString(type));
+	        sb.Append("_");
+	        sb.Append(Convert.ToString(mid));
+	        sb.Append("_");
+	        sb.Append(Convert.ToString(uid));
 
 	        if (rgid > 0) {
 
-	            key = key + "_";
-	            key = key + Convert.ToString(rgid);
+		        sb.Append("_");
+		        sb.Append(Convert.ToString(rgid));
 	        }
+
+	        string key = sb.ToString();
 
 	        lock(this._midMap) {
 

@@ -31,19 +31,21 @@ namespace com.rtm {
 
                     c = Count;
 
-                    string strFix = Convert.ToString(c);
+                    StringBuilder sb = new StringBuilder(20);
 
                     if (c < 100) {
 
-                        strFix = "0" + strFix;
+                        sb.Append("0");
                     }
 
                     if (c < 10) {
 
-                        strFix = "0" + strFix;
+                        sb.Append("0");
                     }
 
-                    return Convert.ToInt64(Convert.ToString(ThreadPool.Instance.GetMilliTimestamp()) + strFix);
+                    sb.Append(Convert.ToString(c));
+
+                    return Convert.ToInt64(Convert.ToString(ThreadPool.Instance.GetMilliTimestamp()) + sb.ToString());
                 }
             }
         }

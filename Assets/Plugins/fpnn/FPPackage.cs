@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Collections;
 
 // using UnityEngine;
@@ -10,7 +11,12 @@ namespace com.fpnn {
 
 		public string GetKeyCallback(FPData data) {
 
-	        return "FPNN_" + Convert.ToString(data.GetSeq());
+			StringBuilder sb = new StringBuilder(10);
+
+			sb.Append("FPNN_");
+			sb.Append(Convert.ToString(data.GetSeq()));
+
+	        return sb.ToString();
 	    }
 
 	    public bool IsHttp(FPData data) {

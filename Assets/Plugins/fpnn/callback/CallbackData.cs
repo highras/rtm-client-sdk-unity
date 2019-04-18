@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -69,10 +70,13 @@ namespace com.fpnn {
 
 	            if (data.ContainsKey("code") && data.ContainsKey("ex")) {
 
-	                int errorCode = Convert.ToInt32(data["code"]);
-	                string errorMsg = Convert.ToString(errorCode) + " : " + data["ex"];
+	            	StringBuilder sb = new StringBuilder(30);
 
-	                this._exception = new Exception(errorMsg);
+	            	sb.Append(Convert.ToString(data["code"]));
+	            	sb.Append(" : ");
+	            	sb.Append(Convert.ToString(data["ex"]));
+
+	                this._exception = new Exception(sb.ToString());
 	            }
 	        }
 
