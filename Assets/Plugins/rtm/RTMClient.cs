@@ -60,7 +60,7 @@ namespace com.rtm {
         private long _uid;
         private string _token;
         private string _version;
-        private Dictionary<String, String> _attrs;
+        private Dictionary<string, string> _attrs;
         private bool _reconnect;
         private int _timeout;
 
