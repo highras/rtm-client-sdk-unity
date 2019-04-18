@@ -1775,8 +1775,6 @@ namespace com.rtm {
             data.SetMethod("getonlineusers");
             data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
-
             this.SendQuest(data, (cbd) => {
 
                 if (callback == null) {
@@ -1953,6 +1951,120 @@ namespace com.rtm {
             data.SetPayload(bytes);
 
             this.SendQuest(data, callback, timeout);
+        }
+
+        /**
+         *
+         * fileGate (1)
+         *
+         * @param {byte}                    mtype
+         * @param {long}                    to
+         * @param {byte[]}                  fileBytes
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Dictionary(mtime:long)}  payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendFile(byte mtype, long to, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback) {
+
+            if (fileBytes == null || fileBytes.Length <= 0) {
+
+                this.GetEvent().FireEvent(new EventData("error", new Exception("empty file bytes!")));
+                return;
+            }
+
+            Hashtable ops = new Hashtable();
+
+            ops.Add("cmd", "sendfile");
+            ops.Add("to", to);
+            ops.Add("mtype", mtype);
+            ops.Add("file", fileBytes);
+
+            this.FileSendProcess(ops, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * fileGate (3)
+         *
+         * @param {byte}                    mtype
+         * @param {long}                    gid
+         * @param {byte[]}                  fileBytes
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Dictionary(mtime:long)}  payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendGroupFile(byte mtype, long gid, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback) {
+
+            if (fileBytes == null || fileBytes.Length <= 0) {
+
+                this.GetEvent().FireEvent(new EventData("error", new Exception("empty file bytes!")));
+                return;
+            }
+
+            Hashtable ops = new Hashtable();
+
+            ops.Add("cmd", "sendgroupfile");
+            ops.Add("gid", gid);
+            ops.Add("mtype", mtype);
+            ops.Add("file", fileBytes);
+
+            this.FileSendProcess(ops, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * fileGate (4)
+         *
+         * @param {byte}                    mtype
+         * @param {long}                    rid
+         * @param {byte[]}                  fileBytes
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Dictionary(mtime:long)}  payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendRoomFile(byte mtype, long rid, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback) {
+
+            if (fileBytes == null || fileBytes.Length <= 0) {
+
+                this.GetEvent().FireEvent(new EventData("error", new Exception("empty file bytes!")));
+                return;
+            }
+
+            Hashtable ops = new Hashtable();
+
+            ops.Add("cmd", "sendroomfile");
+            ops.Add("rid", rid);
+            ops.Add("mtype", mtype);
+            ops.Add("file", fileBytes);
+
+            this.FileSendProcess(ops, mid, timeout, callback);
         }
 
         /**
