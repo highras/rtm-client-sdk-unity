@@ -5,87 +5,87 @@ using System.Collections.Generic;
 
 namespace com.fpnn {
 
-	public class CallbackData {
+    public class CallbackData {
 
-		private FPData _data = null;
+        private FPData _data = null;
 
-		public FPData GetData() {
+        public FPData GetData() {
 
-	        return this._data;
-	    }
+            return this._data;
+        }
 
-	    public CallbackData(FPData data) {
+        public CallbackData(FPData data) {
 
-	        this._data = data;
-	    }
-
-
-	    private Exception _exception = null;
-
-	    public Exception GetException() {
-
-	        return this._exception;
-	    }
-
-	    public CallbackData(Exception ex) {
-
-	        this._exception = ex;
-	    }
+            this._data = data;
+        }
 
 
-	    private long _mid = 0;
+        private Exception _exception = null;
 
-	    public long GetMid() {
+        public Exception GetException() {
 
-	        return this._mid;
-	    }
+            return this._exception;
+        }
 
-	    public void SetMid(long value) {
+        public CallbackData(Exception ex) {
 
-	        this._mid = value;
-	    }
-
-
-	    private object _payload = null;
-
-	    public object GetPayload() {
-
-	        return this._payload;
-	    }
-
-	    public CallbackData(object payload) {
-
-	        this._payload = payload;
-	    }
+            this._exception = ex;
+        }
 
 
-	    public void CheckException(bool isAnswerException, Dictionary<string, object> data) {
+        private long _mid = 0;
 
-	        if (data == null && this._exception == null) {
+        public long GetMid() {
 
-	            this._exception = new Exception("data is null!");
-	        }
+            return this._mid;
+        }
 
-	        if (this._exception == null && isAnswerException) {
+        public void SetMid(long value) {
 
-	            if (data.ContainsKey("code") && data.ContainsKey("ex")) {
+            this._mid = value;
+        }
 
-	            	StringBuilder sb = new StringBuilder(30);
 
-	            	sb.Append(Convert.ToString(data["code"]));
-	            	sb.Append(" : ");
-	            	sb.Append(Convert.ToString(data["ex"]));
+        private object _payload = null;
 
-	                this._exception = new Exception(sb.ToString());
-	            }
-	        }
+        public object GetPayload() {
 
-	        if (this._exception == null) {
+            return this._payload;
+        }
 
-	            this._payload = data;
-	        }
+        public CallbackData(object payload) {
 
-	        this._data = null;
-	    }
-	}
+            this._payload = payload;
+        }
+
+
+        public void CheckException(bool isAnswerException, Dictionary<string, object> data) {
+
+            if (data == null && this._exception == null) {
+
+                this._exception = new Exception("data is null!");
+            }
+
+            if (this._exception == null && isAnswerException) {
+
+                if (data.ContainsKey("code") && data.ContainsKey("ex")) {
+
+                    StringBuilder sb = new StringBuilder(30);
+
+                    sb.Append(Convert.ToString(data["code"]));
+                    sb.Append(" : ");
+                    sb.Append(Convert.ToString(data["ex"]));
+
+                    this._exception = new Exception(sb.ToString());
+                }
+            }
+
+            if (this._exception == null) {
+
+                this._payload = data;
+            }
+
+            this._data = null;
+        }
+    }
 }

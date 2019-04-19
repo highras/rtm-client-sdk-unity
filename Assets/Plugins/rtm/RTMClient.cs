@@ -2306,7 +2306,7 @@ namespace com.rtm {
             public DispatchClient(string endpoint, int timeout, bool startTimerThread):base(endpoint, false, timeout, startTimerThread) {}
             public DispatchClient(string host, int port, int timeout, bool startTimerThread):base(host, port, false, timeout, startTimerThread) {}
 
-        	public override void AddListener() {
+            public override void AddListener() {
 
                 base.GetEvent().AddListener("connect", (evd) => {
 
@@ -2317,7 +2317,7 @@ namespace com.rtm {
 
                     Debug.Log(evd.GetException().Message);
                 });
-        	}
+            }
 
             public void Which(Dictionary<string, object> payload, int timeout, CallbackDelegate callback) {
 
@@ -2340,7 +2340,7 @@ namespace com.rtm {
                 data.SetPayload(bytes);
 
                 base.SendQuest(data, base.QuestCallback(callback), timeout);
-        	}
+            }
         }
 
         private class FileClient:BaseClient {
@@ -2446,7 +2446,7 @@ namespace com.rtm {
                 this.AddListener();
             }
 
-        	public virtual void AddListener() {}
+            public virtual void AddListener() {}
 
             public string CalcMd5(string str, bool upper) {
 
@@ -2476,7 +2476,7 @@ namespace com.rtm {
                 return sb.ToString();
             }
 
-        	private void CheckFPCallback(CallbackData cbd) {
+            private void CheckFPCallback(CallbackData cbd) {
 
                 bool isAnswerException = false;
                 FPData data = cbd.GetData();
@@ -2484,41 +2484,41 @@ namespace com.rtm {
 
                 if (data != null) {
 
-                	if (data.GetFlag() == 0) {
+                    if (data.GetFlag() == 0) {
 
-                		payload = Json.Deserialize<Dictionary<string, object>>(data.JsonPayload());
-                	}
+                        payload = Json.Deserialize<Dictionary<string, object>>(data.JsonPayload());
+                    }
 
-                	if (data.GetFlag() == 1) {
+                    if (data.GetFlag() == 1) {
 
                         MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
-		                payload = MsgPack.Deserialize<Dictionary<string, object>>(inputStream);
-                	}
+                        payload = MsgPack.Deserialize<Dictionary<string, object>>(inputStream);
+                    }
 
-                	if (base.GetPackage().IsAnswer(data)) {
+                    if (base.GetPackage().IsAnswer(data)) {
 
-                		isAnswerException = data.GetSS() != 0;
-                	}
+                        isAnswerException = data.GetSS() != 0;
+                    }
                 }
 
                 cbd.CheckException(isAnswerException, payload);
-        	}
+            }
 
-        	public CallbackDelegate QuestCallback(CallbackDelegate callback) {
+            public CallbackDelegate QuestCallback(CallbackDelegate callback) {
 
-        		BaseClient self = this;
+                BaseClient self = this;
 
-        		return (cbd) => {
+                return (cbd) => {
 
-        			if (callback == null) {
+                    if (callback == null) {
 
-        				return;
-        			}
+                        return;
+                    }
 
                     self.CheckFPCallback(cbd);
-    				callback(cbd);
-	            };
-        	}
+                    callback(cbd);
+                };
+            }
         }
     }
 }

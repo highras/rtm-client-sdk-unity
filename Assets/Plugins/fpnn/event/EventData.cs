@@ -1,84 +1,84 @@
 using System;
 
 namespace com.fpnn {
-	
-	public class EventData {	
+    
+    public class EventData {    
 
-		private string _type;
+        private string _type;
 
-		public string GetType() {
+        public string GetType() {
 
-	        return this._type;
-	    }
+            return this._type;
+        }
 
-		public EventData(string type) {
+        public EventData(string type) {
 
-			this._type = type;
-		}
+            this._type = type;
+        }
 
-		private FPData _data = null;
+        private FPData _data = null;
 
-		public FPData GetData() {
+        public FPData GetData() {
 
-	        return this._data;
-	    }
+            return this._data;
+        }
 
-	    public EventData(string type, FPData data) {
+        public EventData(string type, FPData data) {
 
-	        this._type = type;
-	        this._data = data;
-	    }
+            this._type = type;
+            this._data = data;
+        }
 
-	    private Exception _exception = null;
+        private Exception _exception = null;
 
-	    public Exception GetException() {
+        public Exception GetException() {
 
-	        return this._exception;
-	    }
+            return this._exception;
+        }
 
-	    public EventData(string type, Exception ex) {
+        public EventData(string type, Exception ex) {
 
-	        this._type = type;
-	        this._exception = ex;
-	    }
+            this._type = type;
+            this._exception = ex;
+        }
 
-	    private long _timestamp = 0;
+        private long _timestamp = 0;
 
-	    public long GetTimestamp() {
+        public long GetTimestamp() {
 
-	        return this._timestamp;
-	    }
+            return this._timestamp;
+        }
 
-	    public EventData(string type, long timestamp) {
+        public EventData(string type, long timestamp) {
 
-	        this._type = type;
-	        this._timestamp = timestamp;
-	    }
+            this._type = type;
+            this._timestamp = timestamp;
+        }
 
-	    private Object _payload;
+        private Object _payload;
 
-	    public Object GetPayload() {
+        public Object GetPayload() {
 
-	        return this._payload;
-	    }
+            return this._payload;
+        }
 
-	    public EventData(string type, Object payload) {
+        public EventData(string type, Object payload) {
 
-	        this._type = type;
-	        this._payload = payload;
-	    }
+            this._type = type;
+            this._payload = payload;
+        }
 
-	    private bool _retry;
+        private bool _retry;
 
-	    public bool HasRetry() {
+        public bool HasRetry() {
 
-	        return this._retry;
-	    }
+            return this._retry;
+        }
 
-	    public EventData(string type, bool retry) {
+        public EventData(string type, bool retry) {
 
-	        this._type = type;
-	        this._retry = retry;
-	    }
-	}
+            this._type = type;
+            this._retry = retry;
+        }
+    }
 }
