@@ -64,7 +64,7 @@ namespace com.rtm {
         private long _uid;
         private string _token;
         private string _version;
-        private Dictionary<string, string> _attrs;
+        private IDictionary<string, string> _attrs;
         private bool _reconnect;
         private int _timeout;
 
@@ -85,12 +85,12 @@ namespace com.rtm {
          * @param {long}                        uid
          * @param {string}                      token
          * @param {string}                      version
-         * @param {Dictionary(string,string)}   attrs
+         * @param {IDictionary(string,string)}  attrs
          * @param {bool}                        reconnect
          * @param {int}                         timeout
          * @param {bool}                        startTimerThread
          */
-        public RTMClient(string dispatch, int pid, long uid, string token, string version, Dictionary<string, string> attrs, bool reconnect, int timeout, bool startTimerThread) {
+        public RTMClient(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool startTimerThread) {
 
             this._dispatch = dispatch;
             this._pid = pid;
@@ -209,7 +209,7 @@ namespace com.rtm {
                 });
             }
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("pid", this._pid);
             payload.Add("uid", this._uid);
@@ -219,7 +219,7 @@ namespace com.rtm {
 
             this._dispatchClient.Which(payload, this._timeout, (cbd) => {
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
@@ -251,7 +251,7 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary(mtime:long)}  payload 
+         * @param {IDictionary(mtime:long)} payload 
          * @param {Exception}               exception
          * @param {long}                    mid
          * </CallbackData>
@@ -263,7 +263,7 @@ namespace com.rtm {
                 mid = MidGenerator.Gen();
             }
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("to", to);
             payload.Add("mid", mid);
@@ -311,7 +311,7 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary(mtime:long)}  payload 
+         * @param {IDictionary(mtime:long)} payload 
          * @param {Exception}               exception
          * @param {long}                    mid
          * </CallbackData>
@@ -323,7 +323,7 @@ namespace com.rtm {
                 mid = MidGenerator.Gen();
             }
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("gid", gid);
             payload.Add("mid", mid);
@@ -371,7 +371,7 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary(mtime:long)}  payload 
+         * @param {IDictionary(mtime:long)} payload 
          * @param {Exception}               exception
          * @param {long}                    mid
          * </CallbackData>
@@ -383,7 +383,7 @@ namespace com.rtm {
                 mid = MidGenerator.Gen();
             }
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("rid", rid);
             payload.Add("mid", mid);
@@ -428,12 +428,12 @@ namespace com.rtm {
          * <CallbackData>
          * @param {long}                    mid
          * @param {Exception}               exception
-         * @param {Dictionary(p2p:Dictionary(String,int),group:Dictionary(String,int))} payload
+         * @param {IDictionary(p2p:IDictionary(String,int),group:IDictionary(String,int))} payload
          * </CallbackData>
          */
         public void GetUnreadMessage(int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             MemoryStream outputStream = new MemoryStream();
 
@@ -462,14 +462,14 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * @param {long}                    mid
          * </CallbackData>
          */
         public void CleanUnreadMessage(int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             MemoryStream outputStream = new MemoryStream();
 
@@ -500,12 +500,12 @@ namespace com.rtm {
          * <CallbackData>
          * @param {long}                    mid
          * @param {Exception}               exception
-         * @param {Dictionary(p2p:Map(String,long),Dictionary:Map(String,long))}    payload
+         * @param {IDictionary(p2p:Map(String,long),IDictionary:Map(String,long))}    payload
          * </CallbackData>
          */
         public void GetSession(int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             MemoryStream outputStream = new MemoryStream();
 
@@ -541,7 +541,7 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(GroupMsg))} payload
+         * @param {IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(GroupMsg))} payload
          * </CallbackData>
          *
          * <GroupMsg>
@@ -557,7 +557,7 @@ namespace com.rtm {
          */
         public void GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("gid", gid);
             payload.Add("desc", desc);
@@ -598,14 +598,14 @@ namespace com.rtm {
                     return;
                 }
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
-                    List<ArrayList> ol = (List<ArrayList>)dict["msgs"];
+                    List<object> ol = (List<object>)dict["msgs"];
                     List<Hashtable> nl = new List<Hashtable>();
 
-                    foreach (ArrayList items in ol) {
+                    foreach (List<object> items in ol) {
 
                         Hashtable map = new Hashtable();
 
@@ -646,7 +646,7 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(RoomMsg))} payload
+         * @param {IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(RoomMsg))} payload
          * </CallbackData>
          *
          * <RoomMsg>
@@ -662,7 +662,7 @@ namespace com.rtm {
          */
         public void GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("rid", rid);
             payload.Add("desc", desc);
@@ -703,14 +703,14 @@ namespace com.rtm {
                     return;
                 }
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
-                    List<ArrayList> ol = (List<ArrayList>)dict["msgs"];
+                    List<object> ol = (List<object>)dict["msgs"];
                     List<Hashtable> nl = new List<Hashtable>();
 
-                    foreach (ArrayList items in ol) {
+                    foreach (List<object> items in ol) {
 
                         Hashtable map = new Hashtable();
 
@@ -750,7 +750,7 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(BroadcastMsg))} payload
+         * @param {IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(BroadcastMsg))} payload
          * </CallbackData>
          *
          * <BroadcastMsg>
@@ -766,7 +766,7 @@ namespace com.rtm {
          */
         public void GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("desc", desc);
             payload.Add("num", num);
@@ -806,14 +806,14 @@ namespace com.rtm {
                     return;
                 }
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
-                    List<ArrayList> ol = (List<ArrayList>)dict["msgs"];
+                    List<object> ol = (List<object>)dict["msgs"];
                     List<Hashtable> nl = new List<Hashtable>();
 
-                    foreach (ArrayList items in ol) {
+                    foreach (List<object> items in ol) {
 
                         Hashtable map = new Hashtable();
 
@@ -854,7 +854,7 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(P2PMsg))} payload
+         * @param {IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(P2PMsg))} payload
          * </CallbackData>
          *
          * <P2PMsg>
@@ -870,7 +870,7 @@ namespace com.rtm {
          */
         public void GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("ouid", ouid);
             payload.Add("desc", desc);
@@ -911,14 +911,14 @@ namespace com.rtm {
                     return;
                 }
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
-                    List<ArrayList> ol = (List<ArrayList>)dict["msgs"];
+                    List<object> ol = (List<object>)dict["msgs"];
                     List<Hashtable> nl = new List<Hashtable>();
 
-                    foreach (ArrayList items in ol) {
+                    foreach (List<object> items in ol) {
 
                         Hashtable map = new Hashtable();
 
@@ -958,12 +958,12 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {Dictionary(token:string,endpoint:string)}   payload
+         * @param {IDictionary(token:string,endpoint:string)}   payload
          * </CallbackData>
          */
         public void FileToken(string cmd, List<long> tos, long to, long rid, long gid, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("cmd", cmd);
 
@@ -997,7 +997,7 @@ namespace com.rtm {
 
             this._isClose = true;
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             MemoryStream outputStream = new MemoryStream();
 
@@ -1024,7 +1024,7 @@ namespace com.rtm {
          *
          * rtmGate (14)
          *
-         * @param {Dictionary(string,string)}       attrs
+         * @param {IDictionary(string,string)}      attrs
          * @param {int}                             timeout
          * @param {CallbackDelegate}                callback
          *
@@ -1033,12 +1033,12 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}                       exception
-         * @param {Dictionary}                      payload
+         * @param {IDictionary}                     payload
          * </CallbackData>
          */
-        public void AddAttrs(Dictionary<string, string> attrs, int timeout, CallbackDelegate callback) {
+        public void AddAttrs(IDictionary<string, string> attrs, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("attrs", attrs);
 
@@ -1070,7 +1070,7 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {Dictionary(attrs:List(Hashtable))}    payload
+         * @param {IDictionary(attrs:List(Hashtable))}    payload
          * </CallbackData>
          *
          * <Hashtable>
@@ -1081,7 +1081,7 @@ namespace com.rtm {
          */
         public void GetAttrs(int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             MemoryStream outputStream = new MemoryStream();
 
@@ -1112,13 +1112,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void AddDebugLog(string msg, string attrs, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("msg", msg);
             payload.Add("attrs", attrs);
@@ -1152,13 +1152,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void AddDevice(string apptype, string devicetoken, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("apptype", apptype);
             payload.Add("devicetoken", devicetoken);
@@ -1191,13 +1191,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void RemoveDevice(string devicetoken, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("devicetoken", devicetoken);
 
@@ -1229,13 +1229,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void SetTranslationLanguage(string targetLanguage, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("lang", targetLanguage);
 
@@ -1270,12 +1270,12 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {Dictionary(stext:string,src:string,dtext:string,dst:string)}    payload
+         * @param {IDictionary(stext:string,src:string,dtext:string,dst:string)}    payload
          * </CallbackData>
          */
         public void Translate(string originalMessage, string originalLanguage, string targetLanguage, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("text", originalMessage);
             payload.Add("dst", targetLanguage);
@@ -1313,13 +1313,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void AddFriends(List<long> friends, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("friends", friends);
 
@@ -1351,13 +1351,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void DeleteFriends(List<long> friends, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("friends", friends);
 
@@ -1394,7 +1394,7 @@ namespace com.rtm {
          */
         public void GetFriends(int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             MemoryStream outputStream = new MemoryStream();
 
@@ -1416,7 +1416,7 @@ namespace com.rtm {
                     return;
                 }
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
@@ -1442,13 +1442,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void AddGroupMembers(long gid, List<long> uids, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("gid", gid);
             payload.Add("uids", uids);
@@ -1482,13 +1482,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void DeleteGroupMembers(long gid, List<long> uids, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("gid", gid);
             payload.Add("uids", uids);
@@ -1527,7 +1527,7 @@ namespace com.rtm {
          */
         public void GetGroupMembers(long gid, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("gid", gid);
 
@@ -1551,7 +1551,7 @@ namespace com.rtm {
                     return;
                 }
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
@@ -1581,7 +1581,7 @@ namespace com.rtm {
          */
         public void GetUserGroups(int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             MemoryStream outputStream = new MemoryStream();
 
@@ -1603,7 +1603,7 @@ namespace com.rtm {
                     return;
                 }
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
@@ -1628,13 +1628,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void EnterRoom(long rid, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("rid", rid);
 
@@ -1666,13 +1666,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void LeaveRoom(long rid, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("rid", rid);
 
@@ -1709,7 +1709,7 @@ namespace com.rtm {
          */
         public void GetUserRooms(int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             MemoryStream outputStream = new MemoryStream();
 
@@ -1731,7 +1731,7 @@ namespace com.rtm {
                     return;
                 }
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
@@ -1762,7 +1762,7 @@ namespace com.rtm {
          */
         public void GetOnlineUsers(List<long> uids, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("uids", uids);
 
@@ -1786,7 +1786,7 @@ namespace com.rtm {
                     return;
                 }
 
-                Dictionary<string, object> dict = (Dictionary<string, object>)cbd.GetPayload();
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
                 if (dict != null) {
 
@@ -1813,13 +1813,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("mid", mid);
             payload.Add("xid", xid);
@@ -1853,13 +1853,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void Kickout(string ce, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("ce", ce);
 
@@ -1892,12 +1892,12 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {Dictionary(val:String)}  payload
+         * @param {IDictionary(val:String)} payload
          * </CallbackData>
          */
         public void DBGet(string key, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("key", key);
 
@@ -1930,13 +1930,13 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary}              payload
+         * @param {IDictionary}             payload
          * @param {Exception}               exception
          * </CallbackData>
          */
         public void DBSet(string key, string value, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("key", key);
             payload.Add("val", value);
@@ -1972,7 +1972,7 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary(mtime:long)}  payload
+         * @param {IDictionary(mtime:long)} payload
          * @param {Exception}               exception
          * @param {long}                    mid
          * </CallbackData>
@@ -2010,7 +2010,7 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary(mtime:long)}  payload
+         * @param {IDictionary(mtime:long)} payload
          * @param {Exception}               exception
          * @param {long}                    mid
          * </CallbackData>
@@ -2048,7 +2048,7 @@ namespace com.rtm {
          * @param {CallbackData}            cbd
          *
          * <CallbackData>
-         * @param {Dictionary(mtime:long)}  payload
+         * @param {IDictionary(mtime:long)} payload
          * @param {Exception}               exception
          * @param {long}                    mid
          * </CallbackData>
@@ -2079,7 +2079,7 @@ namespace com.rtm {
         private void Auth(int timeout) {
 
             RTMClient self = this;
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("pid", this._pid);
             payload.Add("uid", this._uid);
@@ -2115,7 +2115,7 @@ namespace com.rtm {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
+                    IDictionary<string, object> dict = (IDictionary<string, object>)obj;
 
                     bool ok = Convert.ToBoolean(dict["ok"]);
 
@@ -2183,7 +2183,7 @@ namespace com.rtm {
 
         private void FileSendProcess(Hashtable ops, long mid, int timeout, CallbackDelegate callback) {
 
-            Dictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>();
 
             payload.Add("cmd", ops["cmd"]);
 
@@ -2223,7 +2223,7 @@ namespace com.rtm {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
+                    IDictionary<string, object> dict = (IDictionary<string, object>)obj;
 
                     string token = Convert.ToString(dict["token"]);
                     string endpoint = Convert.ToString(dict["endpoint"]);
@@ -2268,7 +2268,7 @@ namespace com.rtm {
             }, timeout);
         }
 
-        private void Filetoken(Dictionary<string, object> payload, CallbackDelegate callback, int timeout) {
+        private void Filetoken(IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
             MemoryStream msgpackStream = new MemoryStream();
 
@@ -2319,7 +2319,7 @@ namespace com.rtm {
                 });
             }
 
-            public void Which(Dictionary<string, object> payload, int timeout, CallbackDelegate callback) {
+            public void Which(IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
 
                 if (!base.HasConnect()) {
 
@@ -2366,7 +2366,7 @@ namespace com.rtm {
                 });
             }
 
-            public void Send(string method, byte[] fileBytes, string token, Dictionary<string, object> payload, int timeout, CallbackDelegate callback) {
+            public void Send(string method, byte[] fileBytes, string token, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
 
                 String fileMd5 = base.CalcMd5(fileBytes, false);
                 String sign = base.CalcMd5(fileMd5 + ":" + token, false);
@@ -2382,17 +2382,12 @@ namespace com.rtm {
                     base.Connect();
                 }
 
-                Dictionary<string, string> attrs = new Dictionary<string, string>();
+                IDictionary<string, string> attrs = new Dictionary<string, string>();
                 attrs.Add("sign", sign);
-
-                MemoryStream jsonStream = new MemoryStream();
-                Json.Serialize(attrs, jsonStream);
-
-                string jsonStr = System.Text.Encoding.UTF8.GetString(jsonStream.ToArray());
 
                 payload.Add("token", token);
                 payload.Add("file", fileBytes);
-                payload.Add("attrs", jsonStr);
+                payload.Add("attrs", Json.SerializeToString(attrs));
 
                 long mid = (long)Convert.ToInt64(payload["mid"]);
 
@@ -2480,19 +2475,19 @@ namespace com.rtm {
 
                 bool isAnswerException = false;
                 FPData data = cbd.GetData();
-                Dictionary<string, object> payload = null;
+                IDictionary<string, object> payload = null;
 
                 if (data != null) {
 
                     if (data.GetFlag() == 0) {
 
-                        payload = Json.Deserialize<Dictionary<string, object>>(data.JsonPayload());
+                        payload = Json.Deserialize<IDictionary<string, object>>(data.JsonPayload());
                     }
 
                     if (data.GetFlag() == 1) {
 
                         MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
-                        payload = MsgPack.Deserialize<Dictionary<string, object>>(inputStream);
+                        payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
                     }
 
                     if (base.GetPackage().IsAnswer(data)) {

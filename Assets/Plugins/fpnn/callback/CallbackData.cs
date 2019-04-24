@@ -59,7 +59,7 @@ namespace com.fpnn {
         }
 
 
-        public void CheckException(bool isAnswerException, Dictionary<string, object> data) {
+        public void CheckException(bool isAnswerException, IDictionary<string, object> data) {
 
             if (data == null && this._exception == null) {
 

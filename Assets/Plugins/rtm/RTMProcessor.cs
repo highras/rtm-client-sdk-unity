@@ -49,19 +49,16 @@ namespace com.rtm {
                 callCb = false;
             }
 
-            Dictionary<string, object> payload = null;
+            IDictionary<string, object> payload = null;
 
             if (data.GetFlag() == 0) {
 
                 if (callCb) {
 
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(new Dictionary<string, object>(), jsonStream);
-
-                    answer(System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()), false);
+                    answer(Json.SerializeToString(new Dictionary<string, object>()), false);
                 }
 
-                payload = Json.Deserialize<Dictionary<string, object>>(data.JsonPayload());
+                payload = Json.Deserialize<IDictionary<string, object>>(data.JsonPayload());
             }
 
             if (data.GetFlag() == 1) {
@@ -77,7 +74,7 @@ namespace com.rtm {
                 }
 
                 MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
-                payload = MsgPack.Deserialize<Dictionary<string, object>>(inputStream);
+                payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
             }
 
             if (payload != null) {
@@ -93,9 +90,9 @@ namespace com.rtm {
         }
 
         /**
-         * @param {Dictionary<string, object>} data
+         * @param {IDictionary<string, object>} data
          */
-        public void kickout(Dictionary<string, object> data) {
+        public void kickout(IDictionary<string, object> data) {
 
             this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.kickOut, data));
         }
@@ -103,7 +100,7 @@ namespace com.rtm {
         /**
          * @param {long} data.rid
          */
-        public void kickoutroom(Dictionary<string, object> data) {
+        public void kickoutroom(IDictionary<string, object> data) {
 
             this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.kickOutRoom, data));
         }
@@ -117,7 +114,7 @@ namespace com.rtm {
          * @param {string} data.attrs
          * @param {long}   data.mtime
          */
-        public void pushmsg(Dictionary<string, object> data) {
+        public void pushmsg(IDictionary<string, object> data) {
 
             if (data.ContainsKey("mid")) {
 
@@ -147,7 +144,7 @@ namespace com.rtm {
          * @param {string} data.attrs
          * @param {long}   data.mtime
          */
-        public void pushgroupmsg(Dictionary<string, object> data) {
+        public void pushgroupmsg(IDictionary<string, object> data) {
 
             if (data.ContainsKey("mid")) {
 
@@ -177,7 +174,7 @@ namespace com.rtm {
          * @param {string} data.attrs
          * @param {long}   data.mtime
          */
-        public void pushroommsg(Dictionary<string, object> data) {
+        public void pushroommsg(IDictionary<string, object> data) {
 
             if (data.ContainsKey("mid")) {
 
@@ -206,7 +203,7 @@ namespace com.rtm {
          * @param {string} data.attrs
          * @param {long}   data.mtime
          */
-        public void pushbroadcastmsg(Dictionary<string, object> data) {
+        public void pushbroadcastmsg(IDictionary<string, object> data) {
 
             if (data.ContainsKey("mid")) {
 
@@ -230,7 +227,7 @@ namespace com.rtm {
         /**
          * @param {Map} data
          */
-        public void ping(Dictionary<string, object> data) {
+        public void ping(IDictionary<string, object> data) {
 
             this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvPing, data));
         }

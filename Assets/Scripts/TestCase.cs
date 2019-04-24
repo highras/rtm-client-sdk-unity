@@ -23,7 +23,7 @@ namespace com.test {
                 "52.83.245.22:13325",
                 1000012,
                 654321,
-                "813B06B40F12DA8EA3532142C5895434",
+                "A8022B29D6E8FB18FD77911F8728B90C",
                 null,
                 new Dictionary<string, string>(),
                 true,
@@ -35,10 +35,7 @@ namespace com.test {
 
             processor.GetEvent().AddListener(RTMConfig.SERVER_PUSH.recvPing, (evd) => {
 
-                MemoryStream jsonStream = new MemoryStream();
-                Json.Serialize((Dictionary<string, object>)evd.GetPayload(), jsonStream);
-
-                Debug.Log("[PUSH] ping: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                Debug.Log("[PUSH] ping: " + Json.SerializeToString(evd.GetPayload()));
             });
 
             this._client.GetEvent().AddListener("login", (evd) => {
@@ -80,7 +77,7 @@ namespace com.test {
             long gid = 999;
             long rid = 666;
 
-            Dictionary<String, String>  attrs = new Dictionary<String, String>();
+            IDictionary<String, String>  attrs = new Dictionary<String, String>();
             attrs.Add("user1", "test user1 attrs");
 
             List<long> tos = new List<long>();
@@ -107,12 +104,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] SendMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()) + ", mid: " + cbd.GetMid());
+                    Debug.Log("[DATA] SendMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
                 } else {
 
                     Debug.Log("[ERR] SendMessage: " + cbd.GetException().Message);
@@ -129,12 +121,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] SendGroupMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()) + ", mid: " + cbd.GetMid());
+                    Debug.Log("[DATA] SendGroupMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
                 } else {
 
                     Debug.Log("[ERR] SendGroupMessage: " + cbd.GetException().Message);
@@ -151,12 +138,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] SendRoomMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()) + ", mid: " + cbd.GetMid());
+                    Debug.Log("[DATA] SendRoomMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
                 } else {
 
                     Debug.Log("[ERR] SendRoomMessage: " + cbd.GetException().Message);
@@ -173,12 +155,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetUnreadMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetUnreadMessage: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetUnreadMessage: " + cbd.GetException().Message);
@@ -195,12 +172,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] CleanUnreadMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] CleanUnreadMessage: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] CleanUnreadMessage: " + cbd.GetException().Message);
@@ -217,12 +189,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetSession: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetSession: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetSession: " + cbd.GetException().Message);
@@ -239,12 +206,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetGroupMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetGroupMessage: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetGroupMessage: " + cbd.GetException().Message);
@@ -261,12 +223,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetRoomMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetRoomMessage: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetRoomMessage: " + cbd.GetException().Message);
@@ -283,12 +240,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetBroadcastMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetBroadcastMessage: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetBroadcastMessage: " + cbd.GetException().Message);
@@ -305,12 +257,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetP2PMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetP2PMessage: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetP2PMessage: " + cbd.GetException().Message);
@@ -327,12 +274,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] FileToken: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] FileToken: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] FileToken: " + cbd.GetException().Message);
@@ -349,12 +291,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] AddAttrs: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] AddAttrs: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] AddAttrs: " + cbd.GetException().Message);
@@ -371,12 +308,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetAttrs: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetAttrs: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetAttrs: " + cbd.GetException().Message);
@@ -393,12 +325,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] AddDebugLog: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] AddDebugLog: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] AddDebugLog: " + cbd.GetException().Message);
@@ -415,12 +342,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] AddDevice: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] AddDevice: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] AddDevice: " + cbd.GetException().Message);
@@ -437,12 +359,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] RemoveDevice: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] RemoveDevice: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] RemoveDevice: " + cbd.GetException().Message);
@@ -459,12 +376,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] SetTranslationLanguage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] SetTranslationLanguage: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] SetTranslationLanguage: " + cbd.GetException().Message);
@@ -481,12 +393,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] Translate: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] Translate: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] Translate: " + cbd.GetException().Message);
@@ -503,12 +410,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] AddFriends: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] AddFriends: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] AddFriends: " + cbd.GetException().Message);
@@ -525,12 +427,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] DeleteFriends: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] DeleteFriends: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] DeleteFriends: " + cbd.GetException().Message);
@@ -547,12 +444,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetFriends: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetFriends: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetFriends: " + cbd.GetException().Message);
@@ -569,12 +461,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] AddGroupMembers: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] AddGroupMembers: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] AddGroupMembers: " + cbd.GetException().Message);
@@ -591,12 +478,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] DeleteGroupMembers: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] DeleteGroupMembers: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] DeleteGroupMembers: " + cbd.GetException().Message);
@@ -613,12 +495,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetGroupMembers: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetGroupMembers: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetGroupMembers: " + cbd.GetException().Message);
@@ -635,12 +512,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetUserGroups: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetUserGroups: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetUserGroups: " + cbd.GetException().Message);
@@ -657,12 +529,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] EnterRoom: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] EnterRoom: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] EnterRoom: " + cbd.GetException().Message);
@@ -679,12 +546,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] LeaveRoom: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] LeaveRoom: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] LeaveRoom: " + cbd.GetException().Message);
@@ -701,12 +563,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetUserRooms: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetUserRooms: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetUserRooms: " + cbd.GetException().Message);
@@ -723,12 +580,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] GetOnlineUsers: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] GetOnlineUsers: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] GetOnlineUsers: " + cbd.GetException().Message);
@@ -745,12 +597,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] DeleteMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] DeleteMessage: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] DeleteMessage: " + cbd.GetException().Message);
@@ -767,12 +614,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] Kickout: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] Kickout: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] Kickout: " + cbd.GetException().Message);
@@ -789,12 +631,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] DBSet: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] DBSet: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] DBSet: " + cbd.GetException().Message);
@@ -811,12 +648,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] DBGet: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] DBGet: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] DBGet: " + cbd.GetException().Message);
@@ -833,12 +665,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] SendFile: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] SendFile: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] SendFile: " + cbd.GetException().Message);
@@ -855,12 +682,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] SendGroupFile: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] SendGroupFile: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] SendGroupFile: " + cbd.GetException().Message);
@@ -877,12 +699,7 @@ namespace com.test {
 
                 if (obj != null) {
 
-                    Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-                    MemoryStream jsonStream = new MemoryStream();
-                    Json.Serialize(dict, jsonStream);
-
-                    Debug.Log("[DATA] SendRoomFile: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+                    Debug.Log("[DATA] SendRoomFile: " + Json.SerializeToString(obj));
                 } else {
 
                     Debug.Log("[ERR] SendRoomFile: " + cbd.GetException().Message);

@@ -60,12 +60,7 @@ client.GetEvent().AddListener("login", (evd) => {
 
         if (obj != null) {
 
-            Dictionary<string, object> dict = (Dictionary<string, object>)obj;
-
-            MemoryStream jsonStream = new MemoryStream();
-            Json.Serialize(dict, jsonStream);
-
-            Debug.Log("[DATA] SendMessage: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()) + ", mid: " + cbd.GetMid());
+            Debug.Log("[DATA] SendMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
         } else {
 
             Debug.Log("[ERR] SendMessage: " + cbd.GetException().Message);
@@ -88,10 +83,7 @@ RTMProcessor processor = client.GetProcessor();
 
 processor.GetEvent().AddListener(RTMConfig.SERVER_PUSH.recvPing, (evd) => {
 
-    MemoryStream jsonStream = new MemoryStream();
-    Json.Serialize((Dictionary<string, object>)evd.GetPayload(), jsonStream);
-
-    Debug.Log("[PUSH] ping: " + System.Text.Encoding.UTF8.GetString(jsonStream.ToArray()));
+    Debug.Log("[PUSH] ping: " + Json.SerializeToString(evd.GetPayload()));
 });
 
 // 开启连接
@@ -117,7 +109,7 @@ this.BaseTest(fileBytes);
 * `event`:
     * `login`: 登陆
         * `exception`: **(Exception)** auth失败, token失效需重新获取
-        * `payload`: **(Dictionary)** 当前连接的RTMGate地址, 可在本地缓存, 下次登陆可使用该地址以加速登陆过程, **每次登陆成功需更新本地缓存**
+        * `payload`: **(IDictionary)** 当前连接的RTMGate地址, 可在本地缓存, 下次登陆可使用该地址以加速登陆过程, **每次登陆成功需更新本地缓存**
     * `error`: 发生异常
         * `exception`: **(Exception)**
     * `close`: 连接关闭
@@ -128,13 +120,13 @@ this.BaseTest(fileBytes);
 请参考 `RTMConfig.SERVER_PUSH` 成员
 
 * `kickout`: RTMGate主动断开
-    * `data`: **(Dictionary)**
+    * `data`: **(IDictionary)**
 
 * `kickoutroom`: RTMGate主动从Room移除
     * `data.rid`: **(long)** Room id
 
 * `ping`: RTMGate主动ping
-    * `data`: **(Dictionary)**
+    * `data`: **(IDictionary)**
 
 * `pushmsg`: RTMGate主动推送P2P消息
     * `data.from`: **(long)** 发送者 id
@@ -206,13 +198,13 @@ this.BaseTest(fileBytes);
 
 #### API ####
 
-* `Constructor(string dispatch, int pid, long uid, string token, string version, Dictionary<string, string> attrs, bool reconnect, int timeout, bool startTimerThread)`: 构造RTMClient
+* `Constructor(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool startTimerThread)`: 构造RTMClient
     * `dispatch`: **(string)** Dispatch服务地址, RTM提供
     * `pid`: **(int)** 应用编号, RTM提供
     * `uid`: **(long)** 用户ID
     * `token`: **(string)** 用户登录Token, RTM提供
     * `version`: **(string)** 服务器版本号, RTM提供
-    * `attrs`: **(Dictionary(string,string))** 设置用户端信息, 保存在当前链接中, 客户端可以获取到
+    * `attrs`: **(IDictionary(string,string))** 设置用户端信息, 保存在当前链接中, 客户端可以获取到
     * `reconnect`: **(bool)** 是否自动重连
     * `timeout`: **(int)** 超时时间(ms), 默认: `30 * 1000`
     * `startTimerThread`: **(bool)** 是否开启计时器线程 (负责超时检测/安全检查)
@@ -234,7 +226,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary(mtime:long))**
+            * `payload`: **(IDictionary(mtime:long))**
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
@@ -247,7 +239,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary(mtime:long))**
+            * `payload`: **(IDictionary(mtime:long))**
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
@@ -260,7 +252,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary(mtime:long))**
+            * `payload`: **(IDictionary(mtime:long))**
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
@@ -270,13 +262,13 @@ this.BaseTest(fileBytes);
         * `cbd`: **(CallbackData)**
             * `mid`: **(long)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(p2p:Dictionary(string,int),group:Dictionary(string,int)))**
+            * `payload`: **(IDictionary(p2p:IDictionary(string,int),group:IDictionary(string,int)))**
 
 * `CleanUnreadMessage(int timeout, CallbackData callback)`: 清除未读消息
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
@@ -286,7 +278,7 @@ this.BaseTest(fileBytes);
         * `cbd`: **(CallbackData)**
             * `mid`: **(long)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(p2p:Dictionary(string,long),group:Dictionary(string,long)))**
+            * `payload`: **(IDictionary(p2p:IDictionary(string,long),group:IDictionary(string,long)))**
 
 * `GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackData callback)`: 获取Group历史消息
     * `gid`: **(long)** Group id
@@ -299,7 +291,7 @@ this.BaseTest(fileBytes);
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(GroupMsg)))**
+            * `payload`: **(IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(GroupMsg)))**
                 * `GroupMsg.id` **(long)**
                 * `GroupMsg.from` **(long)**
                 * `GroupMsg.mtype` **(byte)**
@@ -320,7 +312,7 @@ this.BaseTest(fileBytes);
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(RoomMsg)))**
+            * `payload`: **(IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(RoomMsg)))**
                 * `RoomMsg.id` **(long)**
                 * `RoomMsg.from` **(long)**
                 * `RoomMsg.mtype` **(byte)**
@@ -340,7 +332,7 @@ this.BaseTest(fileBytes);
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(BroadcastMsg)))**
+            * `payload`: **(IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(BroadcastMsg)))**
                 * `BroadcastMsg.id` **(long)**
                 * `BroadcastMsg.from` **(long)**
                 * `BroadcastMsg.mtype` **(byte)**
@@ -361,7 +353,7 @@ this.BaseTest(fileBytes);
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(num:int,lastid:long,begin:long,end:long,msgs:List(P2PMsg)))**
+            * `payload`: **(IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(P2PMsg)))**
                 * `P2PMsg.id` **(long)**
                 * `P2PMsg.direction` **(byte)**
                 * `P2PMsg.mtype` **(byte)**
@@ -381,16 +373,16 @@ this.BaseTest(fileBytes);
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(token:string, endpoint:string))**
+            * `payload`: **(IDictionary(token:string, endpoint:string))**
 
 * `Close()`: 断开连接
 
-* `AddAttrs(Dictionary<string, string> attrs, int timeout, CallbackData callback)`: 设置客户端信息, 保存在当前链接中, 客户端可以获取到
-    * `attrs`: **(Dictionary(string,string))** key-value形式的变量
+* `AddAttrs(IDictionary<string, string> attrs, int timeout, CallbackData callback)`: 设置客户端信息, 保存在当前链接中, 客户端可以获取到
+    * `attrs`: **(IDictionary(string,string))** key-value形式的变量
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `GetAttrs(int timeout, CallbackData callback)`: 获取客户端信息
@@ -398,10 +390,10 @@ this.BaseTest(fileBytes);
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(attrs:List(Dictionary)))**
-                * `Dictionary.ce` **(string)**
-                * `Dictionary.login` **(string)**
-                * `Dictionary.my` **(string)**
+            * `payload`: **(IDictionary(attrs:List(IDictionary)))**
+                * `IDictionary.ce` **(string)**
+                * `IDictionary.login` **(string)**
+                * `IDictionary.my` **(string)**
 
  * `AddDebugLog(string msg, string attrs, int timeout, CallbackData callback)`: 添加debug日志
     * `msg`: **(string)** 调试信息msg
@@ -409,7 +401,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `AddDevice(string apptype, string devicetoken, int timeout, CallbackData callback)`: 添加设备, 应用信息
@@ -418,7 +410,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `RemoveDevice(string devicetoken, int timeout, CallbackData callback)`: 删除设备, 应用信息
@@ -426,7 +418,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `SetTranslationLanguage(string targetLanguage, int timeout, CallbackData callback)`: 设置自动翻译的默认目标语言类型, 如果 targetLanguage 为空字符串, 则取消自动翻译
@@ -434,7 +426,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `Translate(string originalMessage, string originalLanguage, string targetLanguage, int timeout, CallbackData callback)`: 翻译消息
@@ -445,14 +437,14 @@ this.BaseTest(fileBytes);
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(stext:string,src:string,dtext:string,dst:string))**
+            * `payload`: **(IDictionary(stext:string,src:string,dtext:string,dst:string))**
 
 * `AddFriends(List<long> friends, int timeout, CallbackData callback)`: 添加好友, 每次最多添加100人
     * `friends`: **(List(long))** 多个好友 id
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `DeleteFriends(List<long> friends, int timeout, CallbackData callback)`: 删除好友, 每次最多删除100人
@@ -460,7 +452,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `GetFriends(int timeout, CallbackData callback)`: 获取好友
@@ -508,7 +500,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `LeaveRoom(long rid, int timeout, CallbackData callback)`: 离开房间
@@ -516,7 +508,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `GetUserRooms(int timeout, CallbackData callback)`: 获取用户所在的Room
@@ -541,7 +533,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `Kickout(string ce, int timeout, CallbackData callback)`: 踢掉一个链接 (只对多用户登录有效, 不能踢掉自己, 可以用来实现同类设备唯一登录)
@@ -549,7 +541,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `DBGet(string key, int timeout, CallbackData callback)`: 获取存储的数据信息, 返回值不包含`val`表示`key`不存在
@@ -558,7 +550,7 @@ this.BaseTest(fileBytes);
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
-            * `payload`: **(Dictionary(val:string))**
+            * `payload`: **(IDictionary(val:string))**
 
 * `DBSet(string key, string value, int timeout, CallbackData callback)`: 设置存储的数据信息, `value`为空则删除对应`key`
     * `key`: **(string)** 存储数据对应键值, 最长`128 字节`
@@ -566,7 +558,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary)**
+            * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
 * `SendFile(byte mtype, long to, byte[] fileBytes, long mid, int timeout, CallbackData callback)`: 发送文件
@@ -577,7 +569,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary(mtime:long))**
+            * `payload`: **(IDictionary(mtime:long))**
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
@@ -589,7 +581,7 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary(mtime:long))**
+            * `payload`: **(IDictionary(mtime:long))**
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
@@ -601,6 +593,6 @@ this.BaseTest(fileBytes);
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackData)** 回调方法
         * `cbd`: **(CallbackData)**
-            * `payload`: **(Dictionary(mtime:long))**
+            * `payload`: **(IDictionary(mtime:long))**
             * `exception`: **(Exception)**
             * `mid`: **(long)**
