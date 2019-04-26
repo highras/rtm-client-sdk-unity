@@ -52,7 +52,10 @@ namespace com.fpnn {
                     try {
                         
                         cb(new CallbackData(data));
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+
+                       ErrorRecorderHolder.recordError(e);
+                    }
                 });
             }
         }
@@ -72,8 +75,12 @@ namespace com.fpnn {
                 ThreadPool.Instance.Execute((state) => {
 
                     try {
+
                         cb(new CallbackData(ex));
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                        
+                        ErrorRecorderHolder.recordError(e);
+                    }
                 });
             }
         }

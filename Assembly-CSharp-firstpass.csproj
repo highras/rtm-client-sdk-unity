@@ -55,6 +55,7 @@
   <ItemGroup>
      <Compile Include="Assets\Plugins\fpnn\callback\CallbackData.cs" />
      <Compile Include="Assets\Plugins\fpnn\callback\FPCallback.cs" />
+     <Compile Include="Assets\Plugins\fpnn\ErrorRecorder.cs" />
      <Compile Include="Assets\Plugins\fpnn\event\EventData.cs" />
      <Compile Include="Assets\Plugins\fpnn\event\FPEvent.cs" />
      <Compile Include="Assets\Plugins\fpnn\FPClient.cs" />

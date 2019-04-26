@@ -84,8 +84,12 @@ namespace com.fpnn {
                         ThreadPool.Instance.Execute((state) => {
 
                             try {
+                                
                                 cb(evd);
-                            } catch (Exception e) {}
+                            } catch (Exception e) {
+
+                                ErrorRecorderHolder.recordError(e);
+                            }
                         });
                     }
                 }
