@@ -58,7 +58,13 @@ namespace com.rtm {
                     answer(Json.SerializeToString(new Dictionary<string, object>()), false);
                 }
 
-                payload = Json.Deserialize<IDictionary<string, object>>(data.JsonPayload());
+                try {
+
+                    payload = Json.Deserialize<IDictionary<string, object>>(data.JsonPayload());
+                }catch(Exception ex) {
+
+                   this._event.FireEvent(new EventData("error", ex)); 
+                }
             }
 
             if (data.GetFlag() == 1) {
@@ -73,8 +79,14 @@ namespace com.rtm {
                     answer(msgpackStream.ToArray(), false);
                 }
 
-                MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
-                payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                try {
+
+                    MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
+                    payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                } catch(Exception ex) {
+
+                   this._event.FireEvent(new EventData("error", ex)); 
+                }
             }
 
             if (payload != null) {

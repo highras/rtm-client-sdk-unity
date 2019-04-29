@@ -2481,13 +2481,25 @@ namespace com.rtm {
 
                     if (data.GetFlag() == 0) {
 
-                        payload = Json.Deserialize<IDictionary<string, object>>(data.JsonPayload());
+                        try {
+
+                            payload = Json.Deserialize<IDictionary<string, object>>(data.JsonPayload());
+                        }catch(Exception ex) {
+
+                           base.GetEvent().FireEvent(new EventData("error", ex)); 
+                        }
                     }
 
                     if (data.GetFlag() == 1) {
 
-                        MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
-                        payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                        try {
+
+                            MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
+                            payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                        } catch(Exception ex) {
+
+                           base.GetEvent().FireEvent(new EventData("error", ex));
+                        }
                     }
 
                     if (base.GetPackage().IsAnswer(data)) {
