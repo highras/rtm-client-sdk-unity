@@ -6,7 +6,7 @@ namespace com.fpnn {
 
         private string _type;
 
-        public string GetType() {
+        public string GetEventType() {
 
             return this._type;
         }

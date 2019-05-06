@@ -67,7 +67,7 @@ namespace com.fpnn {
 
         public void FireEvent(EventData evd) {
             
-            string type = evd.GetType();
+            string type = evd.GetEventType();
 
             if (this._listeners.Contains(type)) {
 

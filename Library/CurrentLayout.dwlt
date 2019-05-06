@@ -100,7 +100,7 @@ MonoBehaviour:
   m_MinSize: {x: 479, y: 348}
   m_MaxSize: {x: 8004, y: 8048}
   vertical: 0
-  controlID: 12
+  controlID: 57
 --- !u!114 &5
 MonoBehaviour:
   m_ObjectHideFlags: 52
