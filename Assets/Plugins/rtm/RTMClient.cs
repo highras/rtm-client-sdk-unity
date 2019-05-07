@@ -1420,7 +1420,7 @@ namespace com.rtm {
 
                 if (dict != null) {
 
-                    List<long> ids = (List<long>)dict["uids"];
+                    List<object> ids = (List<object>)dict["uids"];
                     callback(new CallbackData(ids));
                     return;
                 }
@@ -1555,7 +1555,7 @@ namespace com.rtm {
 
                 if (dict != null) {
 
-                    List<long> ids = (List<long>)dict["uids"];
+                    List<object> ids = (List<object>)dict["uids"];
                     callback(new CallbackData(ids));
                     return;
                 }
@@ -1607,7 +1607,7 @@ namespace com.rtm {
 
                 if (dict != null) {
 
-                    List<long> ids = (List<long>)dict["gids"];
+                    List<object> ids = (List<object>)dict["gids"];
                     callback(new CallbackData(ids));
                     return;
                 }
@@ -1735,7 +1735,7 @@ namespace com.rtm {
 
                 if (dict != null) {
 
-                    List<long> ids = (List<long>)dict["rooms"];
+                    List<object> ids = (List<object>)dict["rooms"];
                     callback(new CallbackData(ids));
                     return;
                 }
@@ -1790,7 +1790,7 @@ namespace com.rtm {
 
                 if (dict != null) {
 
-                    List<long> ids = (List<long>)dict["uids"];
+                    List<object> ids = (List<object>)dict["uids"];
                     callback(new CallbackData(ids));
                     return;
                 }
