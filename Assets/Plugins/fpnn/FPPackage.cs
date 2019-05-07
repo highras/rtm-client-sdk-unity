@@ -89,7 +89,7 @@ namespace com.fpnn {
             FPData peek = new FPData();
 
             peek.SetMagic(this.GetByteArrayRange(bytes, 0, 3));
-            peek.SetVersion(FPConfig.FPNN_VERSION[bytes[4]]);
+            peek.SetVersion(Array.IndexOf(FPConfig.FPNN_VERSION, bytes[4]));
 
             if (bytes[5] == FPConfig.FP_FLAG[0]) {
 
@@ -101,7 +101,7 @@ namespace com.fpnn {
                 peek.SetFlag(1);
             }
 
-            peek.SetMtype(FPConfig.FP_MESSAGE_TYPE[bytes[6]]);
+            peek.SetMtype(Array.IndexOf(FPConfig.FP_MESSAGE_TYPE, bytes[6]));
             peek.SetSS(bytes[7]);
             peek.SetPsize((int)BitConverter.ToUInt32(this.GetByteArrayRange(bytes, 8, 11), 0));
 
