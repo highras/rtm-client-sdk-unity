@@ -15,7 +15,10 @@ namespace com.fpnn {
 
         private FPSocket _sock;
         private FPData _peekData = null;
+
+        private int _readBytes = 0;
         private byte[] _buffer = null;
+
         private EventDelegate _eventDelegate;
 
         private FPPackage _pkg;
@@ -209,6 +212,7 @@ namespace com.fpnn {
         private void OnClose() {
 
             this._seq = 0;
+            this._readBytes = 0;
             this._peekData = null;
 
             if (this._buffer != null) {
@@ -252,9 +256,17 @@ namespace com.fpnn {
 
             if (this._buffer == null) {
 
+                this._readBytes = 0;
                 this._buffer = new byte[FPConfig.READ_BUFFER_LEN];
-                this.ReadSocket(stream, _buffer, BuildHead);
             }
+
+            if (this._readBytes < this._buffer.Length) {
+
+                this.ReadSocket(stream, ReadHead);
+                return;
+            }
+
+            this.BuildHead(stream);
         }
 
         private void BuildHead(NetworkStream stream) {
@@ -265,27 +277,37 @@ namespace com.fpnn {
 
                 Array.Clear(this._buffer, 0, this._buffer.Length);
                 this._buffer = null;
-
-                if (this._peekData == null) {
-
-                    this._sock.Close(new Exception("worng package head!"));
-                    return;
-                }
-
-                this.ReadBody(stream);
             }
+
+            if (this._peekData == null) {
+
+                this._sock.Close(new Exception("worng package head!"));
+                return;
+            }
+
+            this.ReadBody(stream);
         }
 
         private void ReadBody(NetworkStream stream) {
 
-            int diff = this._peekData.GetPkgLen() - this._peekData.Bytes.Length;
+            if (this._buffer == null) {
 
-            if (diff > 0) {
+                int diff = this._peekData.GetPkgLen() - this._peekData.Bytes.Length;
 
-                this._buffer = new byte[diff];
-                this.ReadSocket(stream, _buffer, BuildBody);
+                if (diff > 0) {
+
+                    this._readBytes = 0;
+                    this._buffer = new byte[diff];
+                }
+            }
+
+            if (this._readBytes < this._buffer.Length) {
+
+                this.ReadSocket(stream, ReadBody);
                 return;
             }
+
+            this.BuildBody(stream);
         }
 
         private void BuildBody(NetworkStream stream) {
@@ -302,9 +324,9 @@ namespace com.fpnn {
                 this._peekData.Bytes = lb.ToArray();
 
                 lb.Clear();
-
-                this.BuildData(stream);
             }
+
+            this.BuildData(stream);
         }
 
         private void BuildData(NetworkStream stream) {
@@ -329,17 +351,18 @@ namespace com.fpnn {
             }
 
             this._peekData = null;
-
             this.OnData(stream);
         }
 
-        private void ReadSocket(NetworkStream stream, byte[] buffer, Action<NetworkStream> calllback) {
+        private void ReadSocket(NetworkStream stream, Action<NetworkStream> calllback) {
 
             FPClient self = this;
 
             try {
 
-                stream.BeginRead(buffer, 0, buffer.Length, (ar) => {
+                int len = this._buffer.Length - this._readBytes;
+
+                stream.BeginRead(this._buffer, this._readBytes, len, (ar) => {
 
                     try {
 
@@ -348,8 +371,9 @@ namespace com.fpnn {
                         if (readBytes == 0) {
 
                             self._sock.Close(null);
-                        } else {
+                        }else {
 
+                            self._readBytes += readBytes;
                             calllback(stream);
                         }
 
