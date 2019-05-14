@@ -33,56 +33,87 @@ namespace com.fpnn {
 
                 this._cbMap.Clear();
             }
+
+            lock(this._exMap) {
+
+                this._exMap.Clear();
+            }
         }
 
         public void ExecCallback(string key, FPData data) {
 
-            CallbackDelegate cb = null;
+            CallbackDelegate callback = null;
 
-            if (this._cbMap.Contains(key)) {
+            lock(this._cbMap) {
 
-                lock(this._cbMap) {
+                if (this._cbMap.Contains(key)) {
 
-                    cb = (CallbackDelegate)this._cbMap[key];
+                    callback = (CallbackDelegate)this._cbMap[key];
                     this._cbMap.Remove(key);
                 }
-
-                ThreadPool.Instance.Execute((state) => {
-
-                    try {
-                        
-                        cb(new CallbackData(data));
-                    } catch (Exception e) {
-
-                       ErrorRecorderHolder.recordError(e);
-                    }
-                });
             }
+
+            lock(this._exMap) {
+
+                if (this._exMap.Contains(key)) {
+
+                    this._exMap.Remove(key);
+                }
+            }
+
+            if (callback == null) {
+
+                return;
+            }
+
+            ThreadPool.Instance.Execute((state) => {
+
+                try {
+                    
+                    callback(new CallbackData(data));
+                } catch (Exception e) {
+
+                   ErrorRecorderHolder.recordError(e);
+                }
+            });
         }
 
         public void ExecCallback(string key, Exception ex) {
 
-            CallbackDelegate cb = null;
+            CallbackDelegate callback = null;
 
-            if (this._cbMap.Contains(key)) {
+            lock(this._cbMap) {
 
-                lock(this._cbMap) {
+                if (this._cbMap.Contains(key)) {
 
-                    cb = (CallbackDelegate)this._cbMap[key];
+                    callback = (CallbackDelegate)this._cbMap[key];
                     this._cbMap.Remove(key);
                 }
-
-                ThreadPool.Instance.Execute((state) => {
-
-                    try {
-
-                        cb(new CallbackData(ex));
-                    } catch (Exception e) {
-                        
-                        ErrorRecorderHolder.recordError(e);
-                    }
-                });
             }
+
+            lock(this._exMap) {
+
+                if (this._exMap.Contains(key)) {
+
+                    this._exMap.Remove(key);
+                }
+            }
+
+            if (callback == null) {
+
+                return;
+            }
+
+            ThreadPool.Instance.Execute((state) => {
+
+                try {
+
+                    callback(new CallbackData(ex));
+                } catch (Exception e) {
+                    
+                    ErrorRecorderHolder.recordError(e);
+                }
+            });
         }
 
         public void OnSecond(long timestamp) {
