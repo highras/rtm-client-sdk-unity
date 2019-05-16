@@ -30,25 +30,25 @@ namespace com.rtm {
                     }
 
                     c = Count;
-
-                    StringBuilder sb = new StringBuilder(20);
-
-                    sb.Append(Convert.ToString(ThreadPool.Instance.GetMilliTimestamp()));
-
-                    if (c < 100) {
-
-                        sb.Append("0");
-                    }
-
-                    if (c < 10) {
-
-                        sb.Append("0");
-                    }
-
-                    sb.Append(Convert.ToString(c));
-
-                    return Convert.ToInt64(sb.ToString());
                 }
+
+                StringBuilder sb = new StringBuilder(20);
+
+                sb.Append(Convert.ToString(ThreadPool.Instance.GetMilliTimestamp()));
+
+                if (c < 100) {
+
+                    sb.Append("0");
+                }
+
+                if (c < 10) {
+
+                    sb.Append("0");
+                }
+
+                sb.Append(Convert.ToString(c));
+
+                return Convert.ToInt64(sb.ToString());
             }
         }
 
