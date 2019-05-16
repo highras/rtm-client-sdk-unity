@@ -21,12 +21,12 @@ namespace com.fpnn {
 
         public bool IsHttp(FPData data) {
 
-            return BytesCompare_Base64(FPConfig.HTTP_MAGIC, data.GetMagic());
+            return BytesCompare(FPConfig.HTTP_MAGIC, data.GetMagic());
         }
 
         public bool IsTcp(FPData data) {
 
-            return BytesCompare_Base64(FPConfig.TCP_MAGIC, data.GetMagic());
+            return BytesCompare(FPConfig.TCP_MAGIC, data.GetMagic());
         }
 
         public bool IsMsgPack(FPData data) {
@@ -376,7 +376,7 @@ namespace com.fpnn {
             return ((MemoryStream)stream).ToArray();                
         }
 
-        public bool BytesCompare_Base64(byte[] b1, byte[] b2) {
+        public bool BytesCompare(byte[] b1, byte[] b2) {
 
             if (b1 == null || b2 == null) {
 
@@ -388,7 +388,15 @@ namespace com.fpnn {
                 return false;
             }
 
-            return string.Compare(Convert.ToBase64String(b1), Convert.ToBase64String(b2), false) == 0 ? true : false;
+            for (var i = 0; i < b1.Length; i++) {
+
+               if (b1[i] != b2[i]) {
+
+                   return false;
+               }
+            }
+
+            return true;
         }
     }
 }
