@@ -34,7 +34,7 @@ namespace com.rtm {
 
                 StringBuilder sb = new StringBuilder(20);
 
-                sb.Append(Convert.ToString(ThreadPool.Instance.GetMilliTimestamp()));
+                sb.Append(ThreadPool.Instance.GetMilliTimestamp());
 
                 if (c < 100) {
 
@@ -46,7 +46,7 @@ namespace com.rtm {
                     sb.Append("0");
                 }
 
-                sb.Append(Convert.ToString(c));
+                sb.Append(c);
 
                 return Convert.ToInt64(sb.ToString());
             }
