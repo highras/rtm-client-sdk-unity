@@ -71,18 +71,21 @@ namespace com.rtm {
 
                 if (callCb) {
 
-                    MemoryStream msgpackStream = new MemoryStream();
+                    using (MemoryStream msgpackStream = new MemoryStream()) {
 
-                    MsgPack.Serialize(new Dictionary<string, object>(), msgpackStream);
-                    msgpackStream.Position = 0; 
+                        MsgPack.Serialize(new Dictionary<string, object>(), msgpackStream);
+                        msgpackStream.Seek(0, SeekOrigin.Begin);
 
-                    answer(msgpackStream.ToArray(), false);
+                        answer(msgpackStream.ToArray(), false);
+                    }
                 }
 
                 try {
 
-                    MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
-                    payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                    using (MemoryStream inputStream = new MemoryStream(data.MsgpackPayload())) {
+
+                        payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                    }
                 } catch(Exception ex) {
 
                    this._event.FireEvent(new EventData("error", ex)); 

@@ -271,12 +271,15 @@ namespace com.rtm {
             payload.Add("msg", msg);
             payload.Add("attrs", attrs);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -331,12 +334,15 @@ namespace com.rtm {
             payload.Add("msg", msg);
             payload.Add("attrs", attrs);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -391,12 +397,15 @@ namespace com.rtm {
             payload.Add("msg", msg);
             payload.Add("attrs", attrs);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -435,12 +444,15 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -471,12 +483,15 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -507,12 +522,15 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -578,12 +596,15 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -683,12 +704,15 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -786,12 +810,15 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -891,12 +918,15 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -999,12 +1029,15 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1042,12 +1075,15 @@ namespace com.rtm {
 
             payload.Add("attrs", attrs);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1083,12 +1119,15 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1123,12 +1162,15 @@ namespace com.rtm {
             payload.Add("msg", msg);
             payload.Add("attrs", attrs);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1163,12 +1205,15 @@ namespace com.rtm {
             payload.Add("apptype", apptype);
             payload.Add("devicetoken", devicetoken);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1201,12 +1246,15 @@ namespace com.rtm {
 
             payload.Add("devicetoken", devicetoken);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1239,12 +1287,15 @@ namespace com.rtm {
 
             payload.Add("lang", targetLanguage);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1285,12 +1336,15 @@ namespace com.rtm {
                 payload.Add("src", originalLanguage);
             }
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1323,12 +1377,15 @@ namespace com.rtm {
 
             payload.Add("friends", friends);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1361,12 +1418,15 @@ namespace com.rtm {
 
             payload.Add("friends", friends);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1396,12 +1456,15 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1453,12 +1516,15 @@ namespace com.rtm {
             payload.Add("gid", gid);
             payload.Add("uids", uids);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1493,12 +1559,15 @@ namespace com.rtm {
             payload.Add("gid", gid);
             payload.Add("uids", uids);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1531,12 +1600,15 @@ namespace com.rtm {
 
             payload.Add("gid", gid);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1583,12 +1655,15 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1638,12 +1713,15 @@ namespace com.rtm {
 
             payload.Add("rid", rid);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1676,12 +1754,15 @@ namespace com.rtm {
 
             payload.Add("rid", rid);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1711,12 +1792,15 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1766,12 +1850,15 @@ namespace com.rtm {
 
             payload.Add("uids", uids);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1825,12 +1912,15 @@ namespace com.rtm {
             payload.Add("xid", xid);
             payload.Add("type", type);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1863,12 +1953,15 @@ namespace com.rtm {
 
             payload.Add("ce", ce);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1901,12 +1994,15 @@ namespace com.rtm {
 
             payload.Add("key", key);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -1941,12 +2037,15 @@ namespace com.rtm {
             payload.Add("key", key);
             payload.Add("val", value);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -2087,12 +2186,15 @@ namespace com.rtm {
             payload.Add("version", this._version);
             payload.Add("attrs", this._attrs);
 
-            MemoryStream outputStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, outputStream);
-            outputStream.Position = 0; 
+            using (MemoryStream outputStream = new MemoryStream()) {
 
-            byte[] bytes = outputStream.ToArray();
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -2270,12 +2372,15 @@ namespace com.rtm {
 
         private void Filetoken(IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
-            MemoryStream msgpackStream = new MemoryStream();
+            byte[] bytes;
 
-            MsgPack.Serialize(payload, msgpackStream);
-            msgpackStream.Position = 0; 
-            
-            byte[] bytes = msgpackStream.ToArray();
+            using (MemoryStream outputStream = new MemoryStream()) {
+
+                MsgPack.Serialize(payload, outputStream);
+                outputStream.Seek(0, SeekOrigin.Begin);
+
+                bytes = outputStream.ToArray();
+            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
@@ -2326,12 +2431,15 @@ namespace com.rtm {
                     base.Connect();
                 }
 
-                MemoryStream outputStream = new MemoryStream();
+                byte[] bytes;
 
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Position = 0; 
+                using (MemoryStream outputStream = new MemoryStream()) {
 
-                byte[] bytes = outputStream.ToArray();
+                    MsgPack.Serialize(payload, outputStream);
+                    outputStream.Seek(0, SeekOrigin.Begin);
+
+                    bytes = outputStream.ToArray();
+                } 
 
                 FPData data = new FPData();
                 data.SetFlag(0x1);
@@ -2391,12 +2499,15 @@ namespace com.rtm {
 
                 long mid = (long)Convert.ToInt64(payload["mid"]);
 
-                MemoryStream msgpackStream = new MemoryStream();
+                byte[] bytes;
 
-                MsgPack.Serialize(payload, msgpackStream);
-                msgpackStream.Position = 0; 
+                using (MemoryStream outputStream = new MemoryStream()) {
 
-                byte[] bytes = msgpackStream.ToArray();
+                    MsgPack.Serialize(payload, outputStream);
+                    outputStream.Seek(0, SeekOrigin.Begin);
+
+                    bytes = outputStream.ToArray();
+                }
 
                 FPData data = new FPData();
                 data.SetFlag(0x1);
@@ -2494,8 +2605,10 @@ namespace com.rtm {
 
                         try {
 
-                            MemoryStream inputStream = new MemoryStream(data.MsgpackPayload());
-                            payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                            using (MemoryStream inputStream = new MemoryStream(data.MsgpackPayload())) {
+
+                                payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                            }
                         } catch(Exception ex) {
 
                            base.GetEvent().FireEvent(new EventData("error", ex));
