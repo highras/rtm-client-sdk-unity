@@ -16,6 +16,7 @@ namespace com.rtm {
         private static class MidGenerator {
 
             static private long Count = 0;
+            static private StringBuilder sb = new StringBuilder(20);
             static private System.Object Lock = new System.Object();
 
             static public long Gen() {
@@ -32,8 +33,7 @@ namespace com.rtm {
                     c = Count;
                 }
 
-                StringBuilder sb = new StringBuilder(20);
-
+                sb.Clear();
                 sb.Append(ThreadPool.Instance.GetMilliTimestamp());
 
                 if (c < 100) {
