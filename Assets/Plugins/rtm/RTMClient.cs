@@ -70,7 +70,6 @@ namespace com.rtm {
 
         private bool _startTimerThread;
 
-        private bool _ipv6;
         private bool _isClose;
         private string _endpoint;
 
@@ -171,12 +170,10 @@ namespace com.rtm {
 
         /**
          * @param {string}  endpoint
-         * @param {bool}    ipv6
          */
-        public void Login(string endpoint, bool ipv6) {
+        public void Login(string endpoint) {
 
             this._endpoint = endpoint;
-            this._ipv6 = ipv6;
             this._isClose = false;
 
             if (!string.IsNullOrEmpty(this._endpoint)) {
@@ -214,7 +211,6 @@ namespace com.rtm {
             payload.Add("pid", this._pid);
             payload.Add("uid", this._uid);
             payload.Add("what", "rtmGated");
-            payload.Add("addrType", this._ipv6 ? "ipv6" : "ipv4");
             payload.Add("version", this._version);
 
             this._dispatchClient.Which(payload, this._timeout, (cbd) => {
@@ -223,7 +219,7 @@ namespace com.rtm {
 
                 if (dict != null) {
 
-                    self.Login(Convert.ToString(dict["endpoint"]), self._ipv6);
+                    self.Login(Convert.ToString(dict["endpoint"]));
                 }
 
                 Exception ex = cbd.GetException();
@@ -2403,7 +2399,7 @@ namespace com.rtm {
                 return;
             }
 
-            this.Login(this._endpoint, this._ipv6);
+            this.Login(this._endpoint);
         }
 
         private class DispatchClient:BaseClient {
@@ -2433,6 +2429,7 @@ namespace com.rtm {
 
                 byte[] bytes;
 
+                payload.Add("addrType", base.IsIPv6() ? "ipv6" : "ipv4");
                 using (MemoryStream outputStream = new MemoryStream()) {
 
                     MsgPack.Serialize(payload, outputStream);

@@ -23,7 +23,7 @@ namespace com.test {
                 "52.83.245.22:13325",
                 1000012,
                 654321,
-                "03F2F42AD6C5A1CB5B81996B2D6C598C",
+                "FDECE98A02C97E02E991BED7C1AFD6E0",
                 null,
                 new Dictionary<string, string>(),
                 true,
@@ -62,7 +62,7 @@ namespace com.test {
                 Debug.Log("TestCase error: " + evd.GetException().Message);
             });
 
-            this._client.Login(null, false);
+            this._client.Login(null);
         }
 
         public void Close() {

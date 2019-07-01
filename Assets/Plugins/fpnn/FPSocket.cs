@@ -20,6 +20,7 @@ namespace com.fpnn {
         private TcpClient _socket;
         private NetworkStream _stream;
 
+        private bool _isIPv6 = false;
         private bool _isClosed = true;
         private bool _isConnecting = false;
         private Thread _writeThread = null;
@@ -41,7 +42,7 @@ namespace com.fpnn {
 
             if (String.IsNullOrEmpty(this._host)) {
 
-                this.OnError(new Exception("Cannot open null host"));
+                this.Close(new Exception("Cannot open null host"));
                 return;
             }
             
@@ -58,7 +59,27 @@ namespace com.fpnn {
             }
 
             this._isClosed = false;
-            this._socket = new TcpClient();
+
+            IPAddress ipaddr;
+
+            try {
+
+                IPHostEntry hostEntry = Dns.GetHostEntry(this._host);
+                ipaddr = hostEntry.AddressList[0];
+            } catch(Exception ex) {
+
+                this.Close(new Exception("Cannot get ipaddr"));
+                return;
+            }
+
+            if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
+
+                this._socket = new TcpClient(AddressFamily.InterNetwork);
+            } else {
+
+                this._isIPv6 = true;
+                this._socket = new TcpClient(AddressFamily.InterNetworkV6);
+            }
 
             FPSocket self = this;
 
@@ -68,7 +89,7 @@ namespace com.fpnn {
 
                 try {
 
-                    result = self._socket.BeginConnect(self._host, self._port, null, null);
+                    result = self._socket.BeginConnect(ipaddr, self._port, null, null);
 
                     lock(self._lock_obj) {
 
@@ -110,6 +131,11 @@ namespace com.fpnn {
                     self.Close(ex);
                 }
             });
+        }
+
+        public bool IsIPv6() {
+
+            return this._isIPv6;
         }
 
         public bool IsOpen() {
@@ -154,6 +180,8 @@ namespace com.fpnn {
 
         public void Destroy() {
 
+            this._isIPv6 = false;
+            
             this._onData = null;
             this._event.RemoveListener();
 

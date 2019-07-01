@@ -17,6 +17,11 @@
 
 * 不要阻塞事件触发和回调, 否则线程池将被耗尽
 
+#### 关于IPV6 ####
+
+* `SOCKET`链接支持`IPV6`接口
+* 兼容`DNS64/NAT64`网络环境
+
 #### 一个例子 ####
 
 ```c#
@@ -87,7 +92,7 @@ processor.GetEvent().AddListener(RTMConfig.SERVER_PUSH.recvPing, (evd) => {
 });
 
 // 开启连接
-client.Login(null, false);
+client.Login(null);
 
 // destory
 // client.Destory();
@@ -213,9 +218,8 @@ this.BaseTest(fileBytes);
 
 * `Destroy()`: 断开连接并销毁
 
-* `Login(string endpoint, bool ipv6)`: 连接并登陆
+* `Login(string endpoint)`: 连接并登陆
     * `endpoint`: **(string)** RTMGate服务地址, 由Dispatch服务获取, 或由RTM提供
-    * `ipv6`: **(bool)** 是否为IPV6地址格式
 
 * `SendMessage(long to, byte mtype, string msg, string attrs, long mid, int timeout, CallbackData callback)`: 发送消息
     * `to`: **(long)** 接收方uid

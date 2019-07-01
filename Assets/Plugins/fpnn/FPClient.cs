@@ -194,6 +194,11 @@ namespace com.fpnn {
             }
         }
 
+        public bool IsIPv6() {
+
+            return this._sock.IsIPv6();
+        }
+
         public bool IsOpen() {
 
             return this._sock.IsOpen();
