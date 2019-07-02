@@ -221,12 +221,7 @@ namespace com.rtm {
                     self.Login(Convert.ToString(dict["endpoint"]));
                 }
 
-                Exception ex = cbd.GetException();
-
-                if (ex != null) {
-
-                    self.GetEvent().FireEvent(new EventData("error", ex));
-                }
+                self._dispatchClient.Close(cbd.GetException());
             });
         }
 
