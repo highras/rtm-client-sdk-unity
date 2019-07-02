@@ -21,9 +21,9 @@ namespace com.rtm {
 
             static public long Gen() {
 
-                long c = 0;
-
                 lock(Lock) {
+
+                    long c = 0;
 
                     if (++Count >= 999) {
 
@@ -31,24 +31,23 @@ namespace com.rtm {
                     }
 
                     c = Count;
+
+                    sb.Clear();
+                    sb.Append(ThreadPool.Instance.GetMilliTimestamp());
+
+                    if (c < 100) {
+
+                        sb.Append("0");
+                    }
+
+                    if (c < 10) {
+
+                        sb.Append("0");
+                    }
+
+                    sb.Append(c);
+                    return Convert.ToInt64(sb.ToString());
                 }
-
-                sb.Clear();
-                sb.Append(ThreadPool.Instance.GetMilliTimestamp());
-
-                if (c < 100) {
-
-                    sb.Append("0");
-                }
-
-                if (c < 10) {
-
-                    sb.Append("0");
-                }
-
-                sb.Append(c);
-
-                return Convert.ToInt64(sb.ToString());
             }
         }
 
