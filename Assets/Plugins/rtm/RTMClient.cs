@@ -229,7 +229,10 @@ namespace com.rtm {
                     self.Login(Convert.ToString(dict["endpoint"]));
                 }
 
-                self._dispatchClient.Close(cbd.GetException());
+                if (self._dispatchClient != null) {
+
+                    self._dispatchClient.Close(cbd.GetException());
+                }
             });
         }
 
