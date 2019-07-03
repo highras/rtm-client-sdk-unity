@@ -73,6 +73,8 @@ namespace com.fpnn {
 
             ThreadPool.Instance.Execute((state) => {
 
+                System.Threading.Thread.CurrentThread.Name = "fpnn_service_thread";
+
                 try {
 
                     while (self._serviceAble) {
@@ -109,6 +111,8 @@ namespace com.fpnn {
 
                     ErrorRecorderHolder.recordError(e);
                 }
+
+                System.Threading.Thread.CurrentThread.Name = null;
             });
         }
 
