@@ -211,29 +211,37 @@ namespace com.rtm {
                         self.Reconnect();
                     }
                 });
+
+                this._dispatchClient.GetEvent().AddListener("connect", (evd) => {
+
+                    Debug.Log("[DispatchClient] connected!");
+
+                    IDictionary<string, object> payload = new Dictionary<string, object>();
+
+                    payload.Add("pid", self._pid);
+                    payload.Add("uid", self._uid);
+                    payload.Add("what", "rtmGated");
+                    payload.Add("addrType", self._dispatchClient.IsIPv6() ? "ipv6" : "ipv4");
+                    payload.Add("version", self._version);
+
+                    self._dispatchClient.Which(payload, self._timeout, (cbd) => {
+
+                        IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
+
+                        if (dict != null) {
+
+                            self.Login(Convert.ToString(dict["endpoint"]));
+                        }
+
+                        if (self._dispatchClient != null) {
+
+                            self._dispatchClient.Close(cbd.GetException());
+                        }
+                    });
+                });
+
+                this._dispatchClient.Connect();
             }
-
-            IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            payload.Add("pid", this._pid);
-            payload.Add("uid", this._uid);
-            payload.Add("what", "rtmGated");
-            payload.Add("version", this._version);
-
-            this._dispatchClient.Which(payload, this._timeout, (cbd) => {
-
-                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
-
-                if (dict != null) {
-
-                    self.Login(Convert.ToString(dict["endpoint"]));
-                }
-
-                if (self._dispatchClient != null) {
-
-                    self._dispatchClient.Close(cbd.GetException());
-                }
-            });
         }
 
         /**
@@ -2428,11 +2436,6 @@ namespace com.rtm {
 
             public override void AddListener() {
 
-                base.GetEvent().AddListener("connect", (evd) => {
-
-                    Debug.Log("[DispatchClient] connected!");
-                });
-
                 base.GetEvent().AddListener("error", (evd) => {
 
                     Debug.Log(evd.GetException().Message);
@@ -2441,14 +2444,8 @@ namespace com.rtm {
 
             public void Which(IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
 
-                if (!base.HasConnect()) {
-
-                    base.Connect();
-                }
-
                 byte[] bytes;
 
-                payload.Add("addrType", base.IsIPv6() ? "ipv6" : "ipv4");
                 using (MemoryStream outputStream = new MemoryStream()) {
 
                     MsgPack.Serialize(payload, outputStream);
