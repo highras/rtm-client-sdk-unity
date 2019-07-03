@@ -108,11 +108,13 @@ namespace com.rtm {
             RTMClient self = this;
 
             this._processor = new RTMProcessor(this._event);
-            this._processor.GetEvent().AddListener(RTMConfig.SERVER_PUSH.kickOut, (evd) => {
+            this._processor.AddPushService(RTMConfig.SERVER_PUSH.kickOut, (data) => {
 
                 self._isClose = true;
                 self._baseClient.Close();
             });
+
+            ThreadPool.Instance.SetPool(new RTMThreadPool());
         }
 
         public RTMProcessor GetProcessor() {
@@ -163,6 +165,12 @@ namespace com.rtm {
                 this._dispatchClient.Destroy();
                 this._dispatchClient = null;
             }
+
+            if (this._processor != null) {
+
+                this._processor.Destroy();
+                this._processor = null;
+            } 
 
             this._event.RemoveListener();
         }
@@ -2394,6 +2402,20 @@ namespace com.rtm {
             }
 
             this.Login(this._endpoint);
+        }
+
+        private class RTMThreadPool:ThreadPool.IThreadPool {
+
+            public RTMThreadPool() {
+
+                System.Threading.ThreadPool.SetMinThreads(2, 1);
+                System.Threading.ThreadPool.SetMaxThreads(SystemInfo.processorCount * 2, SystemInfo.processorCount);
+            }
+
+            public void Execute(Action<object> action) {
+
+                System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback(action));
+            }
         }
 
         private class DispatchClient:BaseClient {

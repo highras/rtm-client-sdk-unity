@@ -86,9 +86,9 @@ client.GetEvent().AddListener("error", (evd) => {
 // push service
 RTMProcessor processor = client.GetProcessor();
 
-processor.GetEvent().AddListener(RTMConfig.SERVER_PUSH.recvPing, (evd) => {
+processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {
 
-    Debug.Log("[PUSH] ping: " + Json.SerializeToString(evd.GetPayload()));
+    Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
 });
 
 // 开启连接

@@ -12,8 +12,7 @@ namespace com.fpnn {
 
         public override void recordError(Exception e) {
 
-            Debug.LogError(e.Message);
-            Debug.LogError(e.StackTrace);
+            Debug.LogError(e);
         }
     }
 

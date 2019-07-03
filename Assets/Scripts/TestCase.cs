@@ -23,7 +23,7 @@ namespace com.test {
                 "52.83.245.22:13325",
                 1000012,
                 654321,
-                "0F72999A885541AEEC397FBB7EF7230F",
+                "64719D00E23AACCBD181A0221DFAE496",
                 null,
                 new Dictionary<string, string>(),
                 true,
@@ -33,9 +33,9 @@ namespace com.test {
 
             RTMProcessor processor = this._client.GetProcessor();
 
-            processor.GetEvent().AddListener(RTMConfig.SERVER_PUSH.recvPing, (evd) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {
 
-                Debug.Log("[PUSH] ping: " + Json.SerializeToString(evd.GetPayload()));
+                Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
             });
 
             this._client.GetEvent().AddListener("login", (evd) => {

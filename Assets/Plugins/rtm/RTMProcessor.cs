@@ -16,6 +16,9 @@ namespace com.rtm {
         private FPEvent _event;
         private Hashtable _midMap = new Hashtable();
 
+        private System.Object action_locker = new System.Object();
+        private IDictionary<string, object> _actionDict = new Dictionary<string, object>(); 
+
         private Type _type;
         private object _obj;
 
@@ -33,6 +36,7 @@ namespace com.rtm {
         public void Destroy() {
 
             this._midMap.Clear();
+            this._actionDict.Clear();
         }
 
         public void Service(FPData data, AnswerDelegate answer) {
@@ -104,12 +108,53 @@ namespace com.rtm {
             }
         }
 
+        public void AddPushService(string name, Action<IDictionary<string, object>> action) {
+
+            lock(action_locker) {
+
+                if (!this._actionDict.ContainsKey(name)) {
+
+                    this._actionDict.Add(name, action);
+                } else {
+
+                    this._event.FireEvent(new EventData("error", new Exception("push service exist")));
+                }
+            }
+        }
+
+        public void RemovePushService(string name) {
+
+            lock(action_locker) {
+
+                if (!this._actionDict.ContainsKey(name)) {
+
+                    this._actionDict.Remove(name);
+                }
+            }
+        }
+
+        private void PushService(string name, IDictionary<string, object> data) {
+
+            lock(action_locker) {
+
+                if (this._actionDict.ContainsKey(name)) {
+
+                    Action<IDictionary<string, object>> action = (Action<IDictionary<string, object>>)this._actionDict[name];
+
+                    if (action != null) {
+
+                        action(data);
+                    }
+                }
+            }
+        }
+
         /**
          * @param {IDictionary<string, object>} data
          */
         public void kickout(IDictionary<string, object> data) {
 
-            this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.kickOut, data));
+            this.PushService(RTMConfig.SERVER_PUSH.kickOut, data);
         }
 
         /**
@@ -117,7 +162,7 @@ namespace com.rtm {
          */
         public void kickoutroom(IDictionary<string, object> data) {
 
-            this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.kickOutRoom, data));
+            this.PushService(RTMConfig.SERVER_PUSH.kickOutRoom, data);
         }
 
         /**
@@ -140,14 +185,14 @@ namespace com.rtm {
             }
 
             byte mtype = Convert.ToByte(data["mtype"]);
+            string name = RTMConfig.SERVER_PUSH.recvMessage;
 
             if (mtype >= 40 && mtype <= 50) {
 
-                this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvFile, data));
-                return;
+                name = RTMConfig.SERVER_PUSH.recvFile;
             }
 
-            this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvMessage, data));
+            this.PushService(name, data);
         }
 
         /**
@@ -170,14 +215,14 @@ namespace com.rtm {
             }
 
             byte mtype = Convert.ToByte(data["mtype"]);
+            string name = RTMConfig.SERVER_PUSH.recvGroupMessage;
 
             if (mtype >= 40 && mtype <= 50) {
 
-                this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvGroupFile, data));
-                return;
+                name = RTMConfig.SERVER_PUSH.recvGroupFile;
             }
 
-            this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvGroupMessage, data));
+            this.PushService(name, data);
         }
 
         /**
@@ -200,14 +245,14 @@ namespace com.rtm {
             }
 
             byte mtype = Convert.ToByte(data["mtype"]);
+            string name = RTMConfig.SERVER_PUSH.recvRoomMessage;
 
             if (mtype >= 40 && mtype <= 50) {
 
-                this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvRoomFile, data));
-                return;
+                name = RTMConfig.SERVER_PUSH.recvRoomFile;
             }
 
-            this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvRoomMessage, data));
+            this.PushService(name, data);
         }
 
         /**
@@ -229,14 +274,14 @@ namespace com.rtm {
             }
 
             byte mtype = Convert.ToByte(data["mtype"]);
+            string name = RTMConfig.SERVER_PUSH.recvBroadcastMessage;
 
             if (mtype >= 40 && mtype <= 50) {
 
-                this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvBroadcastFile, data));
-                return;
+                name = RTMConfig.SERVER_PUSH.recvBroadcastFile;
             }
 
-            this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvBroadcastMessage, data));
+            this.PushService(name, data);
         }
 
         /**
@@ -244,7 +289,7 @@ namespace com.rtm {
          */
         public void ping(IDictionary<string, object> data) {
 
-            this._event.FireEvent(new EventData(RTMConfig.SERVER_PUSH.recvPing, data));
+            this.PushService(RTMConfig.SERVER_PUSH.recvPing, data);
         }
 
         public void OnSecond(long timestamp) {

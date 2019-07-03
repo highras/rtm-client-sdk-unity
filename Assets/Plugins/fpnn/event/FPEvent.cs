@@ -86,6 +86,7 @@ namespace com.fpnn {
                             try {
                                 
                                 cb(evd);
+                            } catch (ThreadAbortException tex){
                             } catch (Exception e) {
 
                                 ErrorRecorderHolder.recordError(e);

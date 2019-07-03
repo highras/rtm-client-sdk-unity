@@ -4,7 +4,7 @@ namespace com.rtm {
 
     public class RTMConfig {
 
-        public static string VERSION = "1.0.0";
+        public static string VERSION = "1.0.1";
         
         public static int MID_TTL = 5 * 1000;
 
