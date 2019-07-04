@@ -2247,6 +2247,11 @@ namespace com.rtm {
 
                     if (ok) {
 
+                        if (self._processor != null) {
+
+                            self._processor.InitPingTimestamp();
+                        }
+                        
                         self.GetEvent().FireEvent(new EventData("login", self._endpoint));
                         return;
                     }

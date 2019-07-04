@@ -44,11 +44,6 @@ namespace com.rtm {
 
         public void Service(FPData data, AnswerDelegate answer) {
 
-            if (this._lastPingTimestamp == 0) {
-
-                this._lastPingTimestamp = ThreadPool.Instance.GetMilliTimestamp();
-            }
-
             bool callCb = true;
 
             if (RTMConfig.SERVER_PUSH.kickOut == data.GetMethod()) {
@@ -316,6 +311,14 @@ namespace com.rtm {
         public void ClearPingTimestamp() {
 
             this._lastPingTimestamp = 0;
+        }
+
+        public void InitPingTimestamp() {
+
+            if (this._lastPingTimestamp == 0) {
+
+                this._lastPingTimestamp = ThreadPool.Instance.GetMilliTimestamp();
+            }
         }
 
         public void OnSecond(long timestamp) {
