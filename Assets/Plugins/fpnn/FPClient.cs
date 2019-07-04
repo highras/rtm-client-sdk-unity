@@ -400,8 +400,6 @@ namespace com.fpnn {
 
         private void OnSecond(long timestamp) {
 
-            this._event.FireEvent(new EventData("second", timestamp));
-
             this._psr.OnSecond(timestamp);
             this._callback.OnSecond(timestamp);
         }

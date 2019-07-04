@@ -59,7 +59,7 @@ namespace com.fpnn {
         }
 
         private bool _serviceAble;
-        private System.Threading.ManualResetEvent _serviceEvent = new System.Threading.ManualResetEvent(true);
+        private System.Threading.ManualResetEvent _serviceEvent = new System.Threading.ManualResetEvent(false);
 
         private void StartServiceThread() {
 
@@ -77,31 +77,16 @@ namespace com.fpnn {
 
                     while (self._serviceAble) {
 
-                        self._serviceEvent.WaitOne();
+                        List<ServiceDelegate> list;
 
-                        int count = 0;
-                        ServiceDelegate service = null;
+                        lock(self.service_locker) {
 
-                        lock(service_locker) {
-
-                            if (self._serviceCache.Count > 0) {
-
-                                service = self._serviceCache[0];
-                                self._serviceCache.RemoveAt(0);
-                            }
-
-                            count = self._serviceCache.Count;
+                            list = self._serviceCache;
+                            self._serviceCache = new List<ServiceDelegate>();
                         }
 
-                        if (service != null) {
-
-                            service();
-                        }
-
-                        if (count == 0) {
-
-                            self._serviceEvent.Reset();
-                        }
+                        self.CallService(list);
+                        self._serviceEvent.WaitOne(100);
                     }
                 } catch (System.Threading.ThreadAbortException tex) {
                 } catch (Exception e) {
@@ -109,6 +94,17 @@ namespace com.fpnn {
                     ErrorRecorderHolder.recordError(e);
                 }
             });
+        }
+
+        private void CallService(ICollection<ServiceDelegate> list) {
+
+            foreach (ServiceDelegate service in list) {
+
+                if (service != null) {
+
+                    service();
+                }
+            }
         }
 
         private void StopServiceThread() {
@@ -151,8 +147,6 @@ namespace com.fpnn {
                     this.StartServiceThread();
                 } 
             }       
-
-            this._serviceEvent.Set();
         }
 
         public void OnSecond(long timestamp) {
