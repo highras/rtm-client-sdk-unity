@@ -20,13 +20,11 @@ namespace com.rtm {
         private IDictionary<string, object> _actionDict = new Dictionary<string, object>();
 
         private Type _type;
-        private Action<long> _checkPing;
 
-        public RTMProcessor(FPEvent evt, Action<long> checkPing) {
+        public RTMProcessor(FPEvent evt) {
 
             this._event = evt;
             this._type = Type.GetType("com.rtm.RTMProcessor");
-            this._checkPing = checkPing;
         }
 
         public FPEvent GetEvent() {
@@ -308,6 +306,11 @@ namespace com.rtm {
 
         private long _lastPingTimestamp;
 
+        public long GetPingTimestamp() {
+
+            return this._lastPingTimestamp;
+        }
+
         public void ClearPingTimestamp() {
 
             this._lastPingTimestamp = 0;
@@ -322,11 +325,6 @@ namespace com.rtm {
         }
 
         public void OnSecond(long timestamp) {
-
-            if (this._checkPing != null) {
-
-                this._checkPing(this._lastPingTimestamp);
-            }
 
             this.CheckExpire(timestamp);
         }

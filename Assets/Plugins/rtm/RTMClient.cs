@@ -73,6 +73,7 @@ namespace com.rtm {
         private string _endpoint;
 
         private RTMProcessor _processor;
+        private EventDelegate _eventDelegate;
 
         private BaseClient _baseClient;
         private DispatchClient _dispatchClient;
@@ -107,23 +108,7 @@ namespace com.rtm {
 
             RTMClient self = this;
 
-            this._processor = new RTMProcessor(this._event, (lastPingTimestamp) => {
-
-                self.DelayConnect();
-
-                if (lastPingTimestamp <= 0 ) {
-
-                    return;
-                }
-
-                if (self._baseClient != null && self._baseClient.IsOpen()) {
-
-                    if (ThreadPool.Instance.GetMilliTimestamp() - lastPingTimestamp > RTMConfig.CONNCT_INTERVAL) {
-
-                        self._baseClient.Close();
-                    }
-                }
-            });
+            this._processor = new RTMProcessor(this._event);
 
             this._processor.AddPushService(RTMConfig.SERVER_PUSH.kickOut, (data) => {
 
@@ -131,7 +116,29 @@ namespace com.rtm {
                 self._baseClient.Close();
             });
 
+            this._eventDelegate = (evd) => {
+
+                long lastPingTimestamp = 0;
+                long timestamp = evd.GetTimestamp();
+
+                if (self._processor != null) {
+
+                    lastPingTimestamp = self._processor.GetPingTimestamp();
+                }
+
+                if (lastPingTimestamp > 0 && self._baseClient != null && self._baseClient.IsOpen()) {
+
+                    if (timestamp - lastPingTimestamp > RTMConfig.CONNCT_INTERVAL) {
+
+                        self._baseClient.Close();
+                    }
+                }
+
+                self.DelayConnect(timestamp);
+            };
+
             ThreadPool.Instance.SetPool(new RTMThreadPool());
+            ThreadPool.Instance.Event.AddListener("second", this._eventDelegate);
         }
 
         public RTMProcessor GetProcessor() {
@@ -193,6 +200,12 @@ namespace com.rtm {
             }
 
             this._event.RemoveListener();
+
+            if (this._eventDelegate != null) {
+
+                ThreadPool.Instance.Event.RemoveListener("second", this._eventDelegate);
+                this._eventDelegate = null;
+            }
         }
 
         /**
@@ -2456,14 +2469,14 @@ namespace com.rtm {
 
         private long _lastConnectTime = 0;
 
-        private void DelayConnect() {
+        private void DelayConnect(long timestamp) {
 
             if (this._lastConnectTime == 0) {
 
                 return;
             }
 
-            if (ThreadPool.Instance.GetMilliTimestamp() - this._lastConnectTime < RTMConfig.CONNCT_INTERVAL) {
+            if (timestamp - this._lastConnectTime < RTMConfig.CONNCT_INTERVAL) {
 
                 return;
             }

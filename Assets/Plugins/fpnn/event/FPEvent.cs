@@ -55,13 +55,16 @@ namespace com.fpnn {
                 return;
             }
 
-            ArrayList queue = ((ArrayList)this._listeners[type]);
+            lock(this._listeners) {
 
-            int index = queue.IndexOf(lisr);
+                ArrayList queue = ((ArrayList)this._listeners[type]);
 
-            if (index != -1) {
+                int index = queue.IndexOf(lisr);
 
-                queue.Remove(index);
+                if (index != -1) {
+
+                    queue.RemoveAt(index);
+                }
             }
         }
 
