@@ -109,6 +109,8 @@ namespace com.rtm {
 
             this._processor = new RTMProcessor(this._event, (lastPingTimestamp) => {
 
+                self.DelayConnect();
+
                 if (lastPingTimestamp <= 0 ) {
 
                     return;
@@ -169,6 +171,9 @@ namespace com.rtm {
 
             this.Close();
 
+            this._reconnCount = 0;
+            this._lastConnectTime = 0;
+
             if (this._baseClient != null) {
 
                 this._baseClient.Destroy();
@@ -185,7 +190,7 @@ namespace com.rtm {
 
                 this._processor.Destroy();
                 this._processor = null;
-            } 
+            }
 
             this._event.RemoveListener();
         }
@@ -2251,7 +2256,8 @@ namespace com.rtm {
 
                             self._processor.InitPingTimestamp();
                         }
-                        
+
+                        self._reconnCount = 0;
                         self.GetEvent().FireEvent(new EventData("login", self._endpoint));
                         return;
                     }
@@ -2420,6 +2426,8 @@ namespace com.rtm {
             this.SendQuest(data, callback, timeout);
         }
 
+        private int _reconnCount = 0;
+
         private void Reconnect() {
 
             if (!this._reconnect) {
@@ -2437,6 +2445,31 @@ namespace com.rtm {
                 this._processor.ClearPingTimestamp();
             }
 
+            if (++this._reconnCount < 3) {
+
+                this.Login(this._endpoint);
+                return;
+            }
+
+            this._lastConnectTime = ThreadPool.Instance.GetMilliTimestamp();
+        }
+
+        private long _lastConnectTime = 0;
+
+        private void DelayConnect() {
+
+            if (this._lastConnectTime == 0) {
+
+                return;
+            }
+
+            if (ThreadPool.Instance.GetMilliTimestamp() - this._lastConnectTime < RTMConfig.CONNCT_INTERVAL) {
+
+                return;
+            }
+
+            this._reconnCount = 0;
+            this._lastConnectTime = 0;
             this.Login(this._endpoint);
         }
 

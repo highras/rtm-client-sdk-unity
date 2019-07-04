@@ -4,9 +4,10 @@ namespace com.rtm {
 
     public class RTMConfig {
 
-        public static string VERSION = "1.0.1";
+        public static string VERSION = "1.0.2";
         
-        public static int MID_TTL = 5 * 1000;
+        public static int MID_TTL = 5 * 1000;                           //MID缓存超时时间(ms)
+        public static int CONNCT_INTERVAL = 40 * 1000;                  //客户端尝试重新连接的时间间隔(ms)
 
         public class FILE_TYPE {
 
