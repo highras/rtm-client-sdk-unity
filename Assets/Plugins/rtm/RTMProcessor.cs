@@ -36,7 +36,7 @@ namespace com.rtm {
 
         public void Destroy() {
 
-            this._lastPingTimestamp = 0;
+            this.ClearPingTimestamp();
             
             this._midMap.Clear();
             this._actionDict.Clear();
@@ -312,6 +312,11 @@ namespace com.rtm {
         }
 
         private long _lastPingTimestamp;
+
+        public void ClearPingTimestamp() {
+
+            this._lastPingTimestamp = 0;
+        }
 
         public void OnSecond(long timestamp) {
 

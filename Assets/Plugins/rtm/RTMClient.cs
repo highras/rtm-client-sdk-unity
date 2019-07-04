@@ -2427,6 +2427,11 @@ namespace com.rtm {
                 return;
             }
 
+            if (this._processor != null) {
+
+                this._processor.ClearPingTimestamp();
+            }
+
             this.Login(this._endpoint);
         }
 
