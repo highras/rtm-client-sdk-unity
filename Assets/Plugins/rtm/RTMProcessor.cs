@@ -17,15 +17,16 @@ namespace com.rtm {
         private Hashtable _midMap = new Hashtable();
 
         private System.Object action_locker = new System.Object();
-        private IDictionary<string, object> _actionDict = new Dictionary<string, object>(); 
+        private IDictionary<string, object> _actionDict = new Dictionary<string, object>();
 
         private Type _type;
-        private object _obj;
+        private Action<long> _checkPing;
 
-        public RTMProcessor(FPEvent evt) {
+        public RTMProcessor(FPEvent evt, Action<long> checkPing) {
 
             this._event = evt;
             this._type = Type.GetType("com.rtm.RTMProcessor");
+            this._checkPing = checkPing;
         }
 
         public FPEvent GetEvent() {
@@ -35,11 +36,18 @@ namespace com.rtm {
 
         public void Destroy() {
 
+            this._lastPingTimestamp = 0;
+            
             this._midMap.Clear();
             this._actionDict.Clear();
         }
 
         public void Service(FPData data, AnswerDelegate answer) {
+
+            if (this._lastPingTimestamp == 0) {
+
+                this._lastPingTimestamp = ThreadPool.Instance.GetMilliTimestamp();
+            }
 
             bool callCb = true;
 
@@ -106,6 +114,16 @@ namespace com.rtm {
                     method.Invoke(this, paras);
                 }
             }
+        }
+
+        public bool HasPushService(string name) {
+
+            if (string.IsNullOrEmpty(name)) {
+
+                return false;
+            }
+
+            return this._actionDict.ContainsKey(name);
         }
 
         public void AddPushService(string name, Action<IDictionary<string, object>> action) {
@@ -289,10 +307,18 @@ namespace com.rtm {
          */
         public void ping(IDictionary<string, object> data) {
 
+            this._lastPingTimestamp = ThreadPool.Instance.GetMilliTimestamp();
             this.PushService(RTMConfig.SERVER_PUSH.recvPing, data);
         }
 
+        private long _lastPingTimestamp;
+
         public void OnSecond(long timestamp) {
+
+            if (this._checkPing != null) {
+
+                this._checkPing(this._lastPingTimestamp);
+            }
 
             this.CheckExpire(timestamp);
         }

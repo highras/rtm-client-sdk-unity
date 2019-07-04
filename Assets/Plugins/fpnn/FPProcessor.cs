@@ -13,6 +13,7 @@ namespace com.fpnn {
 
             void Service(FPData data, AnswerDelegate answer);
             void OnSecond(long timestamp);
+            bool HasPushService(string name);
             FPEvent GetEvent();
         }
 
@@ -23,14 +24,13 @@ namespace com.fpnn {
             public void Service(FPData data, AnswerDelegate answer) {
 
                 // TODO 
-                
-                if (data.GetFlag() == 0) {
+                if (data.GetFlag() == 0) {}
+                if (data.GetFlag() == 1) {}
+            }
 
-                }
+            public bool HasPushService(string name) {
 
-                if (data.GetFlag() == 1) {
-
-                }
+                return false;
             }
 
             public FPEvent GetEvent() {
@@ -90,7 +90,6 @@ namespace com.fpnn {
 
                                 service = self._serviceCache[0];
                                 self._serviceCache.RemoveAt(0);
-
                             }
 
                             count = self._serviceCache.Count;
@@ -130,6 +129,11 @@ namespace com.fpnn {
             if (this._processor == null) {
 
                 this._processor = new BaseProcessor();
+            }
+
+            if (!this._processor.HasPushService(data.GetMethod())) {
+
+                return;
             }
 
             FPProcessor self = this;

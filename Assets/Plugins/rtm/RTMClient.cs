@@ -107,7 +107,22 @@ namespace com.rtm {
 
             RTMClient self = this;
 
-            this._processor = new RTMProcessor(this._event);
+            this._processor = new RTMProcessor(this._event, (lastPingTimestamp) => {
+
+                if (lastPingTimestamp <= 0 ) {
+
+                    return;
+                }
+
+                if (self._baseClient != null && self._baseClient.IsOpen()) {
+
+                    if (ThreadPool.Instance.GetMilliTimestamp() - lastPingTimestamp > 40 * 1000) {
+
+                        self._baseClient.Close();
+                    }
+                }
+            });
+
             this._processor.AddPushService(RTMConfig.SERVER_PUSH.kickOut, (data) => {
 
                 self._isClose = true;
