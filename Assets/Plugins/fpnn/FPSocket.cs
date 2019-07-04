@@ -85,8 +85,6 @@ namespace com.fpnn {
 
             ThreadPool.Instance.Execute((state) => {
 
-                Thread.CurrentThread.Name = "fpnn_read_thread";
-
                 IAsyncResult result;
 
                 try {
@@ -132,8 +130,6 @@ namespace com.fpnn {
 
                     self.Close(ex);
                 }
-
-                Thread.CurrentThread.Name = null;
             });
         }
 
@@ -257,7 +253,6 @@ namespace com.fpnn {
         private void StartWriteThread() {
 
             this._writeThread = new Thread(new ThreadStart(OnWrite));
-            this._writeThread.Name = "fpnn_write_thread";
             this._writeThread.Start();
         }
 
