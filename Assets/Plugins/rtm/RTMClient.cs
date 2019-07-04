@@ -118,7 +118,7 @@ namespace com.rtm {
 
                 if (self._baseClient != null && self._baseClient.IsOpen()) {
 
-                    if (ThreadPool.Instance.GetMilliTimestamp() - lastPingTimestamp > 40 * 1000) {
+                    if (ThreadPool.Instance.GetMilliTimestamp() - lastPingTimestamp > RTMConfig.CONNCT_INTERVAL) {
 
                         self._baseClient.Close();
                     }
@@ -2445,7 +2445,7 @@ namespace com.rtm {
                 this._processor.ClearPingTimestamp();
             }
 
-            if (++this._reconnCount < 3) {
+            if (++this._reconnCount < RTMConfig.RECONN_COUNT_ONCE) {
 
                 this.Login(this._endpoint);
                 return;
