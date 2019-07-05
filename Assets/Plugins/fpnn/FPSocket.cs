@@ -66,19 +66,19 @@ namespace com.fpnn {
 
                 IPHostEntry hostEntry = Dns.GetHostEntry(this._host);
                 ipaddr = hostEntry.AddressList[0];
+
+                if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
+
+                    this._socket = new TcpClient(AddressFamily.InterNetwork);
+                } else {
+
+                    this._isIPv6 = true;
+                    this._socket = new TcpClient(AddressFamily.InterNetworkV6);
+                }
             } catch(Exception ex) {
 
-                this.Close(new Exception("Cannot get ipaddr"));
+                this.Close(ex);
                 return;
-            }
-
-            if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
-
-                this._socket = new TcpClient(AddressFamily.InterNetwork);
-            } else {
-
-                this._isIPv6 = true;
-                this._socket = new TcpClient(AddressFamily.InterNetworkV6);
             }
 
             FPSocket self = this;
