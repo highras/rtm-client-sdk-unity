@@ -71,6 +71,7 @@ namespace com.rtm {
 
         private bool _isClose;
         private string _endpoint;
+        private string _switchGate;
 
         private RTMProcessor _processor;
         private EventDelegate _eventDelegate;
@@ -2292,7 +2293,7 @@ namespace com.rtm {
 
                         if (!string.IsNullOrEmpty(gate)) {
 
-                            self._endpoint = gate;
+                            self._switchGate = gate;
 
                             if (self._baseClient != null) {
 
@@ -2338,9 +2339,10 @@ namespace com.rtm {
                         self._baseClient = null;
                     }
 
-                    self.GetEvent().FireEvent(new EventData("close", !self._isClose && self._reconnect));
+                    self._endpoint = self._switchGate;
+                    self._switchGate = null;
 
-                    self._endpoint = null;
+                    self.GetEvent().FireEvent(new EventData("close", !self._isClose && self._reconnect));
                     self.Reconnect();
                 });
 
