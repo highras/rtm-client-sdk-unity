@@ -400,6 +400,11 @@ namespace com.fpnn {
 
         private void OnSecond(long timestamp) {
 
+            int AvailableWorkerThreads, aiot;
+            System.Threading.ThreadPool.GetAvailableThreads(out AvailableWorkerThreads, out aiot);
+
+            UnityEngine.Debug.Log("AvailableWorkerThreads: " + AvailableWorkerThreads);
+
             this._psr.OnSecond(timestamp);
             this._callback.OnSecond(timestamp);
         }
