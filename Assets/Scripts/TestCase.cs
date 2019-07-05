@@ -20,10 +20,16 @@ namespace com.test {
             this._fileBytes = fileBytes;
 
             this._client = new RTMClient(
-                "52.83.245.22:13325",
-                1000012,
-                654321,
-                "121929A8D6E7971BCB19A1D393145D84",
+                "rtm-intl-frontgate.funplus.com:13325",
+                11000002,
+                777779,
+                "AE65271AD6BD1E93F00C6B0BFA43BFDA",
+
+                // "52.83.245.22:13325",
+                // 1000012,
+                // 654321,
+                // "F2B4DC7E22066D1AD6E16DFF84B7A88E",
+                
                 null,
                 new Dictionary<string, string>(),
                 true,
@@ -36,6 +42,46 @@ namespace com.test {
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {
 
                 Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
+            });
+
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (evd) => {
+
+                // Debug.Log("[recvMessage]:");
+            });
+
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupMessage, (evd) => {
+
+                // Debug.Log("[recvGroupMessage]: ");
+            });
+
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomMessage, (evd) => {
+
+                // Debug.Log("[recvRoomMessage]: ");
+            });
+
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastMessage, (evd) => {
+
+                // Debug.Log("[recvBroadcastMessage]: ");
+            });
+
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvFile, (evd) => {
+
+                // Debug.Log("[recvFile]: ");
+            });
+
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomFile, (evd) => {
+
+                // Debug.Log("[recvRoomFile]: ");
+            });
+
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupFile, (evd) => {
+
+                // Debug.Log("[recvGroupFile]: ");
+            });
+
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastFile, (evd) => {
+
+                // Debug.Log("[recvBroadcastFile]: ");
             });
 
             this._client.GetEvent().AddListener("login", (evd) => {
@@ -71,6 +117,9 @@ namespace com.test {
         }
 
         private void OnLogin() {
+
+            //TODO
+            return;
 
             long to = 778899;
             long fuid = 778898;

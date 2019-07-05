@@ -79,16 +79,19 @@ namespace com.fpnn {
 
                     while (self._serviceAble) {
 
+                        self._serviceEvent.WaitOne();
+
                         List<ServiceDelegate> list;
 
                         lock(self.service_locker) {
 
                             list = self._serviceCache;
                             self._serviceCache = new List<ServiceDelegate>();
+
+                            self._serviceEvent.Reset();
                         }
 
                         self.CallService(list);
-                        self._serviceEvent.WaitOne(100);
                     }
                 } catch (System.Threading.ThreadAbortException tex) {
                 } catch (Exception e) {
@@ -111,7 +114,11 @@ namespace com.fpnn {
 
         private void StopServiceThread() {
 
-            this._serviceEvent.Reset();
+            lock(service_locker) {
+
+                this._serviceEvent.Set();
+            }
+
             this._serviceAble = false;
         }
 
@@ -148,6 +155,8 @@ namespace com.fpnn {
 
                     this.StartServiceThread();
                 } 
+
+                this._serviceEvent.Set();
             }       
         }
 

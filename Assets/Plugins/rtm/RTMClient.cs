@@ -118,6 +118,14 @@ namespace com.rtm {
 
             this._eventDelegate = (evd) => {
 
+                int AvailableWorkerThreads, aiot;
+                System.Threading.ThreadPool.GetAvailableThreads(out AvailableWorkerThreads, out aiot);
+
+                if (AvailableWorkerThreads <= 1) {
+
+                    Debug.Log("[ThreadPool] available worker threads: " + AvailableWorkerThreads);
+                }
+
                 long lastPingTimestamp = 0;
                 long timestamp = evd.GetTimestamp();
 
@@ -130,7 +138,7 @@ namespace com.rtm {
 
                     if (timestamp - lastPingTimestamp > RTMConfig.CONNCT_INTERVAL) {
 
-                        self._baseClient.Close();
+                        self._baseClient.Close(new Exception("ping timeout"));
                     }
                 }
 
@@ -2250,8 +2258,11 @@ namespace com.rtm {
 
                 if (exception != null) {
 
-                    self.GetEvent().FireEvent(new EventData("error", exception));
-                    self.Reconnect();
+                    if (self._baseClient != null) {
+
+                        self._baseClient.Close(exception);
+                    }
+
                     return;
                 }
 
@@ -2282,7 +2293,12 @@ namespace com.rtm {
                         if (!string.IsNullOrEmpty(gate)) {
 
                             self._endpoint = gate;
-                            self.Reconnect();
+
+                            if (self._baseClient != null) {
+
+                                self._baseClient.Close(exception);
+                            }
+
                             return;
                         }
                     }
@@ -2294,41 +2310,48 @@ namespace com.rtm {
                     }
                 }
 
-                self.GetEvent().FireEvent(new EventData("error", new Exception("auth error!")));
+                if (self._baseClient != null) {
+
+                    self._baseClient.Close(new Exception("auth error!"));
+                }
             }, timeout);
         }
 
         private void ConnectRTMGate(int timeout) {
 
-            if (this._baseClient != null) {
-
-                this._baseClient.Destroy();
-            }
-
             RTMClient self = this;
 
-            this._baseClient = new BaseClient(this._endpoint, false, timeout, this._startTimerThread);
+            if (this._baseClient == null) {
 
-            this._baseClient.GetEvent().AddListener("connect", (evd) => {
+                this._baseClient = new BaseClient(this._endpoint, false, timeout, this._startTimerThread);
 
-                self.Auth(timeout);
-            });
+                this._baseClient.GetEvent().AddListener("connect", (evd) => {
 
-            this._baseClient.GetEvent().AddListener("close", (evd) => {
+                    self.Auth(timeout);
+                });
 
-                self.GetEvent().FireEvent(new EventData("close", !self._isClose && self._reconnect));
+                this._baseClient.GetEvent().AddListener("close", (evd) => {
 
-                self._endpoint = null;
-                self.Reconnect();
-            });
+                    if (self._baseClient != null) {
 
-            this._baseClient.GetEvent().AddListener("error", (evd) => {
+                        self._baseClient.Destroy();
+                        self._baseClient = null;
+                    }
 
-                self.GetEvent().FireEvent(new EventData("error", evd.GetException()));
-            });
+                    self.GetEvent().FireEvent(new EventData("close", !self._isClose && self._reconnect));
 
-            this._baseClient.GetProcessor().SetProcessor(this._processor);
-            this._baseClient.Connect();
+                    self._endpoint = null;
+                    self.Reconnect();
+                });
+
+                this._baseClient.GetEvent().AddListener("error", (evd) => {
+
+                    self.GetEvent().FireEvent(new EventData("error", evd.GetException()));
+                });
+
+                this._baseClient.GetProcessor().SetProcessor(this._processor);
+                this._baseClient.Connect();
+            }
         }
 
         private void FileSendProcess(Hashtable ops, long mid, int timeout, CallbackDelegate callback) {
