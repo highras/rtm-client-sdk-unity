@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using GameDevWare.Serialization;
+using com.fpnn;
 using com.rtm;
 using UnityEngine;
 
@@ -41,7 +41,7 @@ namespace com.test {
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {
 
-                RevcInc();
+                RevcInc(true);
                 // Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
             });
 
@@ -109,7 +109,6 @@ namespace com.test {
 
             this._client.GetEvent().AddListener("close", (evd) => {
 
-                _stop = true;
                 Debug.Log("TestCase closed!");
             });
 
@@ -123,22 +122,35 @@ namespace com.test {
 
         public void Close() {
 
-            this._stop = true;
             this._client.Destroy();
         }
 
         private int _recvCount;
+        private long _traceTimestamp;
         private System.Object recv_locker = new System.Object();
 
-        private void RevcInc() {
+        private void RevcInc(bool trace=false) {
 
             lock(recv_locker) {
 
                 this._recvCount++;
+
+                if (this._traceTimestamp <= 0) {
+
+                    this._traceTimestamp = ThreadPool.Instance.GetMilliTimestamp();
+                }
+
+                if (trace) {
+
+                    int interval = (int)((ThreadPool.Instance.GetMilliTimestamp() - this._traceTimestamp) / 1000);
+
+                    Debug.Log("TestCase revc qps: " + (int)(_recvCount / interval));
+                    
+                    this._recvCount = 0;
+                    this._traceTimestamp = ThreadPool.Instance.GetMilliTimestamp();
+                }
             }
         }
-
-        private bool _stop;
 
         private void OnLogin() {
 
@@ -159,17 +171,6 @@ namespace com.test {
                     Debug.Log("[ERR] EnterRoom: " + cbd.GetException().Message);
                 }
             });
-
-            // while(!_stop) {
-
-            //     ThreadSleep(10 * 1000);
-
-            //     lock(recv_locker) {
-
-            //         Debug.Log("TestCase revc qps: " + (int)(_recvCount / 10));
-            //         _recvCount = 0;
-            //     }
-            // }
 
             //TODO
             return;
@@ -819,7 +820,7 @@ namespace com.test {
 
         private void ThreadSleep(int ms) {
 
-            Thread.Sleep(ms);
+            System.Threading.Thread.Sleep(ms);
             this._sleepCount++;
         }
     } 
