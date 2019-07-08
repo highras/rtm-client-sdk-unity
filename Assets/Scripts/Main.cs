@@ -16,7 +16,8 @@ public class Main : MonoBehaviour
 
         Debug.Log("hello rtm!");
 
-        byte[] fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
+        byte[] fileBytes = null;
+        // byte[] fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
 
         //TestCase
         this.BaseTest(fileBytes);

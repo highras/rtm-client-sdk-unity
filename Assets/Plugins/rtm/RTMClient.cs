@@ -137,7 +137,7 @@ namespace com.rtm {
 
                 if (lastPingTimestamp > 0 && self._baseClient != null && self._baseClient.IsOpen()) {
 
-                    if (timestamp - lastPingTimestamp > RTMConfig.CONNCT_INTERVAL) {
+                    if (timestamp - lastPingTimestamp > RTMConfig.RECV_PING_TIMEOUT) {
 
                         self._baseClient.Close(new Exception("ping timeout"));
                     }

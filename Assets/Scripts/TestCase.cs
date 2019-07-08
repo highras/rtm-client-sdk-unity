@@ -23,7 +23,7 @@ namespace com.test {
                 "rtm-intl-frontgate.funplus.com:13325",
                 11000002,
                 777779,
-                "AE65271AD6BD1E93F00C6B0BFA43BFDA",
+                "352FD52CD65598B8973BFB94D549E380",
 
                 // "52.83.245.22:13325",
                 // 1000012,
@@ -41,46 +41,55 @@ namespace com.test {
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {
 
-                Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
+                RevcInc();
+                // Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
             });
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (evd) => {
 
+                RevcInc();
                 // Debug.Log("[recvMessage]:");
             });
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupMessage, (evd) => {
 
+                RevcInc();
                 // Debug.Log("[recvGroupMessage]: ");
             });
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomMessage, (evd) => {
 
+                RevcInc();
                 // Debug.Log("[recvRoomMessage]: ");
             });
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastMessage, (evd) => {
 
+                RevcInc();
                 // Debug.Log("[recvBroadcastMessage]: ");
             });
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvFile, (evd) => {
 
+                RevcInc();
                 // Debug.Log("[recvFile]: ");
             });
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomFile, (evd) => {
 
+                RevcInc();
                 // Debug.Log("[recvRoomFile]: ");
             });
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupFile, (evd) => {
 
+                RevcInc();
                 // Debug.Log("[recvGroupFile]: ");
             });
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastFile, (evd) => {
 
+                RevcInc();
                 // Debug.Log("[recvBroadcastFile]: ");
             });
 
@@ -100,6 +109,7 @@ namespace com.test {
 
             this._client.GetEvent().AddListener("close", (evd) => {
 
+                _stop = true;
                 Debug.Log("TestCase closed!");
             });
 
@@ -113,10 +123,53 @@ namespace com.test {
 
         public void Close() {
 
+            this._stop = true;
             this._client.Destroy();
         }
 
+        private int _recvCount;
+        private System.Object recv_locker = new System.Object();
+
+        private void RevcInc() {
+
+            lock(recv_locker) {
+
+                this._recvCount++;
+            }
+        }
+
+        private bool _stop;
+
         private void OnLogin() {
+
+            Debug.Log("test start!");
+
+            _client.EnterRoom(987654321, 20 * 1000, (cbd) => {
+
+                object obj = cbd.GetPayload();
+
+                if (obj != null)
+                {
+
+                    Debug.Log("[DATA] EnterRoom: " + Json.SerializeToString(obj));
+                }
+                else
+                {
+
+                    Debug.Log("[ERR] EnterRoom: " + cbd.GetException().Message);
+                }
+            });
+
+            // while(!_stop) {
+
+            //     ThreadSleep(10 * 1000);
+
+            //     lock(recv_locker) {
+
+            //         Debug.Log("TestCase revc qps: " + (int)(_recvCount / 10));
+            //         _recvCount = 0;
+            //     }
+            // }
 
             //TODO
             return;
