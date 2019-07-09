@@ -133,83 +133,91 @@ this.BaseTest(fileBytes);
     * `name`: **(string)** 推送服务类型, 参考`RTMConfig.SERVER_PUSH`成员
 
 * `RTMConfig.SERVER_PUSH`:
-
     * `kickout`: RTMGate主动断开
         * `data`: **(IDictionary)**
 
     * `kickoutroom`: RTMGate主动从Room移除
-        * `data.rid`: **(long)** Room id
+        * `data`: **(IDictionary)**
+            * `data.rid`: **(long)** Room id
 
     * `ping`: RTMGate主动ping
         * `data`: **(IDictionary)**
 
     * `pushmsg`: RTMGate主动推送P2P消息
-        * `data.from`: **(long)** 发送者 id
-        * `data.mtype`: **(byte)** 消息类型
-        * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-        * `data.msg`: **(string)** 消息内容
-        * `data.attrs`: **(string)** 发送时附加的自定义内容
-        * `data.mtime`: **(long)**
+        * `data`: **(IDictionary)**
+            * `data.from`: **(long)** 发送者 id
+            * `data.mtype`: **(byte)** 消息类型
+            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 消息内容
+            * `data.attrs`: **(string)** 发送时附加的自定义内容
+            * `data.mtime`: **(long)**
 
     * `pushgroupmsg`: RTMGate主动推送Group消息
-        * `data.from`: **(long)** 发送者 id
-        * `data.gid`: **(long)** Group id
-        * `data.mtype`: **(byte)** 消息类型
-        * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-        * `data.msg`: **(string)** 消息内容
-        * `data.attrs`: **(string)** 发送时附加的自定义内容
-        * `data.mtime`: **(long)**
+        * `data`: **(IDictionary)**
+            * `data.from`: **(long)** 发送者 id
+            * `data.gid`: **(long)** Group id
+            * `data.mtype`: **(byte)** 消息类型
+            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 消息内容
+            * `data.attrs`: **(string)** 发送时附加的自定义内容
+            * `data.mtime`: **(long)**
 
     * `pushroommsg`: RTMGate主动推送Room消息
-        * `data.from`: **(long)** 发送者 id
-        * `data.rid`: **(long)** Room id
-        * `data.mtype`: **(byte)** 消息类型
-        * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-        * `data.msg`: **(string)** 消息内容
-        * `data.attrs`: **(string)** 发送时附加的自定义内容
-        * `data.mtime`: **(long)**
+        * `data`: **(IDictionary)**
+            * `data.from`: **(long)** 发送者 id
+            * `data.rid`: **(long)** Room id
+            * `data.mtype`: **(byte)** 消息类型
+            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 消息内容
+            * `data.attrs`: **(string)** 发送时附加的自定义内容
+            * `data.mtime`: **(long)**
 
     * `pushbroadcastmsg`: RTMGate主动推送广播消息
-        * `data.from`: **(long)** 发送者 id
-        * `data.mtype`: **(byte)** 消息类型
-        * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-        * `data.msg`: **(string)** 消息内容
-        * `data.attrs`: **(string)** 发送时附加的自定义内容
-        * `data.mtime`: **(long)**
+        * `data`: **(IDictionary)**
+            * `data.from`: **(long)** 发送者 id
+            * `data.mtype`: **(byte)** 消息类型
+            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 消息内容
+            * `data.attrs`: **(string)** 发送时附加的自定义内容
+            * `data.mtime`: **(long)**
 
     * `pushfile`: RTMGate主动推送P2P文件
-        * `data.from`: **(long)** 发送者 id
-        * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
-        * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-        * `data.msg`: **(string)** 文件获取地址(url)
-        * `data.attrs`: **(string)** 发送时附加的自定义内容
-        * `data.mtime`: **(long)**
+        * `data`: **(IDictionary)**
+            * `data.from`: **(long)** 发送者 id
+            * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
+            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 文件获取地址(url)
+            * `data.attrs`: **(string)** 发送时附加的自定义内容
+            * `data.mtime`: **(long)**
 
     * `pushgroupfile`: RTMGate主动推送Group文件
-        * `data.from`: **(long)** 发送者 id
-        * `data.gid`: **(long)** Group id
-        * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
-        * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-        * `data.msg`: **(string)** 文件获取地址(url)
-        * `data.attrs`: **(string)** 发送时附加的自定义内容
-        * `data.mtime`: **(long)**
+        * `data`: **(IDictionary)**
+            * `data.from`: **(long)** 发送者 id
+            * `data.gid`: **(long)** Group id
+            * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
+            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 文件获取地址(url)
+            * `data.attrs`: **(string)** 发送时附加的自定义内容
+            * `data.mtime`: **(long)**
 
     * `pushroomfile`: RTMGate主动推送Room文件
-        * `data.from`: **(long)** 发送者 id
-        * `data.rid`: **(long)** Room id
-        * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
-        * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-        * `data.msg`: **(string)** 文件获取地址(url)
-        * `data.attrs`: **(string)** 发送时附加的自定义内容
-        * `data.mtime`: **(long)**
+        * `data`: **(IDictionary)**
+            * `data.from`: **(long)** 发送者 id
+            * `data.rid`: **(long)** Room id
+            * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
+            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 文件获取地址(url)
+            * `data.attrs`: **(string)** 发送时附加的自定义内容
+            * `data.mtime`: **(long)**
 
     * `pushbroadcastfile`: RTMGate主动推送广播文件
-        * `data.from`: **(long)** 发送者 id
-        * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
-        * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-        * `data.msg`: **(string)** 文件获取地址(url)
-        * `data.attrs`: **(string)** 发送时附加的自定义内容
-        * `data.mtime`: **(long)**
+        * `data`: **(IDictionary)**
+            * `data.from`: **(long)** 发送者 id
+            * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
+            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 文件获取地址(url)
+            * `data.attrs`: **(string)** 发送时附加的自定义内容
+            * `data.mtime`: **(long)**
 
 #### API ####
 
