@@ -127,10 +127,10 @@ this.BaseTest(fileBytes);
     * `action`: **(Action(IDictionary(string, object)))** 回调方法
 
 * `RTMProcessor::RemovePushService(string name)`: 删除推送回调
-    * `name`: **(string)** 推送服务类型, 参考`RTMConfig.SERVER_PUSH`
+    * `name`: **(string)** 推送服务类型, 参考`RTMConfig.SERVER_PUSH`成员
 
 * `RTMProcessor::HasPushService(string name)`: 是否存在推送回调
-    * `name`: **(string)** 推送服务类型, 参考`RTMConfig.SERVER_PUSH`
+    * `name`: **(string)** 推送服务类型, 参考`RTMConfig.SERVER_PUSH`成员
 
 * `RTMConfig.SERVER_PUSH`:
 
