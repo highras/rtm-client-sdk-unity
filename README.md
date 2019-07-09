@@ -23,7 +23,11 @@
 * 兼容`DNS64/NAT64`网络环境
 
 #### 关于PING ####
+
 * 如保持连接需要注册`ping`监听, 按需连接则无需处理该监听
+```
+processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {});
+```
 
 
 #### 一个例子 ####
