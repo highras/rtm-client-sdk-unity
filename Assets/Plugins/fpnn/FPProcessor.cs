@@ -132,6 +132,11 @@ namespace com.fpnn {
                 this._processor = new BaseProcessor();
             }
 
+            if (!this._processor.HasPushService(data.GetMethod())) {
+
+                return;
+            }
+
             FPProcessor self = this;
 
             lock(service_locker) {
