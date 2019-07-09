@@ -677,11 +677,11 @@ namespace com.rtm {
                 if (dict != null) {
 
                     List<object> ol = (List<object>)dict["msgs"];
-                    List<Hashtable> nl = new List<Hashtable>();
+                    List<IDictionary<string, object>> nl = new List<IDictionary<string, object>>();
 
                     foreach (List<object> items in ol) {
 
-                        Hashtable map = new Hashtable();
+                        IDictionary<string, object> map = new Dictionary<string, object>();
 
                         map.Add("id", items[0]);
                         map.Add("from", items[1]);
@@ -785,11 +785,11 @@ namespace com.rtm {
                 if (dict != null) {
 
                     List<object> ol = (List<object>)dict["msgs"];
-                    List<Hashtable> nl = new List<Hashtable>();
+                    List<IDictionary<string, object>> nl = new List<IDictionary<string, object>>();
 
                     foreach (List<object> items in ol) {
 
-                        Hashtable map = new Hashtable();
+                        IDictionary<string, object> map = new Dictionary<string, object>();
 
                         map.Add("id", items[0]);
                         map.Add("from", items[1]);
@@ -891,11 +891,11 @@ namespace com.rtm {
                 if (dict != null) {
 
                     List<object> ol = (List<object>)dict["msgs"];
-                    List<Hashtable> nl = new List<Hashtable>();
+                    List<IDictionary<string, object>> nl = new List<IDictionary<string, object>>();
 
                     foreach (List<object> items in ol) {
 
-                        Hashtable map = new Hashtable();
+                        IDictionary<string, object> map = new Dictionary<string, object>();
 
                         map.Add("id", items[0]);
                         map.Add("from", items[1]);
@@ -999,11 +999,11 @@ namespace com.rtm {
                 if (dict != null) {
 
                     List<object> ol = (List<object>)dict["msgs"];
-                    List<Hashtable> nl = new List<Hashtable>();
+                    List<IDictionary<string, object>> nl = new List<IDictionary<string, object>>();
 
                     foreach (List<object> items in ol) {
 
-                        Hashtable map = new Hashtable();
+                        IDictionary<string, object> map = new Dictionary<string, object>();
 
                         map.Add("id", items[0]);
                         map.Add("direction", items[1]);
@@ -1159,14 +1159,14 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {IDictionary(attrs:List(Hashtable))}    payload
+         * @param {IDictionary(attrs:List(IDictionary<string, string>))}    payload
          * </CallbackData>
          *
-         * <Hashtable>
+         * <IDictionary<string, string>>
          * @param {string}                  ce
          * @param {string}                  login
          * @param {string}                  my
-         * </Hashtable>
+         * </IDictionary<string, string>>
          */
         public void GetAttrs(int timeout, CallbackDelegate callback) {
 
