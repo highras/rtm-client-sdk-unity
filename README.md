@@ -118,7 +118,7 @@ this.BaseTest(fileBytes);
     * `error`: 发生异常
         * `exception`: **(Exception)**
     * `close`: 连接关闭
-        * `retry`: **(bool)** 是否自动重连
+        * `retry`: **(bool)** 是否执行自动重连(未启用或者被踢掉则不会执行自动重连)
 
 #### PushService ####
 
