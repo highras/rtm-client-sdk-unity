@@ -24,7 +24,7 @@
 
 #### 关于PING ####
 
-* 如保持连接需要注册`ping`监听, 按需连接则无需处理该监听
+* 如保持连接需要注册`ping`推送, 按需连接则无需处理该推送
 ```
 processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {});
 ```
