@@ -23,7 +23,7 @@ namespace com.test {
                 "rtm-intl-frontgate.funplus.com:13325",
                 11000002,
                 777779,
-                "352FD52CD65598B8973BFB94D549E380",
+                "80F992D68D52367BC71E09635863E3B0",
 
                 // "52.83.245.22:13325",
                 // 1000012,
@@ -45,49 +45,49 @@ namespace com.test {
                 // Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
             });
 
-            processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (evd) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
 
                 RevcInc();
                 // Debug.Log("[recvMessage]:");
             });
 
-            processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupMessage, (evd) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupMessage, (data) => {
 
                 RevcInc();
                 // Debug.Log("[recvGroupMessage]: ");
             });
 
-            processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomMessage, (evd) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomMessage, (data) => {
 
                 RevcInc();
                 // Debug.Log("[recvRoomMessage]: ");
             });
 
-            processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastMessage, (evd) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastMessage, (data) => {
 
                 RevcInc();
                 // Debug.Log("[recvBroadcastMessage]: ");
             });
 
-            processor.AddPushService(RTMConfig.SERVER_PUSH.recvFile, (evd) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvFile, (data) => {
 
                 RevcInc();
                 // Debug.Log("[recvFile]: ");
             });
 
-            processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomFile, (evd) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomFile, (data) => {
 
                 RevcInc();
                 // Debug.Log("[recvRoomFile]: ");
             });
 
-            processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupFile, (evd) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupFile, (data) => {
 
                 RevcInc();
                 // Debug.Log("[recvGroupFile]: ");
             });
 
-            processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastFile, (evd) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastFile, (data) => {
 
                 RevcInc();
                 // Debug.Log("[recvBroadcastFile]: ");

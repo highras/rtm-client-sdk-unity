@@ -22,14 +22,6 @@
 * `SOCKET`链接支持`IPV6`接口
 * 兼容`DNS64/NAT64`网络环境
 
-#### 关于PING ####
-
-* 如保持连接需要注册`ping`推送, 按需连接则无需处理该推送
-```
-processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {});
-```
-
-
 #### 一个例子 ####
 
 ```c#
@@ -94,9 +86,10 @@ client.GetEvent().AddListener("error", (evd) => {
 // push service
 RTMProcessor processor = client.GetProcessor();
 
-//保持该链接
-processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {});
-...
+processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
+
+    Debug.Log("[PUSH] recv msg: " + Json.SerializeToString(data));
+});
 
 // 开启连接
 client.Login(null);
@@ -140,9 +133,6 @@ this.BaseTest(fileBytes);
     * `name`: **(string)** 推送服务类型, 参考`RTMConfig.SERVER_PUSH`成员
 
 * `RTMConfig.SERVER_PUSH`:
-    * `kickout`: RTMGate主动断开
-        * `data`: **(IDictionary(string, object))**
-
     * `kickoutroom`: RTMGate主动从Room移除
         * `data`: **(IDictionary(string, object))**
             * `data.rid`: **(long)** Room id

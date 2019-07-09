@@ -132,7 +132,10 @@ namespace com.fpnn {
 
             if (!this._processor.HasPushService(data.GetMethod())) {
 
-                return;
+                if (data.GetMethod() != "ping") {
+
+                    return;
+                }
             }
 
             FPProcessor self = this;

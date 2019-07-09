@@ -4,8 +4,8 @@ namespace com.rtm {
 
     public class RTMConfig {
 
-        public static string VERSION = "1.0.4";
-        
+        public static string VERSION = "1.0.5";
+
         public static int MID_TTL = 5 * 1000;                           //MID缓存超时时间(ms)
         public static int RECONN_COUNT_ONCE = 3;                        //一次重新连接流程中的尝试次数
         public static int CONNCT_INTERVAL = 40 * 1000;                  //客户端尝试重新连接的时间间隔(ms)
@@ -18,10 +18,11 @@ namespace com.rtm {
             public static byte video = 42;        //视频
             public static byte file = 50;         //泛指文件，服务器会修改此值（如果服务器可以判断出具体类型的话，仅在mtype=50的情况下）
         }
+        
+        public static string KICKOUT = "kickout";
 
         public class SERVER_PUSH {
 
-            public static string kickOut = "kickout";
             public static string kickOutRoom = "kickoutroom";
             public static string recvMessage = "pushmsg";
             public static string recvGroupMessage = "pushgroupmsg";

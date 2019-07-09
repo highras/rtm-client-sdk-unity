@@ -113,7 +113,7 @@ namespace com.rtm {
 
             this._processor = new RTMProcessor(this._event);
 
-            this._processor.AddPushService(RTMConfig.SERVER_PUSH.kickOut, (data) => {
+            this._processor.AddPushService(RTMConfig.KICKOUT, (data) => {
 
                 self._isClose = true;
                 self._baseClient.Close();

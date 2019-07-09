@@ -44,7 +44,7 @@ namespace com.rtm {
 
             bool callCb = true;
 
-            if (RTMConfig.SERVER_PUSH.kickOut == data.GetMethod()) {
+            if (RTMConfig.KICKOUT == data.GetMethod()) {
 
                 callCb = false;
             }
@@ -165,7 +165,7 @@ namespace com.rtm {
          */
         public void kickout(IDictionary<string, object> data) {
 
-            this.PushService(RTMConfig.SERVER_PUSH.kickOut, data);
+            this.PushService(RTMConfig.KICKOUT, data);
         }
 
         /**
