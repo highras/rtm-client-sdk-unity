@@ -144,10 +144,13 @@ namespace com.test {
 
                     int interval = (int)((ThreadPool.Instance.GetMilliTimestamp() - this._traceTimestamp) / 1000);
 
-                    Debug.Log("TestCase revc qps: " + (int)(_recvCount / interval));
-                    
-                    this._recvCount = 0;
-                    this._traceTimestamp = ThreadPool.Instance.GetMilliTimestamp();
+                    if (interval > 0) {
+
+                        Debug.Log("TestCase revc qps: " + (int)(_recvCount / interval));
+
+                        this._recvCount = 0;
+                        this._traceTimestamp = ThreadPool.Instance.GetMilliTimestamp();
+                    }
                 }
             }
         }
