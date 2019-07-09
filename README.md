@@ -22,6 +22,10 @@
 * `SOCKET`链接支持`IPV6`接口
 * 兼容`DNS64/NAT64`网络环境
 
+#### 关于PING ####
+* 如保持连接需要注册`ping`监听, 按需连接则无需处理该监听
+
+
 #### 一个例子 ####
 
 ```c#
@@ -86,10 +90,9 @@ client.GetEvent().AddListener("error", (evd) => {
 // push service
 RTMProcessor processor = client.GetProcessor();
 
-processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {
-
-    Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
-});
+//保持该链接
+processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {});
+...
 
 // 开启连接
 client.Login(null);
