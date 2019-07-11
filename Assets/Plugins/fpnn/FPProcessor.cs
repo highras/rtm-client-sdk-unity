@@ -172,7 +172,6 @@ namespace com.fpnn {
         public void Destroy() {
 
             this.StopServiceThread();
-            this._serviceCache.Clear();
         }
     }
 }

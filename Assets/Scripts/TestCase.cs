@@ -20,6 +20,11 @@ namespace com.test {
             this._fileBytes = fileBytes;
 
             this._client = new RTMClient(
+                // "52.83.245.22:13325",
+                // 11000001,
+                // 777779,
+                // "91CABB223C0D10DC64CFC39D50DAEEC0",
+
                 "rtm-intl-frontgate.funplus.com:13325",
                 11000002,
                 777779,
@@ -45,11 +50,11 @@ namespace com.test {
             //     Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
             // });
 
-            // processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
+            processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
 
-            //     RevcInc();
-            //     // Debug.Log("[recvMessage]:");
-            // });
+                RevcInc();
+                // Debug.Log("[recvMessage]: " + Json.SerializeToString(data));
+            });
 
             // processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupMessage, (data) => {
 
@@ -114,7 +119,7 @@ namespace com.test {
 
             this._client.GetEvent().AddListener("error", (evd) => {
 
-                Debug.Log("TestCase error: " + evd.GetException().Message);
+                Debug.Log("TestCase error: " + evd.GetException());
             });
 
             this._client.Login(null);
@@ -175,8 +180,8 @@ namespace com.test {
                 }
             });
 
-            // //TODO
-            // return;
+            //TODO
+            return;
 
             long to = 778899;
             long fuid = 778898;

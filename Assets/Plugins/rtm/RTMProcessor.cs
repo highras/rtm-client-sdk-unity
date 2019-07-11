@@ -17,7 +17,7 @@ namespace com.rtm {
         private Hashtable _midMap = new Hashtable();
 
         private System.Object action_locker = new System.Object();
-        private IDictionary<string, object> _actionDict = new Dictionary<string, object>();
+        private IDictionary<string, Action<IDictionary<string, object>>> _actionDict = new Dictionary<string, Action<IDictionary<string, object>>>();
 
         private Type _type;
 
@@ -137,7 +137,7 @@ namespace com.rtm {
 
             lock(action_locker) {
 
-                if (!this._actionDict.ContainsKey(name)) {
+                if (this._actionDict.ContainsKey(name)) {
 
                     this._actionDict.Remove(name);
                 }
@@ -150,7 +150,7 @@ namespace com.rtm {
 
                 if (this._actionDict.ContainsKey(name)) {
 
-                    Action<IDictionary<string, object>> action = (Action<IDictionary<string, object>>)this._actionDict[name];
+                    Action<IDictionary<string, object>> action = this._actionDict[name];
 
                     if (action != null) {
 
