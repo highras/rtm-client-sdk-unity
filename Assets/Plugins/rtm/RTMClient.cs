@@ -92,7 +92,7 @@ namespace com.rtm {
          */
         public RTMClient(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool startTimerThread) {
 
-            Debug.Log("Hello RTM!   rtm@" + RTMConfig.VERSION + ", fpnn@" + FPConfig.VERSION);
+            Debug.Log("Hello RTM! rtm@" + RTMConfig.VERSION + ", fpnn@" + FPConfig.VERSION);
 
             this._dispatch = dispatch;
             this._pid = pid;
@@ -2299,7 +2299,7 @@ namespace com.rtm {
 
                             if (self._baseClient != null) {
 
-                                self._baseClient.Close(exception);
+                                self._baseClient.Close();
                             }
 
                             return;

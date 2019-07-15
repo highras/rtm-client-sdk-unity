@@ -28,7 +28,7 @@ namespace com.test {
                 "rtm-intl-frontgate.funplus.com:13325",
                 11000002,
                 777779,
-                "80F992D68D52367BC71E09635863E3B0",
+                "BE3732174850E479209443BCCDF4747D",
 
                 // "52.83.245.22:13325",
                 // 1000012,
@@ -53,7 +53,8 @@ namespace com.test {
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
 
                 RevcInc();
-                // Debug.Log("[recvMessage]: " + Json.SerializeToString(data));
+                Debug.Log("[recvMessage]: " + Json.SerializeToString(data));
+                Debug.Log("[recvMessage]: " + data["msg"]);
             });
 
             // processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupMessage, (data) => {
