@@ -73,9 +73,9 @@ namespace com.fpnn {
 
             ThreadPool.Instance.Execute((state) => {
 
-                try {
+                while (self._serviceAble) {
 
-                    while (self._serviceAble) {
+                    try {
 
                         self._serviceEvent.WaitOne();
 
@@ -90,11 +90,11 @@ namespace com.fpnn {
                         }
 
                         self.CallService(list);
-                    }
-                } catch (System.Threading.ThreadAbortException tex) {
-                } catch (Exception e) {
+                    } catch (System.Threading.ThreadAbortException tex) {
+                    } catch (Exception e) {
 
-                    ErrorRecorderHolder.recordError(e);
+                        ErrorRecorderHolder.recordError(e);
+                    }
                 }
             });
         }
