@@ -12,17 +12,17 @@ using UnityEngine;
 
 namespace com.test {
 
-	public class SingleClientPush : Main.ITestCase {
+    public class SingleClientPush : Main.ITestCase {
 
-		private int trace_interval = 10;
+        private int trace_interval = 10;
 
-		private RTMClient _client;
+        private RTMClient _client;
 
         /**
          *  单客户端实例接收QPS脚本
          *  服务控制 https://www.livedata.top/console/rtm/api/tool?pid=11000002
          */
-		public SingleClientPush() {}
+        public SingleClientPush() {}
 
         public void StartTest(byte[] fileBytes) {
 
@@ -120,26 +120,26 @@ namespace com.test {
             this._client.Login(null);
         }
 
-		public void StopTest() {
+        public void StopTest() {
 
-			if (this._client != null) {
+            if (this._client != null) {
 
-	            this._client.Destroy();
-			}
+                this._client.Destroy();
+            }
         }
 
-       	private int _recvCount;
-		private long _traceTimestamp;
+        private int _recvCount;
+        private long _traceTimestamp;
 
         private System.Object inc_locker = new System.Object();
 
-       	private void RevcInc() {
+        private void RevcInc() {
 
-       		lock(inc_locker) {
+            lock(inc_locker) {
 
-       			this._recvCount++;
+                this._recvCount++;
 
-       			if (this._traceTimestamp <= 0) {
+                if (this._traceTimestamp <= 0) {
 
                     this._traceTimestamp = com.fpnn.ThreadPool.Instance.GetMilliTimestamp();
                 }
@@ -148,17 +148,17 @@ namespace com.test {
 
                 if (interval >= this.trace_interval) {
 
-                	Debug.Log(
-                		com.fpnn.ThreadPool.Instance.GetMilliTimestamp()
-                		+ ", trace interval: " + this.trace_interval
+                    Debug.Log(
+                        com.fpnn.ThreadPool.Instance.GetMilliTimestamp()
+                        + ", trace interval: " + this.trace_interval
                         + ", revc qps: " + (int)(this._recvCount / interval) 
-                		);
+                        );
 
-		        	this._traceTimestamp = com.fpnn.ThreadPool.Instance.GetMilliTimestamp();
+                    this._traceTimestamp = com.fpnn.ThreadPool.Instance.GetMilliTimestamp();
 
-		        	this._recvCount = 0;
+                    this._recvCount = 0;
                 }
-       		}
-       	}	
-	}
+            }
+        }   
+    }
 }
