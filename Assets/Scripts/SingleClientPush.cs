@@ -38,6 +38,27 @@ namespace com.test {
 
             SingleClientPush self = this;
 
+            this._client.GetEvent().AddListener("login", (evd) => {
+
+                if (evd.GetException() == null) {
+
+                	Debug.Log("test start!");
+                } else {
+
+                	Debug.Log(evd.GetException());
+                }
+            });
+
+            this._client.GetEvent().AddListener("close", (evd) => {
+
+                Debug.Log("closed!");
+            });
+
+            this._client.GetEvent().AddListener("error", (evd) => {
+
+                Debug.Log(evd.GetException());
+            });
+
             RTMProcessor processor = this._client.GetProcessor();
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {
@@ -92,27 +113,6 @@ namespace com.test {
 
                 self.RevcInc();
                 // Debug.Log("[recvBroadcastFile]: ");
-            });
-
-            this._client.GetEvent().AddListener("login", (evd) => {
-
-                if (evd.GetException() == null) {
-
-                	Debug.Log("test start!");
-                } else {
-
-                	Debug.Log(evd.GetException());
-                }
-            });
-
-            this._client.GetEvent().AddListener("close", (evd) => {
-
-                Debug.Log("closed!");
-            });
-
-            this._client.GetEvent().AddListener("error", (evd) => {
-
-                Debug.Log(evd.GetException());
             });
 
             this._client.Login(null);
