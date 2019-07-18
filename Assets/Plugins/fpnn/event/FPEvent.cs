@@ -72,11 +72,11 @@ namespace com.fpnn {
             
             string type = evd.GetEventType();
 
-            if (this._listeners.Contains(type)) {
+            lock(this._listeners) {
 
-                ArrayList queue = (ArrayList)this._listeners[type];
+                if (this._listeners.Contains(type)) {
 
-                lock(queue) {
+                    ArrayList queue = (ArrayList)this._listeners[type];
 
                     IEnumerator ie = queue.GetEnumerator();
 
@@ -84,11 +84,19 @@ namespace com.fpnn {
 
                         EventDelegate cb = (EventDelegate)ie.Current;
 
+                        if (cb == null) {
+
+                            continue;
+                        }
+
                         ThreadPool.Instance.Execute((state) => {
 
                             try {
                                 
-                                cb(evd);
+                                if (cb != null) {
+
+                                    cb(evd);
+                                }
                             } catch (ThreadAbortException tex){
                             } catch (Exception e) {
 

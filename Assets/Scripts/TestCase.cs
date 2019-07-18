@@ -15,20 +15,20 @@ namespace com.test {
         private byte[] _fileBytes;
         private RTMClient _client;
 
-        public TestCase(byte[] fileBytes) {
+        public TestCase(long uid, string token, byte[] fileBytes) {
 
             this._fileBytes = fileBytes;
 
             this._client = new RTMClient(
-                // "52.83.245.22:13325",
-                // 11000001,
-                // 777779,
-                // "91CABB223C0D10DC64CFC39D50DAEEC0",
+                "52.83.245.22:13325",
+                11000001,
+                uid,
+                token,
 
-                "rtm-intl-frontgate.funplus.com:13325",
-                11000002,
-                777779,
-                "BE3732174850E479209443BCCDF4747D",
+                // "rtm-intl-frontgate.funplus.com:13325",
+                // 11000002,
+                // 777779,
+                // "BE3732174850E479209443BCCDF4747D",
 
                 // "52.83.245.22:13325",
                 // 1000012,

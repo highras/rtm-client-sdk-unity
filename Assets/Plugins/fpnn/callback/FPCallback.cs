@@ -70,7 +70,10 @@ namespace com.fpnn {
 
                 try {
                     
-                    callback(new CallbackData(data));
+                    if (callback != null) {
+
+                        callback(new CallbackData(data));
+                    }
                 } catch (ThreadAbortException tex){
                 } catch (Exception e) {
 
@@ -109,7 +112,10 @@ namespace com.fpnn {
 
                 try {
 
-                    callback(new CallbackData(ex));
+                    if (callback != null) {
+
+                        callback(new CallbackData(ex));
+                    }
                 } catch (ThreadAbortException tex){
                 } catch (Exception e) {
                     
