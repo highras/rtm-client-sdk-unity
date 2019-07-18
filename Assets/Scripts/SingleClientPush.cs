@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace com.test {
 
-	public class SingleClientPush {
+	public class SingleClientPush : Main.ITestCase {
 
 		private int trace_interval = 10;
 
@@ -22,9 +22,11 @@ namespace com.test {
          *  单客户端实例接收QPS脚本
          *  服务控制 https://www.livedata.top/console/rtm/api/tool?pid=11000002
          */
-		public SingleClientPush() {
+		public SingleClientPush() {}
 
-			this._client = new RTMClient(
+        public void StartTest(byte[] fileBytes) {
+
+            this._client = new RTMClient(
                 "rtm-intl-frontgate.funplus.com:13325",
                 11000002,
                 777779,
@@ -42,10 +44,10 @@ namespace com.test {
 
                 if (evd.GetException() == null) {
 
-                	Debug.Log("test start!");
+                    Debug.Log("test start!");
                 } else {
 
-                	Debug.Log(evd.GetException());
+                    Debug.Log(evd.GetException());
                 }
             });
 
@@ -116,9 +118,9 @@ namespace com.test {
             });
 
             this._client.Login(null);
-		}
+        }
 
-		public void Close() {
+		public void StopTest() {
 
 			if (this._client != null) {
 
@@ -129,11 +131,11 @@ namespace com.test {
        	private int _recvCount;
 		private long _traceTimestamp;
 
-        private System.Object locker = new System.Object();
+        private System.Object inc_locker = new System.Object();
 
        	private void RevcInc() {
 
-       		lock(locker) {
+       		lock(inc_locker) {
 
        			this._recvCount++;
 

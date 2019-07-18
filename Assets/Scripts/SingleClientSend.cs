@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace com.test {
 
-	public class SingleClientSend {
+	public class SingleClientSend : Main.ITestCase {
 
 		private int send_qps = 500;
 		private int trace_interval = 10;
@@ -24,9 +24,11 @@ namespace com.test {
 		 *	单客户端实例发送QPS脚本
 		 *	需要修改服务端接口调用频率
 		 */
-		public SingleClientSend() {
+		public SingleClientSend() {}
 
-			this._client = new RTMClient(
+        public void StartTest(byte[] fileBytes) {
+
+            this._client = new RTMClient(
                 "52.83.245.22:13325",
                 11000001,
                 777779,
@@ -44,11 +46,11 @@ namespace com.test {
 
                 if (evd.GetException() == null) {
 
-                	Debug.Log("test start!");
-                	self.StartThread();
+                    Debug.Log("test start!");
+                    self.StartThread();
                 } else {
 
-                	Debug.Log(evd.GetException());
+                    Debug.Log(evd.GetException());
                 }
             });
 
@@ -64,9 +66,9 @@ namespace com.test {
             });
 
             this._client.Login(null);
-		}
+        }
 
-		public void Close() {
+		public void StopTest() {
 
 			this.StopThread();
 
@@ -134,11 +136,11 @@ namespace com.test {
        	private int _recvCount;
 		private long _traceTimestamp;
 
-        private System.Object locker = new System.Object();
+        private System.Object inc_locker = new System.Object();
 
        	private void SendInc() {
 
-       		lock(locker) {
+       		lock(inc_locker) {
 
        			this._sendCount++;
 
@@ -170,7 +172,7 @@ namespace com.test {
 
         private void RevcInc(bool err) {
 
-            lock(locker) {
+            lock(inc_locker) {
 
             	if (err) {
 

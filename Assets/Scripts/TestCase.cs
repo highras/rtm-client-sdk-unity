@@ -9,21 +9,30 @@ using UnityEngine;
 
 namespace com.test {
 
-    public class TestCase {
+    public class TestCase : Main.ITestCase {
 
         private int _sleepCount;
         private byte[] _fileBytes;
         private RTMClient _client;
 
-        public TestCase(long uid, string token, byte[] fileBytes) {
+        private long _uid;
+        private String _token;
+
+        public TestCase(long uid, string token) {
+
+            this._uid = uid;
+            this._token = token;
+        }
+
+        public void StartTest(byte[] fileBytes) {
 
             this._fileBytes = fileBytes;
 
             this._client = new RTMClient(
                 // "52.83.245.22:13325",
                 // 11000001,
-                // uid,
-                // token,
+                // this._uid,
+                // this._token,
 
                 // "rtm-intl-frontgate.funplus.com:13325",
                 // 11000002,
@@ -46,7 +55,6 @@ namespace com.test {
 
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
 
-                RevcInc();
                 Debug.Log("[recvMessage]: " + Json.SerializeToString(data));
                 Debug.Log("[recvMessage]: " + data["msg"]);
             });
@@ -78,63 +86,21 @@ namespace com.test {
             this._client.Login(null);
         }
 
-        public void Close() {
+        public void StopTest() {
 
-            this._client.Destroy();
+            if (this._client != null) {
+
+                this._client.Destroy();
+            }
         }
 
         private int _recvCount;
         private long _traceTimestamp;
         private System.Object recv_locker = new System.Object();
 
-        private void RevcInc(bool trace=false) {
-
-            lock(recv_locker) {
-
-                this._recvCount++;
-
-                if (this._traceTimestamp <= 0) {
-
-                    this._traceTimestamp = ThreadPool.Instance.GetMilliTimestamp();
-                }
-
-                if (trace) {
-
-                    int interval = (int)((ThreadPool.Instance.GetMilliTimestamp() - this._traceTimestamp) / 1000);
-
-                    if (interval > 0) {
-
-                        Debug.Log("TestCase revc qps: " + (int)(_recvCount / interval));
-
-                        this._recvCount = 0;
-                        this._traceTimestamp = ThreadPool.Instance.GetMilliTimestamp();
-                    }
-                }
-            }
-        }
-
         private void OnLogin() {
 
             Debug.Log("test start!");
-
-            _client.EnterRoom(987654321, 20 * 1000, (cbd) => {
-
-                object obj = cbd.GetPayload();
-
-                if (obj != null)
-                {
-
-                    Debug.Log("[DATA] EnterRoom: " + Json.SerializeToString(obj));
-                }
-                else
-                {
-
-                    Debug.Log("[ERR] EnterRoom: " + cbd.GetException().Message);
-                }
-            });
-
-            //TODO
-            return;
 
             long to = 778899;
             long fuid = 778898;

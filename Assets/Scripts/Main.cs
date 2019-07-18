@@ -6,29 +6,31 @@ using com.test;
 
 using UnityEngine;
 
-public class Main : MonoBehaviour
-{
+public class Main : MonoBehaviour {
 
-    private TestCase _testCase;
-    private TestCase _testCase1;
+    public interface ITestCase {
 
-    private SingleClientSend _singleClientSend;
-    private SingleClientPush _singleClientPush;
+        void StartTest(byte[] fileBytes);
+        void StopTest();
+    }
 
-    // Start is called before the first frame update
+    private ITestCase _testCase;
+
     void Start() {
 
         byte[] fileBytes = null;
         // byte[] fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
 
         //SingleClientSend
-        this._singleClientSend = new SingleClientSend();
+        this._testCase = new SingleClientSend();
 
         //SingleClientPush
-        // this._singleClientPush = new SingleClientPush();
+        // this._testCase = new SingleClientPush();
 
         //TestCase
-        // this.BaseTest(fileBytes);
+        // this._testCase = new TestCase(777779, "204841DE531E4C39EEF54AC2046A4C4B");
+
+        this._testCase.StartTest(fileBytes);
     }
 
     byte[] LoadFile(string filePath) {
@@ -42,36 +44,13 @@ public class Main : MonoBehaviour
         return bytes;
     } 
 
-    // Update is called once per frame
-    void Update() {
-        
-    }
-
-    void BaseTest(byte[] fileBytes) {
-
-        this._testCase = new TestCase(777779, "204841DE531E4C39EEF54AC2046A4C4B", fileBytes);
-    }
+    void Update() {}
 
     void OnApplicationQuit() {
 
         if (this._testCase != null) {
 
-            this._testCase.Close();
-        }
-
-        if (this._testCase1 != null) {
-
-            this._testCase1.Close();
-        }
-
-        if (this._singleClientSend != null) {
-
-            this._singleClientSend.Close();
-        }
-
-        if (this._singleClientPush != null) {
-
-            this._singleClientPush.Close();
+            this._testCase.StopTest();
         }
     }
 
@@ -79,22 +58,7 @@ public class Main : MonoBehaviour
     	
         if (this._testCase != null) {
 
-            this._testCase.Close();
-        }
-        
-        if (this._testCase1 != null) {
-
-            this._testCase1.Close();
-        }
-
-        if (this._singleClientSend != null) {
-
-            this._singleClientSend.Close();
-        }
-
-        if (this._singleClientPush != null) {
-
-            this._singleClientPush.Close();
+            this._testCase.StopTest();
         }
     }
 }
