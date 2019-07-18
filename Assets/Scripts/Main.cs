@@ -12,14 +12,23 @@ public class Main : MonoBehaviour
     private TestCase _testCase;
     private TestCase _testCase1;
 
+    private SingleClientSend _singleClientSend;
+    private SingleClientPush _singleClientPush;
+
     // Start is called before the first frame update
     void Start() {
 
         byte[] fileBytes = null;
         // byte[] fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
 
+        //SingleClientSend
+        this._singleClientSend = new SingleClientSend();
+
+        //SingleClientPush
+        // this._singleClientPush = new SingleClientPush();
+
         //TestCase
-        this.BaseTest(fileBytes);
+        // this.BaseTest(fileBytes);
     }
 
     byte[] LoadFile(string filePath) {
@@ -41,7 +50,6 @@ public class Main : MonoBehaviour
     void BaseTest(byte[] fileBytes) {
 
         this._testCase = new TestCase(777779, "204841DE531E4C39EEF54AC2046A4C4B", fileBytes);
-        this._testCase1 = new TestCase(777778, "2CE9C16B147AC278613D2A28F6197FCC", fileBytes);
     }
 
     void OnApplicationQuit() {
@@ -55,6 +63,16 @@ public class Main : MonoBehaviour
 
             this._testCase1.Close();
         }
+
+        if (this._singleClientSend != null) {
+
+            this._singleClientSend.Close();
+        }
+
+        if (this._singleClientPush != null) {
+
+            this._singleClientPush.Close();
+        }
     }
 
     void OnApplicationPause() {
@@ -67,6 +85,16 @@ public class Main : MonoBehaviour
         if (this._testCase1 != null) {
 
             this._testCase1.Close();
+        }
+
+        if (this._singleClientSend != null) {
+
+            this._singleClientSend.Close();
+        }
+
+        if (this._singleClientPush != null) {
+
+            this._singleClientPush.Close();
         }
     }
 }

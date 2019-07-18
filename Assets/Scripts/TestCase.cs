@@ -20,20 +20,20 @@ namespace com.test {
             this._fileBytes = fileBytes;
 
             this._client = new RTMClient(
-                "52.83.245.22:13325",
-                11000001,
-                uid,
-                token,
+                // "52.83.245.22:13325",
+                // 11000001,
+                // uid,
+                // token,
 
                 // "rtm-intl-frontgate.funplus.com:13325",
                 // 11000002,
                 // 777779,
                 // "BE3732174850E479209443BCCDF4747D",
 
-                // "52.83.245.22:13325",
-                // 1000012,
-                // 654321,
-                // "63B3F146B2A1DA8660B167D26A610C0D",
+                "52.83.245.22:13325",
+                1000012,
+                654321,
+                "63B3F146B2A1DA8660B167D26A610C0D",
                 
                 null,
                 new Dictionary<string, string>(),
@@ -44,60 +44,12 @@ namespace com.test {
 
             RTMProcessor processor = this._client.GetProcessor();
 
-            // processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {
-
-            //     RevcInc(true);
-            //     Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
-            // });
-
             processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
 
                 RevcInc();
                 Debug.Log("[recvMessage]: " + Json.SerializeToString(data));
                 Debug.Log("[recvMessage]: " + data["msg"]);
             });
-
-            // processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupMessage, (data) => {
-
-            //     RevcInc();
-            //     // Debug.Log("[recvGroupMessage]: ");
-            // });
-
-            // processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomMessage, (data) => {
-
-            //     RevcInc();
-            //     // Debug.Log("[recvRoomMessage]: ");
-            // });
-
-            // processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastMessage, (data) => {
-
-            //     RevcInc();
-            //     // Debug.Log("[recvBroadcastMessage]: ");
-            // });
-
-            // processor.AddPushService(RTMConfig.SERVER_PUSH.recvFile, (data) => {
-
-            //     RevcInc();
-            //     // Debug.Log("[recvFile]: ");
-            // });
-
-            // processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomFile, (data) => {
-
-            //     RevcInc();
-            //     // Debug.Log("[recvRoomFile]: ");
-            // });
-
-            // processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupFile, (data) => {
-
-            //     RevcInc();
-            //     // Debug.Log("[recvGroupFile]: ");
-            // });
-
-            // processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastFile, (data) => {
-
-            //     RevcInc();
-            //     // Debug.Log("[recvBroadcastFile]: ");
-            // });
 
             this._client.GetEvent().AddListener("login", (evd) => {
 
