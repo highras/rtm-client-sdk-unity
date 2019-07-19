@@ -15,8 +15,9 @@ namespace com.test {
 
     public class SingleClientSend : Main.ITestCase {
 
-        private int send_qps = 500;
+        private int send_qps = 4000;
         private int trace_interval = 10;
+        private int batch_count = 10;
 
         private RTMClient _client;
 
@@ -110,20 +111,24 @@ namespace com.test {
 
                 try {
 
-                    this._client.SendMessage(778899, (byte) 8, "hello !", "", 0, 20 * 1000, (cbd) => {
+                    for (int i = 0; i < this.batch_count; i++) {
 
-                        if (cbd.GetException() != null) {
+                        this._client.SendMessage(778899, (byte) 8, "hello !", "", 0, 20 * 1000, (cbd) => {
 
-                            self.RevcInc(true);
-                            Debug.Log(cbd.GetException());
-                        } else {
+                            if (cbd.GetException() != null) {
 
-                            self.RevcInc(false);
-                        }
-                    });
+                                self.RevcInc(true);
+                                Debug.Log(cbd.GetException());
+                            } else {
 
-                    this.SendInc();
-                    Thread.Sleep(1000 / this.send_qps);
+                                self.RevcInc(false);
+                            }
+                        });
+
+                        this.SendInc();
+                    }
+
+                    Thread.Sleep((int) Math.Ceiling((1000f / this.send_qps) * this.batch_count));
                 }catch(Exception ex) {
 
                     Debug.Log(ex);
