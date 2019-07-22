@@ -15,7 +15,7 @@ namespace com.test {
 
     public class SingleClientSend : Main.ITestCase {
 
-        private int send_qps = 4000;
+        private int send_qps = 500;
         private int trace_interval = 10;
         private int batch_count = 10;
 
@@ -160,7 +160,7 @@ namespace com.test {
 
                     Debug.Log(
                         com.fpnn.ThreadPool.Instance.GetMilliTimestamp()
-                        + ", trace interval: " + this.trace_interval
+                        + ", trace interval: " + interval
                         + ", send count: " + this._sendCount 
                         + ", err count: " + this._erroCount 
                         + ", revc qps: " + (int)(this._recvCount / interval) 

@@ -150,7 +150,7 @@ namespace com.test {
 
                     Debug.Log(
                         com.fpnn.ThreadPool.Instance.GetMilliTimestamp()
-                        + ", trace interval: " + this.trace_interval
+                        + ", trace interval: " + interval
                         + ", revc qps: " + (int)(this._recvCount / interval) 
                         );
 
