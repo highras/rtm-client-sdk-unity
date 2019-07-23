@@ -157,7 +157,16 @@ namespace com.fpnn {
 
             if (!this._isClosed) {
 
-                this._isClosed = true;
+                lock(this._sendQueue) {
+
+                    this._sendEvent.Set();
+                }
+
+                if (this._writeThread != null) {
+                    
+                    this._writeThread.Join(); 
+                    this._writeThread = null;
+                }
 
                 if (this._socket != null) {
 
@@ -219,29 +228,17 @@ namespace com.fpnn {
 
         private void OnClose(Exception ex) {
 
-            lock(this._sendQueue) {
+            if (!this._isClosed) {
 
-                this._sendEvent.Set();
+                this._isClosed = true;
+
+                if (ex != null) {
+
+                    this.OnError(ex);
+                }
+
+                this._event.FireEvent(new EventData("close"));
             }
-
-            if (this._socket != null) {
-
-                this._socket.Close(); 
-                this._socket = null;
-            }
-
-            if (this._writeThread != null) {
-                
-                this._writeThread.Join(); 
-                this._writeThread = null;
-            }
-
-            if (ex != null) {
-
-                this.OnError(ex);
-            }
-
-            this._event.FireEvent(new EventData("close"));
         }
 
         private void OnRead(NetworkStream stream) {

@@ -29,7 +29,10 @@ namespace com.fpnn {
                 queue = (ArrayList)this._listeners[type];
             }
 
-            queue.Add(lisr);
+            lock (queue) {
+
+                queue.Add(lisr);
+            }
         }
 
         public void RemoveListener() {
@@ -55,9 +58,19 @@ namespace com.fpnn {
                 return;
             }
 
+            ArrayList queue = null;
+
             lock(this._listeners) {
 
-                ArrayList queue = ((ArrayList)this._listeners[type]);
+                queue = ((ArrayList)this._listeners[type]);
+            }
+
+            if (queue == null) {
+
+                return;
+            }
+
+            lock (queue) {
 
                 int index = queue.IndexOf(lisr);
 
@@ -70,40 +83,49 @@ namespace com.fpnn {
 
         public void FireEvent(EventData evd) {
             
+            ArrayList queue = null;
             string type = evd.GetEventType();
 
             lock(this._listeners) {
 
                 if (this._listeners.Contains(type)) {
 
-                    ArrayList queue = (ArrayList)this._listeners[type];
+                    queue = (ArrayList)this._listeners[type];
+                }
+            }
 
-                    IEnumerator ie = queue.GetEnumerator();
+            if (queue == null) {
 
-                    while(ie.MoveNext()) {
+                return;
+            }
 
-                        EventDelegate cb = (EventDelegate)ie.Current;
+            lock (queue) {
 
-                        if (cb == null) {
+                IEnumerator ie = queue.GetEnumerator();
 
-                            continue;
-                        }
+                while(ie.MoveNext()) {
 
-                        ThreadPool.Instance.Execute((state) => {
+                    EventDelegate cb = (EventDelegate)ie.Current;
 
-                            try {
-                                
-                                if (cb != null) {
+                    if (cb == null) {
 
-                                    cb(evd);
-                                }
-                            } catch (ThreadAbortException tex){
-                            } catch (Exception e) {
-
-                                ErrorRecorderHolder.recordError(e);
-                            }
-                        });
+                        continue;
                     }
+
+                    ThreadPool.Instance.Execute((state) => {
+
+                        try {
+                            
+                            if (cb != null) {
+
+                                cb(evd);
+                            }
+                        } catch (ThreadAbortException tex){
+                        } catch (Exception e) {
+
+                            ErrorRecorderHolder.recordError(e);
+                        }
+                    });
                 }
             }
         }

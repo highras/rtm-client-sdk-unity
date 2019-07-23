@@ -121,13 +121,13 @@ namespace com.rtm {
 
             this._eventDelegate = (evd) => {
 
-                int AvailableWorkerThreads, aiot;
-                System.Threading.ThreadPool.GetAvailableThreads(out AvailableWorkerThreads, out aiot);
+                // int AvailableWorkerThreads, aiot;
+                // System.Threading.ThreadPool.GetAvailableThreads(out AvailableWorkerThreads, out aiot);
 
-                if (AvailableWorkerThreads <= 1) {
+                // if (AvailableWorkerThreads <= 1) {
 
-                    Debug.Log("[ThreadPool] available worker threads: " + AvailableWorkerThreads);
-                }
+                //     Debug.Log("[ThreadPool] available worker threads: " + AvailableWorkerThreads);
+                // }
 
                 long lastPingTimestamp = 0;
                 long timestamp = evd.GetTimestamp();

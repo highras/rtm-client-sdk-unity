@@ -63,13 +63,18 @@ namespace com.fpnn {
 
         private void StartServiceThread() {
 
-            if (this._serviceAble) {
+            lock(service_locker) {
 
-                return;
+                if (this._serviceAble) {
+
+                    return;
+                }
+
+                this._serviceAble = true;
+                this._serviceEvent.Reset();
             }
 
             FPProcessor self = this;
-            this._serviceAble = true;
 
             ThreadPool.Instance.Execute((state) => {
 
@@ -94,6 +99,9 @@ namespace com.fpnn {
                     } catch (Exception e) {
 
                         ErrorRecorderHolder.recordError(e);
+                    } finally {
+
+                        self.StopServiceThread();
                     }
                 }
             });
@@ -138,6 +146,11 @@ namespace com.fpnn {
                 }
             }
 
+            if (!this._serviceAble) {
+
+                this.StartServiceThread();
+            } 
+
             FPProcessor self = this;
 
             lock(service_locker) {
@@ -151,11 +164,6 @@ namespace com.fpnn {
 
                     this._serviceCache.Clear();
                 }
-
-                if (!this._serviceAble) {
-
-                    this.StartServiceThread();
-                } 
 
                 this._serviceEvent.Set();
             }       
