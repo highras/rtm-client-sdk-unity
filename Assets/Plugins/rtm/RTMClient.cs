@@ -121,13 +121,13 @@ namespace com.rtm {
 
             this._eventDelegate = (evd) => {
 
-                // int AvailableWorkerThreads, aiot;
-                // System.Threading.ThreadPool.GetAvailableThreads(out AvailableWorkerThreads, out aiot);
+                int AvailableWorkerThreads, aiot;
+                System.Threading.ThreadPool.GetAvailableThreads(out AvailableWorkerThreads, out aiot);
 
-                // if (AvailableWorkerThreads <= 1) {
+                if (AvailableWorkerThreads <= 1) {
 
-                //     Debug.Log("[ThreadPool] available worker threads: " + AvailableWorkerThreads);
-                // }
+                    ErrorRecorderHolder.recordError(new Exception("ThreadPool available worker threads: " + AvailableWorkerThreads));
+                }
 
                 long lastPingTimestamp = 0;
                 long timestamp = evd.GetTimestamp();
@@ -148,8 +148,10 @@ namespace com.rtm {
                 self.DelayConnect(timestamp);
             };
 
-            ThreadPool.Instance.SetPool(new RTMThreadPool());
             ThreadPool.Instance.Event.AddListener("second", this._eventDelegate);
+
+            ThreadPool.Instance.SetPool(new RTMThreadPool());
+            ErrorRecorderHolder.setInstance(new RTMErrorRecorder());
         }
 
         public RTMProcessor GetProcessor() {
@@ -2513,20 +2515,6 @@ namespace com.rtm {
             this.Login(this._endpoint);
         }
 
-        private class RTMThreadPool:ThreadPool.IThreadPool {
-
-            public RTMThreadPool() {
-
-                System.Threading.ThreadPool.SetMinThreads(2, 1);
-                System.Threading.ThreadPool.SetMaxThreads(SystemInfo.processorCount * 2, SystemInfo.processorCount);
-            }
-
-            public void Execute(Action<object> action) {
-
-                System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback(action));
-            }
-        }
-
         private class DispatchClient:BaseClient {
 
             public DispatchClient(string endpoint, int timeout, bool startTimerThread):base(endpoint, false, timeout, startTimerThread) {}
@@ -2749,6 +2737,29 @@ namespace com.rtm {
                     self.CheckFPCallback(cbd);
                     callback(cbd);
                 };
+            }
+        }
+
+        private class RTMErrorRecorder:ErrorRecorder {
+
+            public override void recordError(Exception e) {
+            
+                // Debug
+                // Debug.LogError(e);
+            }
+        }
+
+        private class RTMThreadPool:ThreadPool.IThreadPool {
+
+            public RTMThreadPool() {
+
+                System.Threading.ThreadPool.SetMinThreads(2, 1);
+                System.Threading.ThreadPool.SetMaxThreads(SystemInfo.processorCount * 2, SystemInfo.processorCount);
+            }
+
+            public void Execute(Action<object> action) {
+
+                System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback(action));
             }
         }
     }

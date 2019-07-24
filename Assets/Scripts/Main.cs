@@ -22,10 +22,10 @@ public class Main : MonoBehaviour {
         // byte[] fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
 
         //SingleClientSend
-        this._testCase = new SingleClientSend();
+        // this._testCase = new SingleClientSend();
 
         //SingleClientPush
-        // this._testCase = new SingleClientPush();
+        this._testCase = new SingleClientPush();
 
         //TestCase
         // this._testCase = new TestCase(777779, "204841DE531E4C39EEF54AC2046A4C4B");
