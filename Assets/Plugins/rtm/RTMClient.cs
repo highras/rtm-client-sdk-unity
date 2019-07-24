@@ -99,7 +99,7 @@ namespace com.rtm {
             this._uid = uid;
             this._token = token;
             this._version = version;
-            this._attrs = attrs;
+            this._attrs = new Dictionary<string, string>(attrs);
             this._reconnect = reconnect;
             this._timeout = timeout;
             this._startTimerThread = startTimerThread;
@@ -2536,7 +2536,7 @@ namespace com.rtm {
 
                 base.GetEvent().AddListener("error", (evd) => {
 
-                    Debug.Log(evd.GetException().Message);
+                    ErrorRecorderHolder.recordError(evd.GetException());
                 });
             }
 
@@ -2581,7 +2581,7 @@ namespace com.rtm {
 
                 base.GetEvent().AddListener("error", (evd) => {
 
-                    Debug.Log(evd.GetException().Message);
+                    ErrorRecorderHolder.recordError(evd.GetException());
                 });
             }
 
@@ -2592,7 +2592,7 @@ namespace com.rtm {
 
                 if (string.IsNullOrEmpty(sign)) {
 
-                    base.GetEvent().FireEvent(new EventData("error", new Exception("wrong sign!")));
+                    ErrorRecorderHolder.recordError(new Exception("wrong sign!"));
                     return;
                 }
 
@@ -2708,7 +2708,7 @@ namespace com.rtm {
                             payload = Json.Deserialize<IDictionary<string, object>>(data.JsonPayload());
                         }catch(Exception ex) {
 
-                           base.GetEvent().FireEvent(new EventData("error", ex)); 
+                            ErrorRecorderHolder.recordError(ex);
                         }
                     }
 
@@ -2722,7 +2722,7 @@ namespace com.rtm {
                             }
                         } catch(Exception ex) {
 
-                           base.GetEvent().FireEvent(new EventData("error", ex));
+                            ErrorRecorderHolder.recordError(ex);
                         }
                     }
 

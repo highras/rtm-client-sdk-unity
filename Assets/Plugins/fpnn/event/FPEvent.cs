@@ -16,22 +16,27 @@ namespace com.fpnn {
 
             ArrayList queue = null;
 
-            if (!this._listeners.Contains(type)) {
+            lock(this._listeners) {
 
-                queue = new ArrayList();
+                if (!this._listeners.Contains(type)) {
 
-                lock(this._listeners) {
-
-                    this._listeners[type] = queue;
+                    this._listeners[type] = new ArrayList();
                 }
-            } else {
 
                 queue = (ArrayList)this._listeners[type];
             }
 
+            if (queue == null) {
+
+                return;
+            }
+
             lock (queue) {
 
-                queue.Add(lisr);
+                if (queue.IndexOf(lisr) == -1) {
+
+                    queue.Add(lisr);
+                }
             }
         }
 

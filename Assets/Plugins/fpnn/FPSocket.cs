@@ -164,7 +164,7 @@ namespace com.fpnn {
 
                 if (this._writeThread != null) {
                     
-                    this._writeThread.Join(); 
+                    this._writeThread.Abort(); 
                     this._writeThread = null;
                 }
 
@@ -260,7 +260,7 @@ namespace com.fpnn {
         private void OnWrite() {
 
             this._sendEvent.WaitOne();
-            
+
             if (this._isClosed) {
 
                 return;
