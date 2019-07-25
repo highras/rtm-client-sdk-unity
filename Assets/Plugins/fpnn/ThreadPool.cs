@@ -73,30 +73,31 @@ namespace com.fpnn {
 
         public void StartTimerThread() {
 
-            if (this._hasTimerThread) {
-
-                return;
-            }
-
             lock(lock_obj) {
 
-                this._hasTimerThread = true;
-                this._threadTimer = new System.Threading.Timer(new System.Threading.TimerCallback(OnSecond), null, 0, 1000);
+                if (!this._hasTimerThread) {
+
+                    this._hasTimerThread = true;
+                    this._threadTimer = new System.Threading.Timer(new System.Threading.TimerCallback(OnSecond), null, 0, 1000);
+                }
             }
+        }
+
+        private void OnSecond(object state) {
+
+            this.Event.FireEvent(new EventData("second", this.GetMilliTimestamp()));
         }
 
         public void StopTimerThread() {
 
-            if (this._hasTimerThread) {
+            lock(lock_obj) {
 
-                this._hasTimerThread = false;
-                this._threadTimer.Dispose();
+                if (this._hasTimerThread) {
+
+                    this._hasTimerThread = false;
+                    this._threadTimer.Dispose();
+                }
             }
-        }
-
-        public void OnSecond(object state) {
-
-            this.Event.FireEvent(new EventData("second", this.GetMilliTimestamp()));
         }
 
         public Int64 GetMilliTimestamp() {

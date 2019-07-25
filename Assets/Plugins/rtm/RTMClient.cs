@@ -67,8 +67,6 @@ namespace com.rtm {
         private bool _reconnect;
         private int _timeout;
 
-        private bool _startTimerThread;
-
         private bool _isClose;
         private string _endpoint;
         private string _switchGate;
@@ -88,9 +86,8 @@ namespace com.rtm {
          * @param {IDictionary(string,string)}  attrs
          * @param {bool}                        reconnect
          * @param {int}                         timeout
-         * @param {bool}                        startTimerThread
          */
-        public RTMClient(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool startTimerThread) {
+        public RTMClient(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout) {
 
             Debug.Log("Hello RTM! rtm@" + RTMConfig.VERSION + ", fpnn@" + FPConfig.VERSION);
 
@@ -102,7 +99,6 @@ namespace com.rtm {
             this._attrs = new Dictionary<string, string>(attrs);
             this._reconnect = reconnect;
             this._timeout = timeout;
-            this._startTimerThread = startTimerThread;
 
             this.InitProcessor();
         }
@@ -239,7 +235,7 @@ namespace com.rtm {
 
             if (this._dispatchClient == null) {
 
-                this._dispatchClient = new DispatchClient(this._dispatch, this._timeout, this._startTimerThread);
+                this._dispatchClient = new DispatchClient(this._dispatch, this._timeout);
 
                 this._dispatchClient.GetEvent().AddListener("close", (evd) => {
 
@@ -2328,7 +2324,7 @@ namespace com.rtm {
 
             if (this._baseClient == null) {
 
-                this._baseClient = new BaseClient(this._endpoint, false, timeout, this._startTimerThread);
+                this._baseClient = new BaseClient(this._endpoint, false, timeout);
 
                 this._baseClient.GetEvent().AddListener("connect", (evd) => {
 
@@ -2413,7 +2409,7 @@ namespace com.rtm {
                         return;
                     }
 
-                    FileClient fileClient = new FileClient(endpoint, timeout, false);
+                    FileClient fileClient = new FileClient(endpoint, timeout);
 
                     dict = new Dictionary<string, object>();
 
@@ -2517,8 +2513,8 @@ namespace com.rtm {
 
         private class DispatchClient:BaseClient {
 
-            public DispatchClient(string endpoint, int timeout, bool startTimerThread):base(endpoint, false, timeout, startTimerThread) {}
-            public DispatchClient(string host, int port, int timeout, bool startTimerThread):base(host, port, false, timeout, startTimerThread) {}
+            public DispatchClient(string endpoint, int timeout):base(endpoint, false, timeout) {}
+            public DispatchClient(string host, int port, int timeout):base(host, port, false, timeout) {}
 
             public override void AddListener() {
 
@@ -2552,8 +2548,8 @@ namespace com.rtm {
 
         private class FileClient:BaseClient {
 
-            public FileClient(string endpoint, int timeout, bool startTimerThread):base(endpoint, false, timeout, startTimerThread) {}
-            public FileClient(string host, int port, int timeout, bool startTimerThread):base(host, port, false, timeout, startTimerThread) {}
+            public FileClient(string endpoint, int timeout):base(endpoint, false, timeout) {}
+            public FileClient(string host, int port, int timeout):base(host, port, false, timeout) {}
 
             public override void AddListener() {
 
@@ -2631,23 +2627,15 @@ namespace com.rtm {
 
         private class BaseClient:FPClient {
 
-            public BaseClient(string endpoint, bool reconnect, int timeout, bool startTimerThread):base(endpoint, reconnect, timeout) {
+            public BaseClient(string endpoint, bool reconnect, int timeout):base(endpoint, reconnect, timeout) {
 
-                if (startTimerThread) {
-
-                    ThreadPool.Instance.StartTimerThread();
-                }
-
+                ThreadPool.Instance.StartTimerThread();
                 this.AddListener();
             }
 
-            public BaseClient(string host, int port, bool reconnect, int timeout, bool startTimerThread):base(host, port, reconnect, timeout) {
+            public BaseClient(string host, int port, bool reconnect, int timeout):base(host, port, reconnect, timeout) {
 
-                if (startTimerThread) {
-
-                    ThreadPool.Instance.StartTimerThread();
-                }
-
+                ThreadPool.Instance.StartTimerThread();
                 this.AddListener();
             }
 

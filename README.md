@@ -7,11 +7,7 @@
 
 #### 关于线程 ####
 
-* 一个计时器线程`ThreadPool.Instance.StartTimerThread()`, 负责超时检测/安全检查
-    * 默认实现`System.Threading.Timer`, 构造`RTMClient`时可以选择是否启用该线程
-    * 如果已有计时器, `ThreadPool.Instance.OnSecond(object state)` 周期性调用该方法，以进行超时检查（建议频率1s）
-
-* 一个线程池, 接口`ThreadPool.IThreadPool`
+* 线程池接口`ThreadPool.IThreadPool`
     * 默认实现`System.Threading.ThreadPool.QueueUserWorkItem`
     * 如需自己管理线程，实现该接口并注册线程池`ThreadPool.Instance.SetPool(IThreadPool value)`
 
@@ -52,8 +48,7 @@ RTMClient client = new RTMClient(
     null,
     new Dictionary<string, string>(),
     true,
-    20 * 1000,
-    true
+    20 * 1000
 );
 
 // 添加监听
@@ -227,7 +222,7 @@ this.BaseTest(fileBytes);
 
 #### API ####
 
-* `Constructor(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool startTimerThread)`: 构造RTMClient
+* `Constructor(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout)`: 构造RTMClient
     * `dispatch`: **(string)** Dispatch服务地址, RTM提供
     * `pid`: **(int)** 应用编号, RTM提供
     * `uid`: **(long)** 用户ID
@@ -236,7 +231,6 @@ this.BaseTest(fileBytes);
     * `attrs`: **(IDictionary(string,string))** 设置用户端信息, 保存在当前链接中, 客户端可以获取到
     * `reconnect`: **(bool)** 是否自动重连
     * `timeout`: **(int)** 超时时间(ms), 默认: `30 * 1000`
-    * `startTimerThread`: **(bool)** 是否开启计时器线程 (负责超时检测/安全检查)
 
 * `GetProcessor`: **(RTMProcessor)** 监听PushService的句柄
 

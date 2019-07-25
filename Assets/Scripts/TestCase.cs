@@ -39,16 +39,20 @@ namespace com.test {
                 // 777779,
                 // "BE3732174850E479209443BCCDF4747D",
 
-                "52.83.245.22:13325",
-                1000012,
-                654321,
-                "63B3F146B2A1DA8660B167D26A610C0D",
+                // "52.83.245.22:13325",
+                // 1000012,
+                // 654321,
+                // "63B3F146B2A1DA8660B167D26A610C0D",
+                
+                "rtm-intl-frontgate.funplus.com:13325",
+                11000020,
+                777779,
+                "BCEC90E65479A7B9944A42CA9BD99E51",
                 
                 null,
                 new Dictionary<string, string>(),
                 true,
-                20 * 1000,
-                true
+                20 * 1000
             );
 
             RTMProcessor processor = this._client.GetProcessor();
