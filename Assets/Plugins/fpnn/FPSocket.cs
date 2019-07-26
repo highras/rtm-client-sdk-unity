@@ -59,36 +59,25 @@ namespace com.fpnn {
 
             this._isClosed = false;
 
-            IPAddress ipaddr;
-
-            try {
-
-                IPHostEntry hostEntry = Dns.GetHostEntry(this._host);
-                ipaddr = hostEntry.AddressList[0];
-
-                if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
-
-                    this._socket = new TcpClient(AddressFamily.InterNetwork);
-                } else {
-
-                    this._isIPv6 = true;
-                    this._socket = new TcpClient(AddressFamily.InterNetworkV6);
-                }
-            } catch(Exception ex) {
-
-                this.Close(ex);
-                return;
-            }
-
             FPSocket self = this;
 
-            ThreadPool.Instance.Execute((state) => {
-
-                IAsyncResult result;
+            com.fpnn.ThreadPool.Instance.Execute((state) => {
 
                 try {
 
-                    result = self._socket.BeginConnect(ipaddr, self._port, null, null);
+                    IPHostEntry hostEntry = Dns.GetHostEntry(self._host);
+                    IPAddress ipaddr = hostEntry.AddressList[0];
+
+                    if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
+
+                        self._socket = new TcpClient(AddressFamily.InterNetwork);
+                    } else {
+
+                        self._isIPv6 = true;
+                        self._socket = new TcpClient(AddressFamily.InterNetworkV6);
+                    }
+
+                    IAsyncResult result = self._socket.BeginConnect(ipaddr, self._port, null, null);
 
                     lock(self._lock_obj) {
 
@@ -248,7 +237,7 @@ namespace com.fpnn {
 
             FPSocket self = this;
 
-            ThreadPool.Instance.Execute((state) => { 
+            com.fpnn.ThreadPool.Instance.Execute((state) => { 
 
                 self.OnWrite();
             });
