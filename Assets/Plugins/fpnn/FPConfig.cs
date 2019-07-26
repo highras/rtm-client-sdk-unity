@@ -4,7 +4,7 @@ namespace com.fpnn {
 
     public class FPConfig {
 
-        public static string VERSION = "1.0.4";
+        public static string VERSION = "1.0.5";
 
         public static byte[] FPNN_VERSION = definedVersion();
         public static byte[] FP_FLAG = definedFlag();

@@ -23,7 +23,6 @@ namespace com.fpnn {
         private bool _isIPv6 = false;
         private bool _isClosed = true;
         private bool _isConnecting = false;
-        private Thread _writeThread = null;
         private List<byte> _sendQueue = new List<byte>();
         private ManualResetEvent _sendEvent = new ManualResetEvent(false);
         private object _lock_obj = new object();
@@ -117,7 +116,7 @@ namespace com.fpnn {
                         self._isConnecting = false;
                     }
 
-                    self.StartWriteThread();
+                    self.StartSendThread();
                     self.OnRead(self._stream);
 
                     self.OnConnect();
@@ -160,12 +159,6 @@ namespace com.fpnn {
                 lock(this._sendQueue) {
 
                     this._sendEvent.Set();
-                }
-
-                if (this._writeThread != null) {
-                    
-                    this._writeThread.Abort(); 
-                    this._writeThread = null;
                 }
 
                 if (this._socket != null) {
@@ -251,10 +244,14 @@ namespace com.fpnn {
             this._event.FireEvent(new EventData("error", ex));
         }
 
-        private void StartWriteThread() {
+        private void StartSendThread() {
 
-            this._writeThread = new Thread(new ThreadStart(OnWrite));
-            this._writeThread.Start();
+            FPSocket self = this;
+
+            ThreadPool.Instance.Execute((state) => { 
+
+                self.OnWrite();
+            });
         }
 
         private void OnWrite() {
@@ -276,27 +273,30 @@ namespace com.fpnn {
                 this._sendEvent.Reset();
             }
 
+            this.WriteSocket(buffer, OnWrite);
+        }
+
+        private void WriteSocket(byte[] buffer, Action calllback) {
+
+            FPSocket self = this;
+
             try {
 
-                if (buffer != null && buffer.Length > 0) {
+                this._stream.BeginWrite(buffer, 0, buffer.Length, (ar) => {
 
-                    FPSocket self = this;
+                    try {
 
-                    this._stream.BeginWrite(buffer, 0, buffer.Length, (ar) => {
+                        self._stream.EndWrite(ar);
 
-                        try {
+                        if (calllback != null) {
 
-                            self._stream.EndWrite(ar);
-                            self.OnWrite();
-                        } catch (Exception ex) {
-
-                            self.Close(ex);
+                            calllback();
                         }
-                    }, null);
-                } else {
+                    } catch (Exception ex) {
 
-                    this.OnWrite();
-                }
+                        self.Close(ex);
+                    }
+                }, null);
             } catch (Exception ex) {
 
                 this.Close(ex);
