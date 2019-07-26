@@ -379,7 +379,11 @@ namespace com.fpnn {
                         }else {
 
                             self._readBytes += readBytes;
-                            calllback(stream);
+
+                            if (calllback != null) {
+
+                                calllback(stream);
+                            }
                         }
 
                     } catch (Exception ex) {

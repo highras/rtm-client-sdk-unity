@@ -239,7 +239,14 @@ namespace com.fpnn {
 
             com.fpnn.ThreadPool.Instance.Execute((state) => { 
 
-                self.OnWrite();
+                try {
+
+                    self.OnWrite();
+                } catch (System.Threading.ThreadAbortException tex) {
+                } catch (Exception e) {
+
+                    self.Close(e);
+                } 
             });
         }
 
