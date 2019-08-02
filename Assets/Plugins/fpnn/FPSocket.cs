@@ -155,7 +155,7 @@ namespace com.fpnn {
 
             lock (socket_locker) {
 
-                return this._isIPv6 ? true : false;
+                return this._isIPv6;
             }
         }
 
@@ -165,7 +165,7 @@ namespace com.fpnn {
 
                 if (this._socket != null) {
 
-                    return this._socket.Connected ? true : false;
+                    return this._socket.Connected;
                 }
 
                 return false;
