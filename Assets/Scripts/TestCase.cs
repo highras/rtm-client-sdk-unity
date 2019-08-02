@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using GameDevWare.Serialization;
@@ -11,9 +12,15 @@ namespace com.test {
 
     public class TestCase : Main.ITestCase {
 
+        private class SendLocker {
+
+            public int Status = 0;
+        }
+
         private int _sleepCount;
         private byte[] _fileBytes;
         private RTMClient _client;
+        private SendLocker send_locker = new SendLocker();
 
         private long _uid;
         private String _token;
@@ -45,9 +52,9 @@ namespace com.test {
                 // "63B3F146B2A1DA8660B167D26A610C0D",
                 
                 "rtm-intl-frontgate.funplus.com:13325",
-                11000020,
+                11000001,
                 777779,
-                "BCEC90E65479A7B9944A42CA9BD99E51",
+                "D1C8D6A12BB35D9309DC7A927590DA83",
                 
                 null,
                 new Dictionary<string, string>(),
@@ -63,6 +70,8 @@ namespace com.test {
                 Debug.Log("[recvMessage]: " + data["msg"]);
             });
 
+            TestCase self = this;
+
             this._client.GetEvent().AddListener("login", (evd) => {
 
                 Exception ex = evd.GetException();
@@ -73,7 +82,7 @@ namespace com.test {
                 } else {
 
                     Debug.Log("TestCase connect!");
-                    OnLogin();
+                    self.StartThread();
                 }
             });
 
@@ -92,15 +101,62 @@ namespace com.test {
 
         public void StopTest() {
 
+            this.StopThread();
+
             if (this._client != null) {
 
                 this._client.Destroy();
             }
         }
 
-        private int _recvCount;
-        private long _traceTimestamp;
-        private System.Object recv_locker = new System.Object();
+        private Thread _thread;
+        private bool _sendAble;
+
+        private void StartThread() {
+
+            lock (send_locker) {
+
+                if (send_locker.Status != 0) {
+
+                    return;
+                }
+
+                send_locker.Status = 1;
+
+                this._thread = new Thread(new ThreadStart(BeginTest));
+                this._thread.Start();
+            }
+        }
+
+        private void StopThread() {
+
+            lock (send_locker) {
+
+                send_locker.Status = 0;
+            }
+        }
+
+        private void BeginTest() {
+
+            try {
+
+                while(true) {
+
+                    lock (send_locker) {
+
+                        if (send_locker.Status == 0) {
+
+                            return;
+                        } 
+
+                        this.OnLogin();
+                    }
+                }
+            }catch(Exception ex) {
+
+                Debug.Log(ex);
+            }
+        }
 
         private void OnLogin() {
 
@@ -745,6 +801,7 @@ namespace com.test {
             // this._client.Close();
 
             Debug.Log("test end! " + (this._sleepCount - 1));
+            Debug.Log("=====================================================================");
         }
 
         private void ThreadSleep(int ms) {

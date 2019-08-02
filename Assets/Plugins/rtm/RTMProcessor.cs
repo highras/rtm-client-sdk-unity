@@ -13,23 +13,21 @@ namespace com.rtm {
 
     public class RTMProcessor:FPProcessor.IProcessor {
 
-        private FPEvent _event;
+        private class PingLocker {
+
+            public int Status = 0;
+        }
+
         private Hashtable _midMap = new Hashtable();
 
-        private System.Object action_locker = new System.Object();
+        private object action_locker = new object();
         private IDictionary<string, Action<IDictionary<string, object>>> _actionDict = new Dictionary<string, Action<IDictionary<string, object>>>();
 
         private Type _type;
 
         public RTMProcessor(FPEvent evt) {
 
-            this._event = evt;
             this._type = Type.GetType("com.rtm.RTMProcessor");
-        }
-
-        public FPEvent GetEvent() {
-
-            return this._event;
         }
 
         public void Destroy() {
@@ -68,7 +66,7 @@ namespace com.rtm {
                     payload = Json.Deserialize<IDictionary<string, object>>(data.JsonPayload());
                 }catch(Exception ex) {
 
-                   this._event.FireEvent(new EventData("error", ex)); 
+                    ErrorRecorderHolder.recordError(ex);
                 }
             }
 
@@ -93,7 +91,7 @@ namespace com.rtm {
                     }
                 } catch(Exception ex) {
 
-                   this._event.FireEvent(new EventData("error", ex)); 
+                   ErrorRecorderHolder.recordError(ex);
                 }
             }
 
@@ -116,26 +114,29 @@ namespace com.rtm {
                 return false;
             }
 
-            return this._actionDict.ContainsKey(name);
+            lock (action_locker) {
+
+                return this._actionDict.ContainsKey(name);
+            }
         }
 
         public void AddPushService(string name, Action<IDictionary<string, object>> action) {
 
-            lock(action_locker) {
+            lock (action_locker) {
 
                 if (!this._actionDict.ContainsKey(name)) {
 
                     this._actionDict.Add(name, action);
                 } else {
 
-                    this._event.FireEvent(new EventData("error", new Exception("push service exist")));
+                    ErrorRecorderHolder.recordError(new Exception("push service exist"));
                 }
             }
         }
 
         public void RemovePushService(string name) {
 
-            lock(action_locker) {
+            lock (action_locker) {
 
                 if (this._actionDict.ContainsKey(name)) {
 
@@ -146,7 +147,7 @@ namespace com.rtm {
 
         private void PushService(string name, IDictionary<string, object> data) {
 
-            lock(action_locker) {
+            lock (action_locker) {
 
                 if (this._actionDict.ContainsKey(name)) {
 
@@ -300,27 +301,41 @@ namespace com.rtm {
          */
         public void ping(IDictionary<string, object> data) {
 
-            this._lastPingTimestamp = ThreadPool.Instance.GetMilliTimestamp();
             this.PushService(RTMConfig.SERVER_PUSH.recvPing, data);
+
+            lock (ping_locker) {
+                
+                this._lastPingTimestamp = FPManager.Instance.GetMilliTimestamp();
+            }
         }
 
         private long _lastPingTimestamp;
+        private PingLocker ping_locker = new PingLocker();
 
         public long GetPingTimestamp() {
 
-            return this._lastPingTimestamp;
+            lock (ping_locker) {
+
+                return this._lastPingTimestamp;
+            }
         }
 
         public void ClearPingTimestamp() {
 
-            this._lastPingTimestamp = 0;
+            lock (ping_locker) {
+
+                this._lastPingTimestamp = 0;
+            }
         }
 
         public void InitPingTimestamp() {
 
-            if (this._lastPingTimestamp == 0) {
+            lock (ping_locker) {
 
-                this._lastPingTimestamp = ThreadPool.Instance.GetMilliTimestamp();
+                if (this._lastPingTimestamp == 0) {
+
+                    this._lastPingTimestamp = FPManager.Instance.GetMilliTimestamp();
+                }
             }
         }
 
@@ -347,9 +362,9 @@ namespace com.rtm {
 
             string key = sb.ToString();
 
-            lock(this._midMap) {
+            lock (this._midMap) {
 
-                long timestamp = ThreadPool.Instance.GetMilliTimestamp();
+                long timestamp = FPManager.Instance.GetMilliTimestamp();
 
                 if (this._midMap.ContainsKey(key)) {
 
@@ -370,7 +385,7 @@ namespace com.rtm {
 
         private void CheckExpire(long timestamp) {
 
-            lock(this._midMap) {
+            lock (this._midMap) {
 
                 List<string> keys = new List<string>();
 

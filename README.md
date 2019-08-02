@@ -1,34 +1,24 @@
 # fpnn rtm sdk unity #
 
 #### 关于依赖 ####
-
 * [fpnn.unitypackage](https://github.com/highras/fpnn-sdk-unity)
 * [Json&MsgPack.unitypackage](https://github.com/deniszykov/msgpack-unity3d)
 
-#### 关于线程 ####
-
-* 线程池接口`ThreadPool.IThreadPool`
-    * 默认实现`System.Threading.ThreadPool.QueueUserWorkItem`
-    * 如需自己管理线程，实现该接口并注册线程池`ThreadPool.Instance.SetPool(IThreadPool value)`
-
-* 不要阻塞事件触发和回调, 否则线程池将被耗尽
+#### 异步函数 ####
+* 异步函数均由子线程呼叫, 不要在其中调用仅UI线程可执行的函数, 不要阻塞事件和回调函数
 
 #### 关于IPV6 ####
-
 * `SOCKET`链接支持`IPV6`接口
 * 兼容`DNS64/NAT64`网络环境
 
 #### 关于连接 ####
-
 * 默认连接会自动保持, 如实现按需连接则需要通过`Login()`和`Close()`进行连接或关闭处理
 * 或可通过`login`和`close`事件以及注册`ping`服务来对连接进行管理
 
 #### 关于编码格式 ####
-
 * 消息发送接口仅支持`UTF-8`格式编码的`string`类型数据, `Binary`数据需进行`Base64`编解码
 
 #### 一个例子 ####
-
 ```c#
 using System;
 using System.Collections;
@@ -104,7 +94,6 @@ client.Login(null);
 ```
 
 #### 测试 ####
-
 参考`Assets/Scripts/Main.cs`:
 
 ```c#
@@ -114,7 +103,6 @@ this.BaseTest(fileBytes);
 ```
 
 #### Events ####
-
 * `event`:
     * `login`: 登陆
         * `exception`: **(Exception)** auth失败, token失效需重新获取
@@ -125,7 +113,6 @@ this.BaseTest(fileBytes);
         * `retry`: **(bool)** 是否执行自动重连(未启用或者被踢掉则不会执行自动重连)
 
 #### PushService ####
-
 * `RTMProcessor::AddPushService(string name, Action<IDictionary<string, object>> action)`: 添加推送回调
     * `name`: **(string)** 推送服务类型, 参考`RTMConfig.SERVER_PUSH`成员
     * `action`: **(Action(IDictionary(string, object)))** 回调方法
@@ -221,7 +208,6 @@ this.BaseTest(fileBytes);
             * `data.mtime`: **(long)**
 
 #### API ####
-
 * `Constructor(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout)`: 构造RTMClient
     * `dispatch`: **(string)** Dispatch服务地址, RTM提供
     * `pid`: **(int)** 应用编号, RTM提供

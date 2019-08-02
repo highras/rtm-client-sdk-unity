@@ -30,7 +30,7 @@ namespace com.test {
                 "rtm-intl-frontgate.funplus.com:13325",
                 11000002,
                 777779,
-                "4B70DC42D3C8A4906919E2BC23D4B907",
+                "6C99B97B62B2637DBED901234AD82749",
                 null,
                 new Dictionary<string, string>(),
                 true,
@@ -130,7 +130,7 @@ namespace com.test {
         private int _recvCount;
         private long _traceTimestamp;
 
-        private System.Object inc_locker = new System.Object();
+        private object inc_locker = new object();
 
         private void RevcInc() {
 
@@ -140,20 +140,20 @@ namespace com.test {
 
                 if (this._traceTimestamp <= 0) {
 
-                    this._traceTimestamp = com.fpnn.ThreadPool.Instance.GetMilliTimestamp();
+                    this._traceTimestamp = com.fpnn.FPManager.Instance.GetMilliTimestamp();
                 }
 
-                int interval = (int)((com.fpnn.ThreadPool.Instance.GetMilliTimestamp() - this._traceTimestamp) / 1000);
+                int interval = (int)((com.fpnn.FPManager.Instance.GetMilliTimestamp() - this._traceTimestamp) / 1000);
 
                 if (interval >= this.trace_interval) {
 
                     Debug.Log(
-                        com.fpnn.ThreadPool.Instance.GetMilliTimestamp()
+                        com.fpnn.FPManager.Instance.GetMilliTimestamp()
                         + ", trace interval: " + interval
                         + ", revc qps: " + (int)(this._recvCount / interval) 
                         );
 
-                    this._traceTimestamp = com.fpnn.ThreadPool.Instance.GetMilliTimestamp();
+                    this._traceTimestamp = com.fpnn.FPManager.Instance.GetMilliTimestamp();
 
                     this._recvCount = 0;
                 }

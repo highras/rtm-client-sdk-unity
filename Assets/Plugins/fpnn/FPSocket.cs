@@ -1,31 +1,41 @@
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace com.fpnn {
 
-    public delegate void OnDataDelegate(NetworkStream stream);
+    public delegate void OnDataDelegate(NetworkStream stream, FPSocket.SocketLocker socket_locker);
 
     public class FPSocket {
+
+        public class SocketLocker {
+
+            public int Count = 0;
+            public int Status = 0;
+        }
+
+        public Action<EventData> Socket_Connect;
+        public Action<EventData> Socket_Close;
+        public Action<EventData> Socket_Error;
 
         private int _port;
         private string _host;
         private int _timeout;
         private OnDataDelegate _onData;
 
-        private FPEvent _event;
         private TcpClient _socket;
         private NetworkStream _stream;
 
         private bool _isIPv6 = false;
-        private bool _isClosed = true;
         private bool _isConnecting = false;
+
         private List<byte> _sendQueue = new List<byte>();
         private ManualResetEvent _sendEvent = new ManualResetEvent(false);
-        private object _lock_obj = new object();
+
+        private SocketLocker socket_locker = new SocketLocker();
 
         public FPSocket(OnDataDelegate onData, string host, int port, int timeout) {
 
@@ -33,107 +43,115 @@ namespace com.fpnn {
             this._port = port;
             this._timeout = timeout;
             this._onData = onData;
-
-            this._event = new FPEvent();
         }
+
+        private object self_locker = new object();
 
         public void Open() {
 
-            if (String.IsNullOrEmpty(this._host)) {
+            lock (self_locker) {
 
-                this.Close(new Exception("Cannot open null host"));
-                return;
-            }
-            
-            if (this._port <= 0) {
+                if (String.IsNullOrEmpty(this._host)) {
 
-                this.OnError(new Exception("Cannot open without port"));
-                return;
-            }
+                    this.OnError(new Exception("Cannot open null host"));
+                    return;
+                }
+                
+                if (this._port <= 0) {
 
-            if (this._socket != null && (this.IsOpen() || this.IsConnecting())) {
+                    this.OnError(new Exception("Cannot open without port"));
+                    return;
+                }
 
-                this.OnError(new Exception("has been connect!"));
-                return;
-            }
+                if (this._socket != null && (this.IsOpen() || this.IsConnecting())) {
 
-            this._isClosed = false;
+                    this.OnError(new Exception("has been connect!"));
+                    return;
+                }
 
-            FPSocket self = this;
+                lock (socket_locker) {
 
-            com.fpnn.ThreadPool.Instance.Execute((state) => {
+                    socket_locker.Count = 0;
+                    socket_locker.Status = 0;
+                }
 
-                try {
+                FPSocket self = this;
 
-                    IPHostEntry hostEntry = Dns.GetHostEntry(self._host);
-                    IPAddress ipaddr = hostEntry.AddressList[0];
+                ThreadPool.QueueUserWorkItem(new WaitCallback((state) => {
 
-                    if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
+                    self._isConnecting = true;
 
-                        self._socket = new TcpClient(AddressFamily.InterNetwork);
-                    } else {
+                    try {
 
-                        self._isIPv6 = true;
-                        self._socket = new TcpClient(AddressFamily.InterNetworkV6);
-                    }
+                        var success = false;
+                        IAsyncResult result = null;
 
-                    IAsyncResult result = self._socket.BeginConnect(ipaddr, self._port, null, null);
+                        lock (socket_locker) {
 
-                    lock(self._lock_obj) {
+                            IPHostEntry hostEntry = Dns.GetHostEntry(self._host);
+                            IPAddress ipaddr = hostEntry.AddressList[0];
 
-                        self._isConnecting = true;
-                    }
+                            if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
 
-                    var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds((double)self._timeout));
+                                self._socket = new TcpClient(AddressFamily.InterNetwork);
+                            } else {
 
-                    if (!success) {
+                                self._isIPv6 = true;
+                                self._socket = new TcpClient(AddressFamily.InterNetworkV6);
+                            }
 
-                        lock(self._lock_obj) {
-
-                            self._isConnecting = false;
+                            result = self._socket.BeginConnect(ipaddr, self._port, null, null);
+                            success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds((double)self._timeout));
                         }
 
-                        self.Close(new Exception("Connect Timeout"));
-                        return;
-                    }
+                        if (!success) {
 
-                    self._socket.EndConnect(result);
-                    self._stream = self._socket.GetStream();
+                            self._isConnecting = false;
 
-                    lock(self._lock_obj) {
+                            self.Close(new Exception("Connect Timeout"));
+                            return;
+                        } 
 
-                        self._isConnecting = false;
-                    }
+                        lock (socket_locker) {
 
-                    self.StartSendThread();
-                    self.OnRead(self._stream);
-
-                    self.OnConnect();
-                } catch (Exception ex) {
-
-                    lock(self._lock_obj) {
+                            self._socket.EndConnect(result);
+                            self._stream = self._socket.GetStream();
+                        }
 
                         self._isConnecting = false;
-                    }
 
-                    self.Close(ex);
-                }
-            });
+                        self.StartSendThread();
+                        self.OnRead(self._stream, socket_locker);
+
+                        self.OnConnect();
+                    } catch (Exception ex) {
+
+                        self._isConnecting = false;
+                        self.Close(ex);
+                    } 
+                }));
+            }
         }
 
         public bool IsIPv6() {
 
-            return this._isIPv6;
+            lock (socket_locker) {
+
+                return this._isIPv6 ? true : false;
+            }
         }
 
         public bool IsOpen() {
 
-            if (this._socket != null) {
+            lock (socket_locker) {
 
-                return this._socket.Connected;
+                if (this._socket != null) {
+
+                    return this._socket.Connected ? true : false;
+                }
+
+                return false;
             }
-
-            return false;
         }
 
         public bool IsConnecting() {
@@ -143,20 +161,59 @@ namespace com.fpnn {
 
         public void Close(Exception ex) {
 
-            if (!this._isClosed) {
+            lock (socket_locker) {
 
-                lock(this._sendQueue) {
+                if (socket_locker.Status == 0) {
 
-                    this._sendEvent.Set();
+                    socket_locker.Status = 1;
+
+                    if (ex != null) {
+
+                        this.OnError(ex);
+                    }
+
+                    this.OnClose();
                 }
 
-                if (this._socket != null) {
+                this.TryClose();
+            }
+        }
 
-                    this._socket.Close(); 
-                    this._socket = null;
-                }
+        private void TryClose() {
 
-                this.OnClose(ex);
+            if (socket_locker.Status == 3) {
+
+                return;
+            }
+
+            if (socket_locker.Count != 0) {
+
+                return;
+            }
+
+            socket_locker.Status = 3;
+
+            lock(this._sendQueue) {
+
+                this._sendEvent.Set();
+            }
+
+            if (this._stream != null) {
+
+                this._stream.Close();
+            }
+
+            if (this._socket != null) {
+
+                this._socket.Close();
+            }
+        }
+
+        private void OnClose() {
+
+            if (this.Socket_Close != null) {
+
+                this.Socket_Close(new EventData("close"));
             }
         }
 
@@ -175,17 +232,16 @@ namespace com.fpnn {
 
         public void Destroy() {
 
-            this._isIPv6 = false;
-            
-            this._onData = null;
-            this._event.RemoveListener();
-
             this.Close(null);
-        }
+            
+            lock (self_locker) {
 
-        public FPEvent GetEvent() {
+                this._onData = null;
 
-            return this._event;
+                this.Socket_Connect = null;
+                this.Socket_Close = null;
+                this.Socket_Error = null;
+            }
         }
 
         public string GetHost() {
@@ -205,59 +261,45 @@ namespace com.fpnn {
 
         private void OnConnect() {
 
-            this._event.FireEvent(new EventData("connect"));
-        }
+            if (this.Socket_Connect != null) {
 
-        private void OnClose(Exception ex) {
-
-            if (!this._isClosed) {
-
-                this._isClosed = true;
-
-                if (ex != null) {
-
-                    this.OnError(ex);
-                }
-
-                this._event.FireEvent(new EventData("close"));
+                this.Socket_Connect(new EventData("connect"));
             }
         }
 
-        private void OnRead(NetworkStream stream) {
+        private void OnRead(NetworkStream stream, SocketLocker socket_locker) {
 
-            this._onData(stream);
+            this._onData(stream, socket_locker);
         }
 
         private void OnError(Exception ex) {
 
-            this._event.FireEvent(new EventData("error", ex));
+            if (this.Socket_Error != null) {
+
+                this.Socket_Error(new EventData("error", ex));
+            }
         }
 
         private void StartSendThread() {
 
             FPSocket self = this;
 
-            com.fpnn.ThreadPool.Instance.Execute((state) => { 
+            ThreadPool.QueueUserWorkItem(new WaitCallback((state) => { 
 
                 try {
 
                     self.OnWrite();
-                } catch (System.Threading.ThreadAbortException tex) {
-                } catch (Exception e) {
+                } catch (ThreadAbortException tex) {
+                } catch (Exception ex) {
 
-                    self.Close(e);
+                    self.Close(ex);
                 } 
-            });
+            }));
         }
 
         private void OnWrite() {
 
             this._sendEvent.WaitOne();
-
-            if (this._isClosed) {
-
-                return;
-            }
 
             byte[] buffer = new byte[0];
 
@@ -274,15 +316,32 @@ namespace com.fpnn {
 
         private void WriteSocket(byte[] buffer, Action calllback) {
 
-            FPSocket self = this;
+            lock (socket_locker) {
+
+                socket_locker.Count++;
+            }
 
             try {
+
+                FPSocket self = this;
 
                 this._stream.BeginWrite(buffer, 0, buffer.Length, (ar) => {
 
                     try {
 
-                        self._stream.EndWrite(ar);
+                        try {
+
+                            self._stream.EndWrite(ar);
+
+                        } catch (Exception ex) {
+
+                            self.Close(ex);
+                        }
+
+                        lock (socket_locker) {
+
+                            socket_locker.Count--;
+                        }
 
                         if (calllback != null) {
 

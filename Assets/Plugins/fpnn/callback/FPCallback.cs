@@ -14,27 +14,27 @@ namespace com.fpnn {
 
         public void AddCallback(string key, CallbackDelegate callback, int timeout) {
 
-            lock(this._cbMap) {
+            lock (this._cbMap) {
 
                 this._cbMap.Add(key, callback);
             }
 
-            lock(this._exMap) {
+            lock (this._exMap) {
 
                 int ts = timeout <= 0 ? FPConfig.SEND_TIMEOUT : timeout;
-                long expire = ts + ThreadPool.Instance.GetMilliTimestamp();
+                long expire = ts + FPManager.Instance.GetMilliTimestamp();
                 this._exMap.Add(key, expire);
             }
         }
 
         public void RemoveCallback() {
 
-            lock(this._cbMap) {
+            lock (this._cbMap) {
 
                 this._cbMap.Clear();
             }
 
-            lock(this._exMap) {
+            lock (this._exMap) {
 
                 this._exMap.Clear();
             }
@@ -44,7 +44,7 @@ namespace com.fpnn {
 
             CallbackDelegate callback = null;
 
-            lock(this._cbMap) {
+            lock (this._cbMap) {
 
                 if (this._cbMap.Contains(key)) {
 
@@ -53,7 +53,7 @@ namespace com.fpnn {
                 }
             }
 
-            lock(this._exMap) {
+            lock (this._exMap) {
 
                 if (this._exMap.Contains(key)) {
 
@@ -61,32 +61,17 @@ namespace com.fpnn {
                 }
             }
 
-            if (callback == null) {
+            if (callback != null) {
 
-                return;
+                FPManager.Instance.AddBackCall(callback, new CallbackData(data));
             }
-
-            ThreadPool.Instance.Execute((state) => {
-
-                try {
-                    
-                    if (callback != null) {
-
-                        callback(new CallbackData(data));
-                    }
-                } catch (ThreadAbortException tex){
-                } catch (Exception e) {
-
-                   ErrorRecorderHolder.recordError(e);
-                }
-            });
         }
 
         public void ExecCallback(string key, Exception ex) {
 
             CallbackDelegate callback = null;
 
-            lock(this._cbMap) {
+            lock (this._cbMap) {
 
                 if (this._cbMap.Contains(key)) {
 
@@ -95,7 +80,7 @@ namespace com.fpnn {
                 }
             }
 
-            lock(this._exMap) {
+            lock (this._exMap) {
 
                 if (this._exMap.Contains(key)) {
 
@@ -103,30 +88,15 @@ namespace com.fpnn {
                 }
             }
 
-            if (callback == null) {
+            if (callback != null) {
 
-                return;
+                FPManager.Instance.AddBackCall(callback, new CallbackData(ex));
             }
-
-            ThreadPool.Instance.Execute((state) => {
-
-                try {
-
-                    if (callback != null) {
-
-                        callback(new CallbackData(ex));
-                    }
-                } catch (ThreadAbortException tex){
-                } catch (Exception e) {
-                    
-                    ErrorRecorderHolder.recordError(e);
-                }
-            });
         }
 
         public void OnSecond(long timestamp) {
 
-            lock(this._exMap) {
+            lock (this._exMap) {
 
                 List<string> keys = new List<string>(); 
 

@@ -1,10 +1,10 @@
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace com.fpnn {
 
-    public delegate void ServiceDelegate();
     public delegate void AnswerDelegate(object payload, bool exception);
 
     public class FPProcessor {
@@ -14,7 +14,11 @@ namespace com.fpnn {
             void Service(FPData data, AnswerDelegate answer);
             void OnSecond(long timestamp);
             bool HasPushService(string name);
-            FPEvent GetEvent();
+        }
+
+        private class ServiceLocker {
+
+            public int Status = 0;
         }
 
         private class BaseProcessor:IProcessor {
@@ -33,78 +37,81 @@ namespace com.fpnn {
                 return false;
             }
 
-            public FPEvent GetEvent() {
-
-                return this._event;
-            }
-
             public void OnSecond(long timestamp) {}
         }
 
         private IProcessor _processor;
-
-        public FPEvent GetEvent() {
-
-            if (this._processor != null) {
-
-                return this._processor.GetEvent();
-            }
-
-            return null;
-        }
+        private object self_locker = new object();
 
         public void SetProcessor(IProcessor processor) {
 
-            this._processor = processor;
+            lock (self_locker) {
+
+                this._processor = processor;
+            }
         }
 
-        private bool _serviceAble;
-        private System.Threading.ManualResetEvent _serviceEvent = new System.Threading.ManualResetEvent(false);
+        private Thread _serviceThread = null;
+        private ManualResetEvent _serviceEvent = new ManualResetEvent(false);
+
+        private ServiceLocker service_locker = new ServiceLocker();
 
         private void StartServiceThread() {
 
             lock(service_locker) {
 
-                if (this._serviceAble) {
+                if (service_locker.Status != 0) {
 
                     return;
                 }
 
-                this._serviceAble = true;
+                service_locker.Status = 1;
                 this._serviceEvent.Reset();
+
+                this._serviceThread = new Thread(new ThreadStart(ServiceThread));
+
+                if (this._serviceThread.Name == null) {
+
+                    this._serviceThread.Name = "fpnn_push_thread";
+                }
+
+                this._serviceThread.Start();
             }
+        }
 
-            FPProcessor self = this;
+        private void ServiceThread() {
 
-            ThreadPool.Instance.Execute((state) => {
+            try {
 
-                try {
+                while (true) {
 
-                    while (self._serviceAble) {
+                    this._serviceEvent.WaitOne();
 
-                        self._serviceEvent.WaitOne();
+                    List<ServiceDelegate> list;
 
-                        List<ServiceDelegate> list;
+                    lock(service_locker) {
 
-                        lock(self.service_locker) {
+                        if (service_locker.Status == 0) {
 
-                            list = self._serviceCache;
-                            self._serviceCache = new List<ServiceDelegate>();
-
-                            self._serviceEvent.Reset();
+                            return;
                         }
 
-                        self.CallService(list);
+                        list = this._serviceCache;
+                        this._serviceCache = new List<ServiceDelegate>();
+
+                        this._serviceEvent.Reset();
                     }
-                } catch (System.Threading.ThreadAbortException tex) {
-                } catch (Exception e) {
 
-                    ErrorRecorderHolder.recordError(e);
-                } finally {
-
-                    self.StopServiceThread();
+                    this.CallService(list);
                 }
-            });
+            } catch (ThreadAbortException tex) {
+            } catch (Exception ex) {
+
+                ErrorRecorderHolder.recordError(ex);
+            } finally {
+
+                this.StopServiceThread();
+            }
         }
 
         private void CallService(ICollection<ServiceDelegate> list) {
@@ -113,7 +120,13 @@ namespace com.fpnn {
 
                 if (service != null) {
 
-                    service();
+                    try {
+
+                        service();
+                    } catch(Exception ex) {
+
+                        ErrorRecorderHolder.recordError(ex);
+                    }
                 }
             }
         }
@@ -122,47 +135,51 @@ namespace com.fpnn {
 
             lock(service_locker) {
 
+                service_locker.Status = 0;
                 this._serviceEvent.Set();
             }
-
-            this._serviceAble = false;
         }
 
-        private System.Object service_locker = new System.Object();
         private List<ServiceDelegate> _serviceCache = new List<ServiceDelegate>();
 
         public void Service(FPData data, AnswerDelegate answer) {
 
-            if (this._processor == null) {
+            lock (self_locker) {
 
-                this._processor = new BaseProcessor();
-            }
+                if (this._processor == null) {
 
-            if (!this._processor.HasPushService(data.GetMethod())) {
+                    this._processor = new BaseProcessor();
+                }
 
-                if (data.GetMethod() != "ping") {
+                if (!this._processor.HasPushService(data.GetMethod())) {
 
-                    return;
+                    if (data.GetMethod() != "ping") {
+
+                        return;
+                    }
                 }
             }
 
-            if (!this._serviceAble) {
-
-                this.StartServiceThread();
-            } 
-
-            FPProcessor self = this;
-
             lock(service_locker) {
 
+                if (service_locker.Status == 0) {
+
+                    this.StartServiceThread();
+                }
+
+                FPProcessor self = this;
                 this._serviceCache.Add(() => {
 
-                    self._processor.Service(data, answer);
+                    lock (self_locker) {
+
+                        self._processor.Service(data, answer);
+                    }
                 });
 
-                if (this._serviceCache.Count >= 100) {
+                if (this._serviceCache.Count >= 3000) {
 
                     this._serviceCache.Clear();
+                    ErrorRecorderHolder.recordError(new Exception("Pushs Call Limit!"));
                 }
 
                 this._serviceEvent.Set();
@@ -171,9 +188,12 @@ namespace com.fpnn {
 
         public void OnSecond(long timestamp) {
 
-            if (this._processor != null) {
+            lock (self_locker) {
 
-                this._processor.OnSecond(timestamp);
+                if (this._processor != null) {
+
+                    this._processor.OnSecond(timestamp);
+                }
             }
         }
 

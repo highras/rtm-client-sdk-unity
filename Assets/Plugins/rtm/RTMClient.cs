@@ -17,11 +17,11 @@ namespace com.rtm {
 
             static private long Count = 0;
             static private StringBuilder sb = new StringBuilder(20);
-            static private System.Object Lock = new System.Object();
+            static private object lock_obj = new object();
 
             static public long Gen() {
 
-                lock(Lock) {
+                lock (lock_obj) {
 
                     long c = 0;
 
@@ -33,7 +33,7 @@ namespace com.rtm {
                     c = Count;
 
                     sb.Clear();
-                    sb.Append(ThreadPool.Instance.GetMilliTimestamp());
+                    sb.Append(FPManager.Instance.GetMilliTimestamp());
 
                     if (c < 100) {
 
@@ -49,6 +49,16 @@ namespace com.rtm {
                     return Convert.ToInt64(sb.ToString());
                 }
             }
+        }
+
+        private class DelayConnLocker {
+
+            public int Status = 0;
+        }
+
+        private class ReconnLocker {
+
+            public int Status = 0;
         }
 
         private FPEvent _event = new FPEvent();
@@ -71,6 +81,7 @@ namespace com.rtm {
         private string _endpoint;
         private string _switchGate;
 
+        private RTMSender _sender;
         private RTMProcessor _processor;
         private EventDelegate _eventDelegate;
 
@@ -107,23 +118,19 @@ namespace com.rtm {
 
             RTMClient self = this;
 
+            this._sender = new RTMSender();
             this._processor = new RTMProcessor(this._event);
 
             this._processor.AddPushService(RTMConfig.KICKOUT, (data) => {
 
-                self._isClose = true;
-                self._baseClient.Close();
+                lock (self_locker) {
+
+                    self._isClose = true;
+                    self._baseClient.Close();
+                }
             });
 
             this._eventDelegate = (evd) => {
-
-                int AvailableWorkerThreads, aiot;
-                System.Threading.ThreadPool.GetAvailableThreads(out AvailableWorkerThreads, out aiot);
-
-                if (AvailableWorkerThreads <= 1) {
-
-                    ErrorRecorderHolder.recordError(new Exception("ThreadPool available worker threads: " + AvailableWorkerThreads));
-                }
 
                 long lastPingTimestamp = 0;
                 long timestamp = evd.GetTimestamp();
@@ -144,9 +151,7 @@ namespace com.rtm {
                 self.DelayConnect(timestamp);
             };
 
-            ThreadPool.Instance.Event.AddListener("second", this._eventDelegate);
-
-            ThreadPool.Instance.SetPool(new RTMThreadPool());
+            FPManager.Instance.AddSecond(this._eventDelegate);
             ErrorRecorderHolder.setInstance(new RTMErrorRecorder());
         }
 
@@ -165,55 +170,61 @@ namespace com.rtm {
             return null;
         }
 
-        public void SendQuest(FPData data, CallbackDelegate callback, int timeout) {
+        public void SendQuest(FPData data, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
-            if (this._baseClient != null) {
+            if (this._sender != null && this._baseClient != null) {
 
-                this._baseClient.SendQuest(data, this._baseClient.QuestCallback(callback), timeout);
+                this._sender.AddQuest(this._baseClient, data, payload, this._baseClient.QuestCallback(callback), timeout);
             }
         }
 
-        public CallbackData SendQuest(FPData data, int timeout) {
-
-            if (this._baseClient != null) {
-
-                return this._baseClient.SendQuest(data, timeout);
-            }
-
-            return null;
-        }
+        private object self_locker = new object();
 
         public void Destroy() {
 
-            this.Close();
+            lock (self_locker) {
 
-            this._reconnCount = 0;
-            this._lastConnectTime = 0;
+                this.Close();
 
-            if (this._baseClient != null) {
+                lock (delayconn_locker) {
 
-                this._baseClient.Destroy();
-                this._baseClient = null;
-            }
+                    delayconn_locker.Status = 0;
 
-            if (this._dispatchClient != null) {
+                    this._reconnCount = 0;
+                    this._lastConnectTime = 0;
+                }
 
-                this._dispatchClient.Destroy();
-                this._dispatchClient = null;
-            }
+                if (this._baseClient != null) {
 
-            if (this._processor != null) {
+                    this._baseClient.Destroy();
+                    this._baseClient = null;
+                }
 
-                this._processor.Destroy();
-                this._processor = null;
-            }
+                if (this._dispatchClient != null) {
 
-            this._event.RemoveListener();
+                    this._dispatchClient.Destroy();
+                    this._dispatchClient = null;
+                }
 
-            if (this._eventDelegate != null) {
+                if (this._sender != null) {
 
-                ThreadPool.Instance.Event.RemoveListener("second", this._eventDelegate);
-                this._eventDelegate = null;
+                    this._sender.Destroy();
+                    this._sender = null;
+                }
+
+                if (this._processor != null) {
+
+                    this._processor.Destroy();
+                    this._processor = null;
+                }
+
+                this._event.RemoveListener();
+
+                if (this._eventDelegate != null) {
+
+                    FPManager.Instance.RemoveSecond(this._eventDelegate);
+                    this._eventDelegate = null;
+                }
             }
         }
 
@@ -222,67 +233,82 @@ namespace com.rtm {
          */
         public void Login(string endpoint) {
 
-            this._endpoint = endpoint;
-            this._isClose = false;
+            lock (self_locker) {
 
-            if (!string.IsNullOrEmpty(this._endpoint)) {
+                this._endpoint = endpoint;
+                this._isClose = false;
 
-                this.ConnectRTMGate(this._timeout);
-                return;
-            }
+                if (!string.IsNullOrEmpty(this._endpoint)) {
 
-            RTMClient self = this;
+                    this.ConnectRTMGate(this._timeout);
+                    return;
+                }
 
-            if (this._dispatchClient == null) {
+                RTMClient self = this;
 
-                this._dispatchClient = new DispatchClient(this._dispatch, this._timeout);
+                if (this._dispatchClient == null) {
 
-                this._dispatchClient.GetEvent().AddListener("close", (evd) => {
+                    this._dispatchClient = new DispatchClient(this._dispatch, this._timeout);
 
-                    Debug.Log("[DispatchClient] closed!");
+                    this._dispatchClient.Client_Close = (evd) => {
 
-                    if (self._dispatchClient != null) {
+                        Debug.Log("[DispatchClient] closed!");
 
-                        self._dispatchClient.Destroy();
-                        self._dispatchClient = null;
-                    }
+                        bool reconn = false;
 
-                    if (string.IsNullOrEmpty(self._endpoint)) {
+                        lock (self_locker) {
 
-                        self.GetEvent().FireEvent(new EventData("error", new Exception("dispatch client close with err!")));
-                        self.Reconnect();
-                    }
-                });
+                            if (self._dispatchClient != null) {
 
-                this._dispatchClient.GetEvent().AddListener("connect", (evd) => {
+                                self._dispatchClient.Destroy();
+                                self._dispatchClient = null;
+                            }
 
-                    Debug.Log("[DispatchClient] connected!");
-
-                    IDictionary<string, object> payload = new Dictionary<string, object>();
-
-                    payload.Add("pid", self._pid);
-                    payload.Add("uid", self._uid);
-                    payload.Add("what", "rtmGated");
-                    payload.Add("addrType", self._dispatchClient.IsIPv6() ? "ipv6" : "ipv4");
-                    payload.Add("version", self._version);
-
-                    self._dispatchClient.Which(payload, self._timeout, (cbd) => {
-
-                        IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
-
-                        if (dict != null) {
-
-                            self.Login(Convert.ToString(dict["endpoint"]));
+                            reconn = string.IsNullOrEmpty(self._endpoint);
                         }
 
-                        if (self._dispatchClient != null) {
+                        if (reconn) {
 
-                            self._dispatchClient.Close(cbd.GetException());
+                            self.GetEvent().FireEvent(new EventData("error", new Exception("dispatch client close with err!")));
+                            self.Reconnect();
                         }
-                    });
-                });
+                    };
 
-                this._dispatchClient.Connect();
+                    this._dispatchClient.Client_Connect = (evd) => {
+
+                        Debug.Log("[DispatchClient] connected!");
+
+                        IDictionary<string, object> payload = new Dictionary<string, object>();
+
+                        payload.Add("pid", self._pid);
+                        payload.Add("uid", self._uid);
+                        payload.Add("what", "rtmGated");
+                        payload.Add("addrType", self._dispatchClient.IsIPv6() ? "ipv6" : "ipv4");
+                        payload.Add("version", self._version);
+
+                        self._dispatchClient.Which(self._sender, payload, self._timeout, (cbd) => {
+
+                            IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
+
+                            lock (self_locker) {
+
+                                if (dict != null) {
+
+                                    self._endpoint = Convert.ToString(dict["endpoint"]);
+                                }
+
+                                if (self._dispatchClient != null) {
+
+                                    self._dispatchClient.Close(cbd.GetException());
+                                }
+                            }
+
+                            self.Login(self._endpoint);
+                        });
+                    };
+
+                    this._dispatchClient.Connect();
+                }
             }
         }
 
@@ -322,23 +348,12 @@ namespace com.rtm {
             payload.Add("msg", msg);
             payload.Add("attrs", attrs);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("sendmsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 cbd.SetMid(mid);
 
@@ -385,23 +400,12 @@ namespace com.rtm {
             payload.Add("msg", msg);
             payload.Add("attrs", attrs);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("sendgroupmsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 cbd.SetMid(mid);
 
@@ -448,23 +452,12 @@ namespace com.rtm {
             payload.Add("msg", msg);
             payload.Add("attrs", attrs);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("sendroommsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 cbd.SetMid(mid);
 
@@ -493,25 +486,12 @@ namespace com.rtm {
          */
         public void GetUnreadMessage(int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getunreadmsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, new Dictionary<string, object>(), callback, timeout);
         }
 
         /**
@@ -532,25 +512,12 @@ namespace com.rtm {
          */
         public void CleanUnreadMessage(int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("cleanunreadmsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, new Dictionary<string, object>(), callback, timeout);
         }
 
          /**
@@ -571,25 +538,12 @@ namespace com.rtm {
          */
         public void GetSession(int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getsession");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, new Dictionary<string, object>(), callback, timeout);
         }
 
         /**
@@ -647,23 +601,12 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getgroupmsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -755,23 +698,12 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getroommsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -861,23 +793,12 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getbroadcastmsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -969,23 +890,12 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getp2pmsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -1076,31 +986,26 @@ namespace com.rtm {
          */
         public void Close() {
 
-            this._isClose = true;
+            lock (self_locker) {
+
+                this._isClose = true;
+            }
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
 
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("bye");
-            data.SetPayload(bytes);
 
             RTMClient self = this;
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
-                self._baseClient.Close();
+                lock (self_locker) {
+
+                    self._baseClient.Close();
+                }
             }, 0);
         }
 
@@ -1126,23 +1031,12 @@ namespace com.rtm {
 
             payload.Add("attrs", attrs);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("addattrs");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1170,23 +1064,12 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getattrs");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1213,23 +1096,12 @@ namespace com.rtm {
             payload.Add("msg", msg);
             payload.Add("attrs", attrs);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("adddebuglog");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1256,23 +1128,12 @@ namespace com.rtm {
             payload.Add("apptype", apptype);
             payload.Add("devicetoken", devicetoken);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("adddevice");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1297,23 +1158,12 @@ namespace com.rtm {
 
             payload.Add("devicetoken", devicetoken);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("removedevice");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1338,23 +1188,12 @@ namespace com.rtm {
 
             payload.Add("lang", targetLanguage);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("setlang");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1387,23 +1226,12 @@ namespace com.rtm {
                 payload.Add("src", originalLanguage);
             }
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("translate");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1428,23 +1256,12 @@ namespace com.rtm {
 
             payload.Add("friends", friends);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("addfriends");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1469,23 +1286,12 @@ namespace com.rtm {
 
             payload.Add("friends", friends);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("delfriends");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1505,25 +1311,12 @@ namespace com.rtm {
          */
         public void GetFriends(int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getfriends");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, new Dictionary<string, object>(), (cbd) => {
 
                 if (callback == null) {
 
@@ -1567,23 +1360,12 @@ namespace com.rtm {
             payload.Add("gid", gid);
             payload.Add("uids", uids);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("addgroupmembers");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1610,23 +1392,12 @@ namespace com.rtm {
             payload.Add("gid", gid);
             payload.Add("uids", uids);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("delgroupmembers");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1651,23 +1422,12 @@ namespace com.rtm {
 
             payload.Add("gid", gid);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getgroupmembers");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -1706,23 +1466,12 @@ namespace com.rtm {
 
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getusergroups");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -1764,23 +1513,12 @@ namespace com.rtm {
 
             payload.Add("rid", rid);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("enterroom");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1805,23 +1543,12 @@ namespace com.rtm {
 
             payload.Add("rid", rid);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("leaveroom");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -1841,25 +1568,12 @@ namespace com.rtm {
          */
         public void GetUserRooms(int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getuserrooms");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, new Dictionary<string, object>(), (cbd) => {
 
                 if (callback == null) {
 
@@ -1901,23 +1615,12 @@ namespace com.rtm {
 
             payload.Add("uids", uids);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("getonlineusers");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -1963,23 +1666,12 @@ namespace com.rtm {
             payload.Add("xid", xid);
             payload.Add("type", type);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("delmsg");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -2004,23 +1696,12 @@ namespace com.rtm {
 
             payload.Add("ce", ce);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("kickout");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -2045,23 +1726,12 @@ namespace com.rtm {
 
             payload.Add("key", key);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("dbget");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -2088,23 +1758,12 @@ namespace com.rtm {
             payload.Add("key", key);
             payload.Add("val", value);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("dbset");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         /**
@@ -2237,31 +1896,23 @@ namespace com.rtm {
             payload.Add("version", this._version);
             payload.Add("attrs", this._attrs);
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("auth");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, (cbd) => {
+            this.SendQuest(data, payload, (cbd) => {
 
                 Exception exception = cbd.GetException();
 
                 if (exception != null) {
 
-                    if (self._baseClient != null) {
+                    lock (self_locker) {
 
-                        self._baseClient.Close(exception);
+                        if (self._baseClient != null) {
+
+                            self._baseClient.Close(exception);
+                        }
                     }
 
                     return;
@@ -2282,8 +1933,19 @@ namespace com.rtm {
                             self._processor.InitPingTimestamp();
                         }
 
-                        self._reconnCount = 0;
-                        self.GetEvent().FireEvent(new EventData("login", self._endpoint));
+                        lock (delayconn_locker) {
+
+                            self._reconnCount = 0;
+                        }
+
+                        string endpoint = null;
+
+                        lock (self_locker) {
+
+                            endpoint = self._endpoint;
+                        }
+
+                        self.GetEvent().FireEvent(new EventData("login", endpoint));
                         return;
                     }
 
@@ -2293,11 +1955,14 @@ namespace com.rtm {
 
                         if (!string.IsNullOrEmpty(gate)) {
 
-                            self._switchGate = gate;
+                            lock (self_locker) {
 
-                            if (self._baseClient != null) {
+                                self._switchGate = gate;
 
-                                self._baseClient.Close();
+                                if (self._baseClient != null) {
+
+                                    self._baseClient.Close();
+                                }
                             }
 
                             return;
@@ -2306,14 +1971,22 @@ namespace com.rtm {
 
                     if (!ok) {
 
+                        lock (self_locker) {
+
+                            self._isClose = true;
+                        }
+
                         self.GetEvent().FireEvent(new EventData("login", new Exception("token error!")));
                         return;
                     }
                 }
 
-                if (self._baseClient != null) {
+                lock (self_locker) {
 
-                    self._baseClient.Close(new Exception("auth error!"));
+                    if (self._baseClient != null) {
+
+                        self._baseClient.Close(new Exception("auth error!"));
+                    }
                 }
             }, timeout);
         }
@@ -2324,32 +1997,39 @@ namespace com.rtm {
 
             if (this._baseClient == null) {
 
-                this._baseClient = new BaseClient(this._endpoint, false, timeout);
+                this._baseClient = new BaseClient(this._endpoint, timeout);
 
-                this._baseClient.GetEvent().AddListener("connect", (evd) => {
+                this._baseClient.Client_Connect = (evd) => {
 
                     self.Auth(timeout);
-                });
+                };
 
-                this._baseClient.GetEvent().AddListener("close", (evd) => {
+                this._baseClient.Client_Close = (evd) => {
 
-                    if (self._baseClient != null) {
+                    bool retry = false;
 
-                        self._baseClient.Destroy();
-                        self._baseClient = null;
+                    lock (self_locker) {
+
+                        if (self._baseClient != null) {
+
+                            self._baseClient.Destroy();
+                            self._baseClient = null;
+                        }
+
+                        self._endpoint = self._switchGate;
+                        self._switchGate = null;
+
+                        retry = !self._isClose && self._reconnect;
                     }
 
-                    self._endpoint = self._switchGate;
-                    self._switchGate = null;
-
-                    self.GetEvent().FireEvent(new EventData("close", !self._isClose && self._reconnect));
+                    self.GetEvent().FireEvent(new EventData("close", retry));
                     self.Reconnect();
-                });
+                };
 
-                this._baseClient.GetEvent().AddListener("error", (evd) => {
+                this._baseClient.Client_Error = (evd) => {
 
                     self.GetEvent().FireEvent(new EventData("error", evd.GetException()));
-                });
+                };
 
                 this._baseClient.GetProcessor().SetProcessor(this._processor);
                 this._baseClient.Connect();
@@ -2438,30 +2118,19 @@ namespace com.rtm {
                         dict.Add("gid", ops["gid"]);
                     }
 
-                    fileClient.Send(Convert.ToString(ops["cmd"]), (byte[])ops["file"], token, dict, timeout, callback);
+                    fileClient.Send(self._sender, Convert.ToString(ops["cmd"]), (byte[])ops["file"], token, dict, timeout, callback);
                 }
             }, timeout);
         }
 
         private void Filetoken(IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
-            byte[] bytes;
-
-            using (MemoryStream outputStream = new MemoryStream()) {
-
-                MsgPack.Serialize(payload, outputStream);
-                outputStream.Seek(0, SeekOrigin.Begin);
-
-                bytes = outputStream.ToArray();
-            }
-
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
             data.SetMethod("filetoken");
-            data.SetPayload(bytes);
 
-            this.SendQuest(data, callback, timeout);
+            this.SendQuest(data, payload, callback, timeout);
         }
 
         private int _reconnCount = 0;
@@ -2473,9 +2142,12 @@ namespace com.rtm {
                 return;
             }
 
-            if (this._isClose) {
+            lock (self_locker) {
 
-                return;
+                if (this._isClose) {
+
+                    return;
+                }
             }
 
             if (this._processor != null) {
@@ -2483,159 +2155,159 @@ namespace com.rtm {
                 this._processor.ClearPingTimestamp();
             }
 
-            if (++this._reconnCount < RTMConfig.RECONN_COUNT_ONCE) {
+            int count = 0;
+
+            lock (delayconn_locker) {
+
+                this._reconnCount++;
+                count = this._reconnCount;
+            }
+
+            if (count <= RTMConfig.RECONN_COUNT_ONCE) {
 
                 this.Login(this._endpoint);
                 return;
             }
 
-            this._lastConnectTime = ThreadPool.Instance.GetMilliTimestamp();
+            lock (delayconn_locker) {
+
+                delayconn_locker.Status = 1;
+                this._lastConnectTime = FPManager.Instance.GetMilliTimestamp();
+            }
         }
 
         private long _lastConnectTime = 0;
+        private DelayConnLocker delayconn_locker = new DelayConnLocker();
 
         private void DelayConnect(long timestamp) {
 
-            if (this._lastConnectTime == 0) {
+            lock (delayconn_locker) {
 
-                return;
+                if (delayconn_locker.Status == 0) {
+
+                    return;
+                }
+
+                if (timestamp - this._lastConnectTime < RTMConfig.CONNCT_INTERVAL) {
+
+                    return;
+                }
+
+                delayconn_locker.Status = 0;
+
+                this._reconnCount = 0;
             }
 
-            if (timestamp - this._lastConnectTime < RTMConfig.CONNCT_INTERVAL) {
-
-                return;
-            }
-
-            this._reconnCount = 0;
-            this._lastConnectTime = 0;
             this.Login(this._endpoint);
         }
 
         private class DispatchClient:BaseClient {
 
-            public DispatchClient(string endpoint, int timeout):base(endpoint, false, timeout) {}
-            public DispatchClient(string host, int port, int timeout):base(host, port, false, timeout) {}
+            public DispatchClient(string endpoint, int timeout):base(endpoint, timeout) {}
+            public DispatchClient(string host, int port, int timeout):base(host, port, timeout) {}
 
             public override void AddListener() {
 
-                base.GetEvent().AddListener("error", (evd) => {
+                base.Client_Error = (evd) => {
 
                     ErrorRecorderHolder.recordError(evd.GetException());
-                });
+                };
             }
 
-            public void Which(IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
+            public void Which(RTMSender sender, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
 
-                byte[] bytes;
+                if (sender != null) {
 
-                using (MemoryStream outputStream = new MemoryStream()) {
+                    FPData data = new FPData();
+                    data.SetFlag(0x1);
+                    data.SetMtype(0x1);
+                    data.SetMethod("which");
 
-                    MsgPack.Serialize(payload, outputStream);
-                    outputStream.Seek(0, SeekOrigin.Begin);
-
-                    bytes = outputStream.ToArray();
-                } 
-
-                FPData data = new FPData();
-                data.SetFlag(0x1);
-                data.SetMtype(0x1);
-                data.SetMethod("which");
-                data.SetPayload(bytes);
-
-                base.SendQuest(data, base.QuestCallback(callback), timeout);
+                    sender.AddQuest(this, data, payload, this.QuestCallback(callback), timeout);
+                }
             }
         }
 
         private class FileClient:BaseClient {
 
-            public FileClient(string endpoint, int timeout):base(endpoint, false, timeout) {}
-            public FileClient(string host, int port, int timeout):base(host, port, false, timeout) {}
+            public FileClient(string endpoint, int timeout):base(endpoint, timeout) {}
+            public FileClient(string host, int port, int timeout):base(host, port, timeout) {}
 
             public override void AddListener() {
 
-                base.GetEvent().AddListener("connect", (evd) => {
+                base.Client_Connect = (evd) => {
 
                     Debug.Log("[FileClient] connected!");
-                });
+                };
 
-                base.GetEvent().AddListener("close", (evd) => {
+                base.Client_Close = (evd) => {
 
                     Debug.Log("[FileClient] closed!");
-                });
+                };
 
-                base.GetEvent().AddListener("error", (evd) => {
+                base.Client_Error = (evd) => {
 
                     ErrorRecorderHolder.recordError(evd.GetException());
-                });
+                };
             }
 
-            public void Send(string method, byte[] fileBytes, string token, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
+            public void Send(RTMSender sender, string method, byte[] fileBytes, string token, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
 
-                String fileMd5 = base.CalcMd5(fileBytes, false);
-                String sign = base.CalcMd5(fileMd5 + ":" + token, false);
+                if (sender != null) {
 
-                if (string.IsNullOrEmpty(sign)) {
+                    String fileMd5 = base.CalcMd5(fileBytes, false);
+                    String sign = base.CalcMd5(fileMd5 + ":" + token, false);
 
-                    ErrorRecorderHolder.recordError(new Exception("wrong sign!"));
-                    return;
-                }
+                    if (string.IsNullOrEmpty(sign)) {
 
-                if (!base.HasConnect()) {
-
-                    base.Connect();
-                }
-
-                IDictionary<string, string> attrs = new Dictionary<string, string>();
-                attrs.Add("sign", sign);
-
-                payload.Add("token", token);
-                payload.Add("file", fileBytes);
-                payload.Add("attrs", Json.SerializeToString(attrs));
-
-                long mid = (long)Convert.ToInt64(payload["mid"]);
-
-                byte[] bytes;
-
-                using (MemoryStream outputStream = new MemoryStream()) {
-
-                    MsgPack.Serialize(payload, outputStream);
-                    outputStream.Seek(0, SeekOrigin.Begin);
-
-                    bytes = outputStream.ToArray();
-                }
-
-                FPData data = new FPData();
-                data.SetFlag(0x1);
-                data.SetMtype(0x1);
-                data.SetMethod(method);
-                data.SetPayload(bytes);
-
-                FileClient self = this;
-
-                base.SendQuest(data, base.QuestCallback((cbd) => {
-
-                    cbd.SetMid(mid);
-                    self.Destroy();
-
-                    if (callback != null) {
-
-                        callback(cbd);
+                        ErrorRecorderHolder.recordError(new Exception("wrong sign!"));
+                        return;
                     }
-                }), timeout);
+
+                    if (!base.HasConnect()) {
+
+                        base.Connect();
+                    }
+
+                    IDictionary<string, string> attrs = new Dictionary<string, string>();
+                    attrs.Add("sign", sign);
+
+                    payload.Add("token", token);
+                    payload.Add("file", fileBytes);
+                    payload.Add("attrs", Json.SerializeToString(attrs));
+
+                    long mid = (long)Convert.ToInt64(payload["mid"]);
+
+                    FPData data = new FPData();
+                    data.SetFlag(0x1);
+                    data.SetMtype(0x1);
+                    data.SetMethod(method);
+
+                    FileClient self = this;
+
+                    sender.AddQuest(this, data, payload, this.QuestCallback((cbd) => {
+
+                        cbd.SetMid(mid);
+                        self.Destroy();
+
+                        if (callback != null) {
+
+                            callback(cbd);
+                        }
+                    }), timeout);
+                }
             }
         }
 
         private class BaseClient:FPClient {
 
-            public BaseClient(string endpoint, bool reconnect, int timeout):base(endpoint, reconnect, timeout) {
+            public BaseClient(string endpoint, int timeout):base(endpoint, timeout) {
 
-                ThreadPool.Instance.StartTimerThread();
                 this.AddListener();
             }
 
-            public BaseClient(string host, int port, bool reconnect, int timeout):base(host, port, reconnect, timeout) {
+            public BaseClient(string host, int port, int timeout):base(host, port, timeout) {
 
-                ThreadPool.Instance.StartTimerThread();
                 this.AddListener();
             }
 
@@ -2734,20 +2406,8 @@ namespace com.rtm {
             
                 // Debug
                 // Debug.LogError(e);
-            }
-        }
 
-        private class RTMThreadPool:ThreadPool.IThreadPool {
-
-            public RTMThreadPool() {
-
-                System.Threading.ThreadPool.SetMinThreads(2, 1);
-                System.Threading.ThreadPool.SetMaxThreads(SystemInfo.processorCount * 2, SystemInfo.processorCount);
-            }
-
-            public void Execute(Action<object> action) {
-
-                System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback(action));
+                // Release
             }
         }
     }

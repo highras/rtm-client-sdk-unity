@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 namespace com.fpnn {
 
@@ -12,20 +11,21 @@ namespace com.fpnn {
 
         public override void recordError(Exception e) {
 
-            Debug.LogError(e);
+            //TODO
+            // UnityEngine.Debug.LogError(e);
         }
     }
 
     public class ErrorRecorderHolder {
 
         private static ErrorRecorder uniqueInstance;
-        private static readonly System.Object locker = new System.Object();
+        private static object lock_obj = new object();
 
         private ErrorRecorderHolder() {}
 
         public static void setInstance(ErrorRecorder ins) {
 
-            lock (locker) {
+            lock (lock_obj) {
 
                 uniqueInstance = ins;
             }
@@ -33,23 +33,20 @@ namespace com.fpnn {
 
         public static ErrorRecorder getInstance() {
 
-            if (uniqueInstance == null) {
+            lock (lock_obj) {
 
-                lock (locker) {
+                if (uniqueInstance == null) {
 
-                    if (uniqueInstance == null) {
-
-                        uniqueInstance = new DefaultErrorRecorder();
-                    }
+                    uniqueInstance = new DefaultErrorRecorder();
                 }
-            }
 
-            return uniqueInstance;
+                return uniqueInstance;
+            }
         }
 
-        public static void recordError(Exception e){
+        public static void recordError(Exception ex){
             
-            ErrorRecorderHolder.getInstance().recordError(e);
+            ErrorRecorderHolder.getInstance().recordError(ex);
         }
     }
 }

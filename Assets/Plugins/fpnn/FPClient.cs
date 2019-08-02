@@ -8,10 +8,12 @@ namespace com.fpnn {
 
     public class FPClient {
 
+        public Action<EventData> Client_Connect;
+        public Action<EventData> Client_Close;
+        public Action<EventData> Client_Error;
+
         private int _seq = 0;
-        private int _timeout = 30 * 1000;
-        private bool _isClose;
-        private bool _autoReconnect;
+        private bool _isClose = false;
 
         private FPSocket _sock;
         private FPData _peekData = null;
@@ -23,71 +25,48 @@ namespace com.fpnn {
 
         private FPPackage _pkg;
         private FPEncryptor _cyr;
-        private FPEvent _event;
         private FPProcessor _psr;
         private FPCallback _callback;
 
-        private object _lock_obj = new object();
-
-        public FPClient(string endpoint, bool autoReconnect, int connectionTimeout) {
+        public FPClient(string endpoint, int connectionTimeout) {
 
             String[] ipport = endpoint.Split(':');
-            this.Init(ipport[0], Convert.ToInt32(ipport[1]), autoReconnect, connectionTimeout);
+            this.Init(ipport[0], Convert.ToInt32(ipport[1]), connectionTimeout);
         }
 
-        public FPClient(string host, int port, bool autoReconnect, int connectionTimeout) {
+        public FPClient(string host, int port, int connectionTimeout) {
 
-            this.Init(host, port, autoReconnect, connectionTimeout);
+            this.Init(host, port, connectionTimeout);
         }
 
-        protected void Init(string host, int port, bool autoReconnect, int connectionTimeout) {
+        protected void Init(string host, int port, int connectionTimeout) {
 
             this._pkg = new FPPackage();
             this._cyr = new FPEncryptor(_pkg);
-            this._event = new FPEvent();
             this._psr = new FPProcessor();
             this._callback = new FPCallback();
 
-            if (connectionTimeout > 0) {
+            if (connectionTimeout <= 0) {
 
-                this._timeout = connectionTimeout;
+                connectionTimeout = 30 * 1000;
             }
 
-            this._autoReconnect = autoReconnect;
-
             FPClient self = this;
-
             this._eventDelegate = (evd) => {
 
                 self.OnSecond(evd.GetTimestamp());
             };
 
-            ThreadPool.Instance.Event.AddListener("second", this._eventDelegate);
+            FPManager.Instance.AddSecond(this._eventDelegate);
 
-            this._sock = new FPSocket((stream) => {
+            this._sock = new FPSocket((stream, socket_locker) => {
 
-                self.OnData(stream);
-            }, host, port, this._timeout);
+                self.OnData(stream, socket_locker);
+            }, host, port, connectionTimeout);
 
-            this._sock.GetEvent().AddListener("connect", (evd) => {
-
-                self.OnConnect();
-            });
-
-            this._sock.GetEvent().AddListener("close", (evd) => {
-
-                self.OnClose();
-            });
-
-            this._sock.GetEvent().AddListener("error", (evd) => {
-
-                self.OnError(evd.GetException());
-            });
-        }
-
-        public FPEvent GetEvent() {
-
-            return this._event;
+            this._sock.Socket_Connect = this.OnConnect;
+            this._sock.Socket_Close = this.OnClose;
+            this._sock.Socket_Error = this.OnError; 
         }
 
         public FPProcessor GetProcessor() {
@@ -105,40 +84,69 @@ namespace com.fpnn {
             return this._sock;
         }
 
+        private object self_locker = new object();
+
         public void Connect() {
 
-            this._isClose = false;
+            lock (self_locker) {
+
+                if (this._isClose) {
+
+                    return;
+                }
+            }
+
             this._sock.Open();
         }
 
         public void Close() {
 
-            this._isClose = true;
+            lock (self_locker) {
+
+                if (this._isClose) {
+
+                    return;
+                }
+
+                this._isClose = true;
+            } 
+
             this._sock.Close(null);
         }
 
         public void Close(Exception ex) {
 
-            this._isClose = true;
+            lock (self_locker) {
+
+                if (this._isClose) {
+                    
+                    return;
+                }
+
+                this._isClose = true;
+            } 
+
             this._sock.Close(ex);
         }
 
         public void Destroy() {
 
-            if (this._eventDelegate != null) {
+            this.Close();
 
-                ThreadPool.Instance.Event.RemoveListener("second", this._eventDelegate);
-                this._eventDelegate = null;
+            lock (self_locker) {
+
+                if (this._eventDelegate != null) {
+
+                    FPManager.Instance.RemoveSecond(this._eventDelegate);
+                    this._eventDelegate = null;
+                }
+
+                this._psr.Destroy();
+
+                this.Client_Connect = null;
+                this.Client_Close = null;
+                this.Client_Error = null;
             }
-
-            this._autoReconnect = false;
-
-            this._event.RemoveListener();
-
-            this._psr.Destroy();
-            this._sock.Destroy();
-
-            this.OnClose();
         }
 
         public void SendQuest(FPData data) {
@@ -209,197 +217,233 @@ namespace com.fpnn {
             return this._sock.IsOpen() || this._sock.IsConnecting();
         }
 
-        private void OnConnect() {
+        private void OnConnect(EventData evd) {
 
-            this._event.FireEvent(new EventData("connect"));
-        }
+            if (this.Client_Connect != null) {
 
-        private void OnClose() {
-
-            this._seq = 0;
-            this._readBytes = 0;
-            this._peekData = null;
-
-            if (this._buffer != null) {
-
-                Array.Clear(this._buffer, 0, this._buffer.Length);
-                this._buffer = null;
-            }
-
-            this._callback.RemoveCallback();
-            this._cyr.Clear();
-
-            this._event.FireEvent(new EventData("close", !this._isClose && this._autoReconnect));
-
-            if (this._autoReconnect) {
-
-                this.Reconnect();
+                this.Client_Connect(evd);
             }
         }
 
-        private void Reconnect() {
+        private void OnClose(EventData evd) {
 
-            if (this._isClose) {
+            lock (self_locker) {
 
-                return;
-            }
-
-            if (this.HasConnect()) {
-
-                return;
-            }
-
-            this.Connect();
-        }
-
-        private void OnData(NetworkStream stream) {
-
-            this.ReadHead(stream);
-        }
-
-        private void ReadHead(NetworkStream stream) {
-
-            if (this._buffer == null) {
-
+                this._seq = 0;
                 this._readBytes = 0;
-                this._buffer = new byte[FPConfig.READ_BUFFER_LEN];
+                this._peekData = null;
+
+                if (this._buffer != null) {
+
+                    Array.Clear(this._buffer, 0, this._buffer.Length);
+                    this._buffer = null;
+                }
+
+                this._callback.RemoveCallback();
+                this._cyr.Clear();
             }
 
-            if (this._readBytes < this._buffer.Length) {
+            if (this._sock != null) {
 
-                this.ReadSocket(stream, ReadHead);
-                return;
+                this._sock.Destroy();
             }
 
-            this.BuildHead(stream);
+            if (this.Client_Close != null) {
+
+                this.Client_Close(new EventData("close"));
+            }
         }
 
-        private void BuildHead(NetworkStream stream) {
+        private void OnData(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
 
-            if (this._peekData == null) {
-
-                this._peekData = this._cyr.PeekHead(this._buffer);
-
-                Array.Clear(this._buffer, 0, this._buffer.Length);
-                this._buffer = null;
-            }
-
-            if (this._peekData == null) {
-
-                this._sock.Close(new Exception("worng package head!"));
-                return;
-            }
-
-            this.ReadBody(stream);
+            this.ReadHead(stream, socket_locker);
         }
 
-        private void ReadBody(NetworkStream stream) {
+        private void ReadHead(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
 
-            if (this._buffer == null) {
+            lock (self_locker) {
 
-                int diff = this._peekData.GetPkgLen() - this._peekData.Bytes.Length;
-
-                if (diff > 0) {
+                if (this._buffer == null) {
 
                     this._readBytes = 0;
-                    this._buffer = new byte[diff];
+                    this._buffer = new byte[FPConfig.READ_BUFFER_LEN];
+                }
+
+                if (this._readBytes < this._buffer.Length) {
+
+                    this.ReadSocket(stream, socket_locker, ReadHead);
+                    return;
                 }
             }
 
-            if (this._readBytes < this._buffer.Length) {
-
-                this.ReadSocket(stream, ReadBody);
-                return;
-            }
-
-            this.BuildBody(stream);
+            this.BuildHead(stream, socket_locker);
         }
 
-        private void BuildBody(NetworkStream stream) {
+        private void BuildHead(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
 
-            if (this._buffer != null) {
+            lock (self_locker) {
 
-                List<byte> lb = new List<byte>(this._peekData.Bytes);
+                if (this._peekData == null) {
 
-                lb.AddRange(this._buffer);
+                    this._peekData = this._cyr.PeekHead(this._buffer);
 
-                Array.Clear(this._buffer, 0, this._buffer.Length);
-                this._buffer = null;
+                    Array.Clear(this._buffer, 0, this._buffer.Length);
+                    this._buffer = null;
+                }
 
-                this._peekData.Bytes = lb.ToArray();
+                if (this._peekData == null) {
 
-                lb.Clear();
-            }
+                    this._sock.Close(new Exception("worng package head!"));
+                    return;
+                }
+            } 
 
-            this.BuildData(stream);
+            this.ReadBody(stream, socket_locker);
         }
 
-        private void BuildData(NetworkStream stream) {
+        private void ReadBody(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
 
-            this._peekData.Bytes = this._cyr.DeCode(this._peekData.Bytes);
-            this._peekData = this._cyr.PeekHead(this._peekData);
+            lock (self_locker) {
 
-            if (!this._pkg.DeCode(this._peekData)) {
+                if (this._buffer == null) {
 
-                this._sock.Close(new Exception("worng package body!"));
-                return;
+                    int diff = this._peekData.GetPkgLen() - this._peekData.Bytes.Length;
+
+                    if (diff > 0) {
+
+                        this._readBytes = 0;
+                        this._buffer = new byte[diff];
+                    }
+                }
+
+                if (this._readBytes < this._buffer.Length) {
+
+                    this.ReadSocket(stream, socket_locker, ReadBody);
+                    return;
+                }
             }
 
-            if (this._pkg.IsAnswer(this._peekData)) {
-
-                this.ExecCallback(this._peekData);
-            }
-
-            if (this._pkg.IsQuest(this._peekData)) {
-
-                this.PushService(this._peekData);
-            }
-
-            this._peekData = null;
-            this.OnData(stream);
+            this.BuildBody(stream, socket_locker);
         }
 
-        private void ReadSocket(NetworkStream stream, Action<NetworkStream> calllback) {
+        private void BuildBody(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
 
-            FPClient self = this;
+            lock (self_locker) {
+
+                if (this._buffer != null) {
+
+                    List<byte> lb = new List<byte>(this._peekData.Bytes);
+
+                    lb.AddRange(this._buffer);
+
+                    Array.Clear(this._buffer, 0, this._buffer.Length);
+                    this._buffer = null;
+
+                    this._peekData.Bytes = lb.ToArray();
+
+                    lb.Clear();
+                }
+            }
+
+            this.BuildData(stream, socket_locker);
+        }
+
+        private void BuildData(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
+
+            lock (self_locker) {
+
+                this._peekData.Bytes = this._cyr.DeCode(this._peekData.Bytes);
+                this._peekData = this._cyr.PeekHead(this._peekData);
+
+                if (!this._pkg.DeCode(this._peekData)) {
+
+                    this._sock.Close(new Exception("worng package body!"));
+                    return;
+                }
+
+                if (this._pkg.IsAnswer(this._peekData)) {
+
+                    this.ExecCallback(this._peekData);
+                }
+
+                if (this._pkg.IsQuest(this._peekData)) {
+
+                    this.PushService(this._peekData);
+                }
+
+                this._peekData = null;
+            }
+
+            this.OnData(stream, socket_locker);
+        }
+
+        private void ReadSocket(NetworkStream stream, FPSocket.SocketLocker socket_locker, Action<NetworkStream, FPSocket.SocketLocker> calllback) {
+
+            lock (socket_locker) {
+
+                socket_locker.Count++;
+            }
 
             try {
 
-                int len = this._buffer.Length - this._readBytes;
+                FPClient self = this;
 
-                stream.BeginRead(this._buffer, this._readBytes, len, (ar) => {
+                lock (self_locker) {
 
-                    try {
+                    int len = this._buffer.Length - this._readBytes;
 
-                        int readBytes = stream.EndRead(ar);
+                    stream.BeginRead(this._buffer, this._readBytes, len, (ar) => {
 
-                        if (readBytes == 0) {
+                        try {
 
-                            self._sock.Close(null);
-                        }else {
+                            int readBytes = 0;
 
-                            self._readBytes += readBytes;
+                            try {
 
-                            if (calllback != null) {
+                                readBytes = stream.EndRead(ar);
+                            } catch (Exception ex) {
 
-                                calllback(stream);
+                                self._sock.Close(ex);
                             }
+
+                            lock (socket_locker) {
+
+                                socket_locker.Count--;
+                            }
+
+                            if (readBytes == 0) {
+
+                                self._sock.Close(null);
+                            } else {
+
+                                lock (self_locker) {
+
+                                    self._readBytes += readBytes;
+                                }
+
+                                if (calllback != null) {
+
+                                    calllback(stream, socket_locker);
+                                }
+                            }
+                        } catch (Exception ex) {
+
+                            self._sock.Close(ex);
                         }
-
-                    } catch (Exception ex) {
-
-                        self._sock.Close(ex);
-                    }
-                }, null);
+                    }, null);
+                }
             } catch (Exception ex) {
 
-                self._sock.Close(ex);
+                this._sock.Close(ex);
             }
         }
 
-        private void OnError(Exception ex) {
+        private void OnError(EventData evd) {
 
-            this._event.FireEvent(new EventData("error", ex));
+            if (this.Client_Error != null) {
+
+                this.Client_Error(evd);
+            }
         }
 
         private void OnSecond(long timestamp) {
@@ -410,49 +454,55 @@ namespace com.fpnn {
 
         private void PushService(FPData quest) {
 
-            FPClient self = this;
+            lock (self_locker) {
 
-            this._psr.Service(quest, (payload, exception) => {
+                FPClient self = this;
 
-                FPData data = new FPData();
+                this._psr.Service(quest, (payload, exception) => {
 
-                data.SetFlag(quest.GetFlag());
-                data.SetMtype(0x2);
-                data.SetSeq(quest.GetSeq());
-                data.SetSS(exception ? 1 : 0);
+                    FPData data = new FPData();
 
-                if (quest.GetFlag() == 0) {
+                    data.SetFlag(quest.GetFlag());
+                    data.SetMtype(0x2);
+                    data.SetSeq(quest.GetSeq());
+                    data.SetSS(exception ? 1 : 0);
 
-                    data.SetPayload(Convert.ToString(payload));
-                }
+                    if (quest.GetFlag() == 0) {
 
-                if (quest.GetFlag() == 1) {
+                        data.SetPayload(Convert.ToString(payload));
+                    }
 
-                    data.SetPayload((byte[])payload);
-                }
+                    if (quest.GetFlag() == 1) {
 
-                self.SendQuest(data);
-            });
+                        data.SetPayload((byte[])payload);
+                    }
+
+                    self.SendQuest(data);
+                });
+            }
         }
 
         private void ExecCallback(FPData answer) {
 
-            string key = this._pkg.GetKeyCallback(answer);
+            lock (self_locker) {
 
-            if (!String.IsNullOrEmpty(key)) {
+                string key = this._pkg.GetKeyCallback(answer);
 
-                this._callback.ExecCallback(key, answer);
+                if (!String.IsNullOrEmpty(key)) {
+
+                    this._callback.ExecCallback(key, answer);
+                }
             }
         }
 
+        private object seq_locker = new object();
+
         private int AddSeq() {
 
-            lock(this._lock_obj) {
+            lock (seq_locker) {
 
-                this._seq++;
+                return ++this._seq;
             }
-
-            return this._seq;
         }
     }
 }

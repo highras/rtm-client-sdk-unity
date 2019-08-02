@@ -62,10 +62,10 @@
      <Compile Include="Assets\Plugins\fpnn\FPConfig.cs" />
      <Compile Include="Assets\Plugins\fpnn\FPData.cs" />
      <Compile Include="Assets\Plugins\fpnn\FPEncryptor.cs" />
+     <Compile Include="Assets\Plugins\fpnn\FPManager.cs" />
      <Compile Include="Assets\Plugins\fpnn\FPPackage.cs" />
      <Compile Include="Assets\Plugins\fpnn\FPProcessor.cs" />
      <Compile Include="Assets\Plugins\fpnn\FPSocket.cs" />
-     <Compile Include="Assets\Plugins\fpnn\ThreadPool.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\GenerateTypeSerializerAttribute.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\IJsonReader.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\IJsonWriter.cs" />
@@ -139,6 +139,7 @@
      <Compile Include="Assets\Plugins\rtm\RTMClient.cs" />
      <Compile Include="Assets\Plugins\rtm\RTMConfig.cs" />
      <Compile Include="Assets\Plugins\rtm\RTMProcessor.cs" />
+     <Compile Include="Assets\Plugins\rtm\RTMSender.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>/Users/dixun/Documents/repo/infra-fpnn-rtm-client-sdk/Unity/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
  </Reference>

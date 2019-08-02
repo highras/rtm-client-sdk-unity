@@ -42,7 +42,7 @@ namespace com.fpnn {
 
         public void RemoveListener() {
 
-            lock(this._listeners) {
+            lock (this._listeners) {
 
                 this._listeners.Clear();
             }
@@ -50,7 +50,7 @@ namespace com.fpnn {
 
         public void RemoveListener(string type) {
 
-            lock(this._listeners) {
+            lock (this._listeners) {
 
                 this._listeners.Remove(type);
             }
@@ -65,7 +65,7 @@ namespace com.fpnn {
 
             ArrayList queue = null;
 
-            lock(this._listeners) {
+            lock (this._listeners) {
 
                 queue = ((ArrayList)this._listeners[type]);
             }
@@ -91,7 +91,7 @@ namespace com.fpnn {
             ArrayList queue = null;
             string type = evd.GetEventType();
 
-            lock(this._listeners) {
+            lock (this._listeners) {
 
                 if (this._listeners.Contains(type)) {
 
@@ -110,27 +110,12 @@ namespace com.fpnn {
 
                 while(ie.MoveNext()) {
 
-                    EventDelegate cb = (EventDelegate)ie.Current;
+                    EventDelegate callback = (EventDelegate)ie.Current;
 
-                    if (cb == null) {
+                    if (callback != null) {
 
-                        continue;
+                        FPManager.Instance.AddEventCall(callback, evd);
                     }
-
-                    ThreadPool.Instance.Execute((state) => {
-
-                        try {
-                            
-                            if (cb != null) {
-
-                                cb(evd);
-                            }
-                        } catch (ThreadAbortException tex){
-                        } catch (Exception e) {
-
-                            ErrorRecorderHolder.recordError(e);
-                        }
-                    });
                 }
             }
         }
