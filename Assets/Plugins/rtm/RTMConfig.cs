@@ -7,7 +7,7 @@ namespace com.rtm {
         public static string VERSION = "1.1.0";
 
         public static int MID_TTL = 5 * 1000;                           //MID缓存超时时间(ms)
-        public static int RECONN_COUNT_ONCE = 3;                        //一次重新连接流程中的尝试次数
+        public static int RECONN_COUNT_ONCE = 1;                        //一次重新连接流程中的尝试次数
         public static int CONNCT_INTERVAL = 40 * 1000;                  //客户端尝试重新连接的时间间隔(ms)
         public static int RECV_PING_TIMEOUT = 40 * 1000;                //客户端收到Ping超时时间(ms)
 

@@ -30,7 +30,7 @@ namespace com.test {
                 "rtm-intl-frontgate.funplus.com:13325",
                 11000002,
                 777779,
-                "6C99B97B62B2637DBED901234AD82749",
+                "4839CC729FF604A8D94C38F6BC094252",
                 null,
                 new Dictionary<string, string>(),
                 true,

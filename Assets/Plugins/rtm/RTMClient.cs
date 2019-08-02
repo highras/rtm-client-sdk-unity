@@ -269,7 +269,6 @@ namespace com.rtm {
 
                         if (reconn) {
 
-                            self.GetEvent().FireEvent(new EventData("error", new Exception("dispatch client close with err!")));
                             self.Reconnect();
                         }
                     };
