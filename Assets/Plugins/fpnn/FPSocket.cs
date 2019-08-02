@@ -17,6 +17,11 @@ namespace com.fpnn {
             public int Status = 0;
         }
 
+        private class ConnectingLocker {
+
+            public int Status = 0;
+        }
+
         public Action<EventData> Socket_Connect;
         public Action<EventData> Socket_Close;
         public Action<EventData> Socket_Error;
@@ -30,7 +35,6 @@ namespace com.fpnn {
         private NetworkStream _stream;
 
         private bool _isIPv6 = false;
-        private bool _isConnecting = false;
 
         private List<byte> _sendQueue = new List<byte>();
         private ManualResetEvent _sendEvent = new ManualResetEvent(false);
@@ -46,6 +50,7 @@ namespace com.fpnn {
         }
 
         private object self_locker = new object();
+        private ConnectingLocker conn_locker = new ConnectingLocker();
 
         public void Open() {
 
@@ -79,7 +84,10 @@ namespace com.fpnn {
 
                 ThreadPool.QueueUserWorkItem(new WaitCallback((state) => {
 
-                    self._isConnecting = true;
+                    lock (conn_locker) {
+
+                        conn_locker.Status = 1;
+                    }
 
                     try {
 
@@ -106,7 +114,10 @@ namespace com.fpnn {
 
                         if (!success) {
 
-                            self._isConnecting = false;
+                            lock (conn_locker) {
+
+                                conn_locker.Status = 0;
+                            }
 
                             self.Close(new Exception("Connect Timeout"));
                             return;
@@ -118,7 +129,10 @@ namespace com.fpnn {
                             self._stream = self._socket.GetStream();
                         }
 
-                        self._isConnecting = false;
+                        lock (conn_locker) {
+
+                            conn_locker.Status = 0;
+                        }
 
                         self.StartSendThread();
                         self.OnRead(self._stream, socket_locker);
@@ -126,7 +140,11 @@ namespace com.fpnn {
                         self.OnConnect();
                     } catch (Exception ex) {
 
-                        self._isConnecting = false;
+                        lock (conn_locker) {
+
+                            conn_locker.Status = 0;
+                        }
+
                         self.Close(ex);
                     } 
                 }));
@@ -156,7 +174,10 @@ namespace com.fpnn {
 
         public bool IsConnecting() {
 
-            return this._isConnecting;
+            lock (conn_locker) {
+
+                return conn_locker.Status == 1;
+            }
         }
 
         public void Close(Exception ex) {
