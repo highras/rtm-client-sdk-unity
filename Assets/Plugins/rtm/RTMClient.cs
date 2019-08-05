@@ -182,17 +182,17 @@ namespace com.rtm {
 
         public void Destroy() {
 
+            this.Close();
+
+            lock (delayconn_locker) {
+
+                delayconn_locker.Status = 0;
+
+                this._reconnCount = 0;
+                this._lastConnectTime = 0;
+            }
+
             lock (self_locker) {
-
-                this.Close();
-
-                lock (delayconn_locker) {
-
-                    delayconn_locker.Status = 0;
-
-                    this._reconnCount = 0;
-                    this._lastConnectTime = 0;
-                }
 
                 if (this._baseClient != null) {
 
@@ -252,8 +252,7 @@ namespace com.rtm {
 
                     this._dispatchClient.Client_Close = (evd) => {
 
-                        Debug.Log("[DispatchClient] closed!");
-
+                        // Debug.Log("[DispatchClient] closed!");
                         bool reconn = false;
 
                         lock (self_locker) {
@@ -275,8 +274,7 @@ namespace com.rtm {
 
                     this._dispatchClient.Client_Connect = (evd) => {
 
-                        Debug.Log("[DispatchClient] connected!");
-
+                        // Debug.Log("[DispatchClient] connected!");
                         IDictionary<string, object> payload = new Dictionary<string, object>();
 
                         payload.Add("pid", self._pid);
@@ -2234,15 +2232,15 @@ namespace com.rtm {
 
             public override void AddListener() {
 
-                base.Client_Connect = (evd) => {
+                // base.Client_Connect = (evd) => {
 
-                    Debug.Log("[FileClient] connected!");
-                };
+                //     Debug.Log("[FileClient] connected!");
+                // };
 
-                base.Client_Close = (evd) => {
+                // base.Client_Close = (evd) => {
 
-                    Debug.Log("[FileClient] closed!");
-                };
+                //     Debug.Log("[FileClient] closed!");
+                // };
 
                 base.Client_Error = (evd) => {
 
