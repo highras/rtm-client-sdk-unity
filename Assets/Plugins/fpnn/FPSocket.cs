@@ -49,106 +49,109 @@ namespace com.fpnn {
             this._onData = onData;
         }
 
-        private object self_locker = new object();
         private ConnectingLocker conn_locker = new ConnectingLocker();
 
         public void Open() {
 
-            lock (self_locker) {
+            if (String.IsNullOrEmpty(this._host)) {
 
-                if (String.IsNullOrEmpty(this._host)) {
+                this.OnError(new Exception("Cannot open null host"));
+                return;
+            }
+            
+            if (this._port <= 0) {
 
-                    this.OnError(new Exception("Cannot open null host"));
+                this.OnError(new Exception("Cannot open without port"));
+                return;
+            }
+
+            lock (conn_locker) {
+
+                if (conn_locker.Status == 1) {
+
                     return;
                 }
-                
-                if (this._port <= 0) {
+            }
 
-                    this.OnError(new Exception("Cannot open without port"));
+            lock (socket_locker) {
+
+                if (this._socket != null) {
+
                     return;
                 }
 
-                if (this._socket != null && (this.IsOpen() || this.IsConnecting())) {
+                socket_locker.Count = 0;
+                socket_locker.Status = 0;
+            }
 
-                    this.OnError(new Exception("has been connect!"));
-                    return;
+            FPSocket self = this;
+
+            ThreadPool.QueueUserWorkItem(new WaitCallback((state) => {
+
+                lock (conn_locker) {
+
+                    conn_locker.Status = 1;
                 }
 
-                lock (socket_locker) {
+                try {
 
-                    socket_locker.Count = 0;
-                    socket_locker.Status = 0;
-                }
+                    var success = false;
+                    IAsyncResult result = null;
 
-                FPSocket self = this;
+                    lock (socket_locker) {
 
-                ThreadPool.QueueUserWorkItem(new WaitCallback((state) => {
+                        IPHostEntry hostEntry = Dns.GetHostEntry(self._host);
+                        IPAddress ipaddr = hostEntry.AddressList[0];
+
+                        if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
+
+                            self._socket = new TcpClient(AddressFamily.InterNetwork);
+                        } else {
+
+                            self._isIPv6 = true;
+                            self._socket = new TcpClient(AddressFamily.InterNetworkV6);
+                        }
+
+                        result = self._socket.BeginConnect(ipaddr, self._port, null, null);
+                        success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds((double)self._timeout));
+                    }
+
+                    if (!success) {
+
+                        lock (conn_locker) {
+
+                            conn_locker.Status = 0;
+                        }
+
+                        self.Close(new Exception("Connect Timeout"));
+                        return;
+                    } 
+
+                    lock (socket_locker) {
+
+                        self._socket.EndConnect(result);
+                        self._stream = self._socket.GetStream();
+                    }
 
                     lock (conn_locker) {
 
-                        conn_locker.Status = 1;
+                        conn_locker.Status = 0;
                     }
 
-                    try {
+                    self.StartSendThread();
+                    self.OnRead(self._stream, socket_locker);
 
-                        var success = false;
-                        IAsyncResult result = null;
+                    self.OnConnect();
+                } catch (Exception ex) {
 
-                        lock (socket_locker) {
+                    lock (conn_locker) {
 
-                            IPHostEntry hostEntry = Dns.GetHostEntry(self._host);
-                            IPAddress ipaddr = hostEntry.AddressList[0];
+                        conn_locker.Status = 0;
+                    }
 
-                            if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
-
-                                self._socket = new TcpClient(AddressFamily.InterNetwork);
-                            } else {
-
-                                self._isIPv6 = true;
-                                self._socket = new TcpClient(AddressFamily.InterNetworkV6);
-                            }
-
-                            result = self._socket.BeginConnect(ipaddr, self._port, null, null);
-                            success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds((double)self._timeout));
-                        }
-
-                        if (!success) {
-
-                            lock (conn_locker) {
-
-                                conn_locker.Status = 0;
-                            }
-
-                            self.Close(new Exception("Connect Timeout"));
-                            return;
-                        } 
-
-                        lock (socket_locker) {
-
-                            self._socket.EndConnect(result);
-                            self._stream = self._socket.GetStream();
-                        }
-
-                        lock (conn_locker) {
-
-                            conn_locker.Status = 0;
-                        }
-
-                        self.StartSendThread();
-                        self.OnRead(self._stream, socket_locker);
-
-                        self.OnConnect();
-                    } catch (Exception ex) {
-
-                        lock (conn_locker) {
-
-                            conn_locker.Status = 0;
-                        }
-
-                        self.Close(ex);
-                    } 
-                }));
-            }
+                    self.Close(ex);
+                } 
+            }));
         }
 
         public bool IsIPv6() {
@@ -255,14 +258,11 @@ namespace com.fpnn {
 
             this.Close(null);
             
-            lock (self_locker) {
+            this._onData = null;
 
-                this._onData = null;
-
-                this.Socket_Connect = null;
-                this.Socket_Close = null;
-                this.Socket_Error = null;
-            }
+            this.Socket_Connect = null;
+            this.Socket_Close = null;
+            this.Socket_Error = null;
         }
 
         public string GetHost() {
