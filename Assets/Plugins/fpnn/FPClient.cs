@@ -18,7 +18,7 @@ namespace com.fpnn {
         private FPSocket _sock;
         private FPData _peekData = null;
 
-        private int _readBytes = 0;
+        private int _readLen = 0;
         private byte[] _buffer = null;
 
         private EventDelegate _eventDelegate;
@@ -230,7 +230,7 @@ namespace com.fpnn {
             lock (self_locker) {
 
                 this._seq = 0;
-                this._readBytes = 0;
+                this._readLen = 0;
                 this._peekData = null;
 
                 if (this._buffer != null) {
@@ -265,11 +265,11 @@ namespace com.fpnn {
 
                 if (this._buffer == null) {
 
-                    this._readBytes = 0;
+                    this._readLen = 0;
                     this._buffer = new byte[FPConfig.READ_BUFFER_LEN];
                 }
 
-                if (this._readBytes < this._buffer.Length) {
+                if (this._readLen < this._buffer.Length) {
 
                     this.ReadSocket(stream, socket_locker, ReadHead);
                     return;
@@ -311,12 +311,12 @@ namespace com.fpnn {
 
                     if (diff > 0) {
 
-                        this._readBytes = 0;
+                        this._readLen = 0;
                         this._buffer = new byte[diff];
                     }
                 }
 
-                if (this._readBytes < this._buffer.Length) {
+                if (this._readLen < this._buffer.Length) {
 
                     this.ReadSocket(stream, socket_locker, ReadBody);
                     return;
@@ -390,17 +390,17 @@ namespace com.fpnn {
 
                 lock (self_locker) {
 
-                    int len = this._buffer.Length - this._readBytes;
+                    int len = this._buffer.Length - this._readLen;
 
-                    stream.BeginRead(this._buffer, this._readBytes, len, (ar) => {
+                    stream.BeginRead(this._buffer, this._readLen, len, (ar) => {
 
                         try {
 
-                            int readBytes = 0;
+                            int rlen = 0;
 
                             try {
 
-                                readBytes = stream.EndRead(ar);
+                                rlen = stream.EndRead(ar);
                             } catch (Exception ex) {
 
                                 self._sock.Close(ex);
@@ -411,14 +411,14 @@ namespace com.fpnn {
                                 socket_locker.Count--;
                             }
 
-                            if (readBytes == 0) {
+                            if (rlen == 0) {
 
                                 self._sock.Close(null);
                             } else {
 
                                 lock (self_locker) {
 
-                                    self._readBytes += readBytes;
+                                    self._readLen += rlen;
                                 }
 
                                 if (calllback != null) {
