@@ -140,18 +140,7 @@ namespace com.test {
 
             try {
 
-                while(true) {
-
-                    lock (send_locker) {
-
-                        if (send_locker.Status == 0) {
-
-                            return;
-                        } 
-
-                        this.OnLogin();
-                    }
-                }
+                this.OnLogin();
             }catch(Exception ex) {
 
                 Debug.Log(ex);
@@ -802,11 +791,17 @@ namespace com.test {
 
             Debug.Log("test end! " + (this._sleepCount - 1));
             Debug.Log("=====================================================================");
-
-            this.StopThread();
         }
 
         private void ThreadSleep(int ms) {
+
+            lock (send_locker) {
+
+                if (send_locker.Status == 0) {
+
+                    return;
+                } 
+            }
 
             System.Threading.Thread.Sleep(ms);
             this._sleepCount++;

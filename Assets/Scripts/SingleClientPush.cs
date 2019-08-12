@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -30,7 +31,7 @@ namespace com.test {
                 "rtm-intl-frontgate.funplus.com:13325",
                 11000002,
                 777779,
-                "4839CC729FF604A8D94C38F6BC094252",
+                "9B9D8F5C239B22442151DE9CE9A6E519",
                 null,
                 new Dictionary<string, string>(),
                 true,
