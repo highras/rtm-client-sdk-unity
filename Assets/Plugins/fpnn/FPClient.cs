@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Net.Sockets;
 
@@ -99,6 +100,23 @@ namespace com.fpnn {
             this._sock.Open();
         }
 
+        private void SocketClose(Exception e){
+
+            FPClient self = this;
+
+            ThreadPool.QueueUserWorkItem(new WaitCallback((state) => { 
+
+                try {
+
+                    self._sock.Close(e);
+                } catch (ThreadAbortException tex) {
+                } catch (Exception ex) {
+
+                    ErrorRecorderHolder.recordError(ex);
+                } 
+            }));
+        }
+
         public void Close() {
 
             lock (self_locker) {
@@ -109,9 +127,8 @@ namespace com.fpnn {
                 }
 
                 this._isClose = true;
+                this.SocketClose(null);
             } 
-
-            this._sock.Close(null);
         }
 
         public void Close(Exception ex) {
@@ -124,9 +141,8 @@ namespace com.fpnn {
                 }
 
                 this._isClose = true;
+                this.SocketClose(ex);
             } 
-
-            this._sock.Close(ex);
         }
 
         public void Destroy() {
