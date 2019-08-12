@@ -54,7 +54,7 @@ namespace com.test {
                 "rtm-intl-frontgate.funplus.com:13325",
                 11000001,
                 777779,
-                "D1C8D6A12BB35D9309DC7A927590DA83",
+                "12861748F2D641907D181D1CDB6DF174",
                 
                 null,
                 new Dictionary<string, string>(),
@@ -802,6 +802,8 @@ namespace com.test {
 
             Debug.Log("test end! " + (this._sleepCount - 1));
             Debug.Log("=====================================================================");
+
+            this.StopThread();
         }
 
         private void ThreadSleep(int ms) {

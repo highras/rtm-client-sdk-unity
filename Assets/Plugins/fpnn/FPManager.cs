@@ -49,12 +49,9 @@ namespace com.fpnn {
 
         public void AddSecond(EventDelegate callback) {
 
+            this.StartTimerThread();
+
             lock(timer_locker) {
-
-                if (timer_locker.Status == 0) {
-
-                    this.StartTimerThread();
-                }
 
                 if (this._secondCalls.Count >= 10) {
 
@@ -234,12 +231,9 @@ namespace com.fpnn {
 
         public void AddEventCall(EventDelegate callback, EventData evd) {
 
-            lock(service_locker) {
-                
-                if (service_locker.Status == 0) {
+            this.StartServiceThread();
 
-                    this.StartServiceThread();
-                }
+            lock(service_locker) {
 
                 this._serviceCache.Add(() => {
 
@@ -261,12 +255,9 @@ namespace com.fpnn {
 
         public void AddBackCall(CallbackDelegate callback, CallbackData cbd) {
 
+            this.StartServiceThread();
+
             lock(service_locker) {
-
-                if (service_locker.Status == 0) {
-
-                    this.StartServiceThread();
-                }
 
                 this._serviceCache.Add(() => {
 

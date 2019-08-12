@@ -160,12 +160,9 @@ namespace com.fpnn {
                 }
             }
 
+            this.StartServiceThread();
+
             lock(service_locker) {
-
-                if (service_locker.Status == 0) {
-
-                    this.StartServiceThread();
-                }
 
                 FPProcessor self = this;
                 this._serviceCache.Add(() => {

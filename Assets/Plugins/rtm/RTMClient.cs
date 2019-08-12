@@ -2402,9 +2402,7 @@ namespace com.rtm {
             public override void recordError(Exception e) {
             
                 // Debug
-                // Debug.LogError(e);
-
-                // Release
+                Debug.LogError(e);
             }
         }
     }

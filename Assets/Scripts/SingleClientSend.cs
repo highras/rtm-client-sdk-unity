@@ -20,7 +20,7 @@ namespace com.test {
             public int Status = 0;
         }
         
-        private int send_qps = 2000;
+        private int send_qps = 1000;
         private int trace_interval = 10;
         private int batch_count = 10;
 
@@ -39,7 +39,7 @@ namespace com.test {
                 "52.83.245.22:13325",
                 11000001,
                 777779,
-                "68930CF4B1D61B5302D961C979422830",
+                "B91C417BF0E1BF89AA321B776844C949",
                 null,
                 new Dictionary<string, string>(),
                 true,

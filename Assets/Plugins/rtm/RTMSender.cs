@@ -109,12 +109,9 @@ namespace com.rtm {
 
         public void AddQuest(FPClient client, FPData data, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
+            this.StartServiceThread();
+
             lock(service_locker) {
-
-                if (service_locker.Status == 0) {
-
-                    this.StartServiceThread();
-                }
 
                 this._serviceCache.Add(() => {
 
