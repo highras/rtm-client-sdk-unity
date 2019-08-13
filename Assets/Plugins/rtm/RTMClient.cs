@@ -165,7 +165,7 @@ namespace com.rtm {
             return null;
         }
 
-        public void SendQuest(String method, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
+        public void SendQuest(string method, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
             if (this._sender != null && this._baseClient != null) {
 
@@ -332,7 +332,7 @@ namespace com.rtm {
          * @param {long}                    mid
          * </CallbackData>
          */
-        public void SendMessage(long to, byte mtype, String msg, String attrs, long mid, int timeout, CallbackDelegate callback) {
+        public void SendMessage(long to, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
 
             if (mid == 0) {
 
@@ -468,7 +468,7 @@ namespace com.rtm {
          * <CallbackData>
          * @param {long}                    mid
          * @param {Exception}               exception
-         * @param {IDictionary(p2p:IDictionary(String,int),group:IDictionary(String,int))} payload
+         * @param {IDictionary(p2p:IDictionary(string,int),group:IDictionary(string,int))} payload
          * </CallbackData>
          */
         public void GetUnreadMessage(int timeout, CallbackDelegate callback) {
@@ -510,7 +510,7 @@ namespace com.rtm {
          * <CallbackData>
          * @param {long}                    mid
          * @param {Exception}               exception
-         * @param {IDictionary(p2p:Map(String,long),IDictionary:Map(String,long))}    payload
+         * @param {IDictionary(p2p:Map(string,long),IDictionary:Map(string,long))}    payload
          * </CallbackData>
          */
         public void GetSession(int timeout, CallbackDelegate callback) {
@@ -1574,7 +1574,7 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}               exception
-         * @param {IDictionary(val:String)} payload
+         * @param {IDictionary(val:string)} payload
          * </CallbackData>
          */
         public void DBGet(string key, int timeout, CallbackDelegate callback) {
@@ -2100,8 +2100,8 @@ namespace com.rtm {
 
                 if (sender != null) {
 
-                    String fileMd5 = base.CalcMd5(fileBytes, false);
-                    String sign = base.CalcMd5(fileMd5 + ":" + token, false);
+                    string fileMd5 = base.CalcMd5(fileBytes, false);
+                    string sign = base.CalcMd5(fileMd5 + ":" + token, false);
 
                     if (string.IsNullOrEmpty(sign)) {
 
