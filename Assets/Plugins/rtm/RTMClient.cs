@@ -25,7 +25,7 @@ namespace com.rtm {
 
                     long c = 0;
 
-                    if (++Count >= 999) {
+                    if (++Count > 999) {
 
                         Count = 0;
                     }
@@ -52,11 +52,6 @@ namespace com.rtm {
         }
 
         private class DelayConnLocker {
-
-            public int Status = 0;
-        }
-
-        private class ReconnLocker {
 
             public int Status = 0;
         }
@@ -170,9 +165,15 @@ namespace com.rtm {
             return null;
         }
 
-        public void SendQuest(FPData data, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
+        public void SendQuest(String method, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
             if (this._sender != null && this._baseClient != null) {
+
+                FPData data = new FPData();
+
+                data.SetFlag(0x1);
+                data.SetMtype(0x1);
+                data.SetMethod(method);
 
                 this._sender.AddQuest(this._baseClient, data, payload, this._baseClient.QuestCallback(callback), timeout);
             }
@@ -275,13 +276,14 @@ namespace com.rtm {
                     this._dispatchClient.Client_Connect = (evd) => {
 
                         // Debug.Log("[DispatchClient] connected!");
-                        IDictionary<string, object> payload = new Dictionary<string, object>();
+                        IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-                        payload.Add("pid", self._pid);
-                        payload.Add("uid", self._uid);
-                        payload.Add("what", "rtmGated");
-                        payload.Add("addrType", self._dispatchClient.IsIPv6() ? "ipv6" : "ipv4");
-                        payload.Add("version", self._version);
+                            { "pid", self._pid },
+                            { "uid", self._uid },
+                            { "what", "rtmGated" },
+                            { "addrType", self._dispatchClient.IsIPv6() ? "ipv6" : "ipv4" },
+                            { "version", self._version }
+                        };
 
                         self._dispatchClient.Which(self._sender, payload, self._timeout, (cbd) => {
 
@@ -337,20 +339,16 @@ namespace com.rtm {
                 mid = MidGenerator.Gen();
             }
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("to", to);
-            payload.Add("mid", mid);
-            payload.Add("mtype", mtype);
-            payload.Add("msg", msg);
-            payload.Add("attrs", attrs);
+                { "to", to },
+                { "mid", mid },
+                { "mtype", mtype },
+                { "msg", msg },
+                { "attrs", attrs }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("sendmsg");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("sendmsg", payload, (cbd) => {
 
                 cbd.SetMid(mid);
 
@@ -389,20 +387,16 @@ namespace com.rtm {
                 mid = MidGenerator.Gen();
             }
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("gid", gid);
-            payload.Add("mid", mid);
-            payload.Add("mtype", mtype);
-            payload.Add("msg", msg);
-            payload.Add("attrs", attrs);
+                { "gid", gid },
+                { "mid", mid },
+                { "mtype", mtype },
+                { "msg", msg },
+                { "attrs", attrs }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("sendgroupmsg");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("sendgroupmsg", payload, (cbd) => {
 
                 cbd.SetMid(mid);
 
@@ -441,20 +435,16 @@ namespace com.rtm {
                 mid = MidGenerator.Gen();
             }
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("rid", rid);
-            payload.Add("mid", mid);
-            payload.Add("mtype", mtype);
-            payload.Add("msg", msg);
-            payload.Add("attrs", attrs);
+                { "rid", rid },
+                { "mid", mid },
+                { "mtype", mtype },
+                { "msg", msg },
+                { "attrs", attrs }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("sendroommsg");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("sendroommsg", payload, (cbd) => {
 
                 cbd.SetMid(mid);
 
@@ -483,12 +473,7 @@ namespace com.rtm {
          */
         public void GetUnreadMessage(int timeout, CallbackDelegate callback) {
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getunreadmsg");
-
-            this.SendQuest(data, new Dictionary<string, object>(), callback, timeout);
+            this.SendQuest("getunreadmsg", new Dictionary<string, object>(), callback, timeout);
         }
 
         /**
@@ -509,12 +494,7 @@ namespace com.rtm {
          */
         public void CleanUnreadMessage(int timeout, CallbackDelegate callback) {
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("cleanunreadmsg");
-
-            this.SendQuest(data, new Dictionary<string, object>(), callback, timeout);
+            this.SendQuest("cleanunreadmsg", new Dictionary<string, object>(), callback, timeout);
         }
 
          /**
@@ -535,12 +515,7 @@ namespace com.rtm {
          */
         public void GetSession(int timeout, CallbackDelegate callback) {
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getsession");
-
-            this.SendQuest(data, new Dictionary<string, object>(), callback, timeout);
+            this.SendQuest("getsession", new Dictionary<string, object>(), callback, timeout);
         }
 
         /**
@@ -577,11 +552,12 @@ namespace com.rtm {
          */
         public void GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("gid", gid);
-            payload.Add("desc", desc);
-            payload.Add("num", num);
+                { "gid", gid },
+                { "desc", desc },
+                { "num", num }
+            };
 
             if (begin > 0) {
 
@@ -598,12 +574,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getgroupmsg");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("getgroupmsg", payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -619,18 +590,17 @@ namespace com.rtm {
 
                     foreach (List<object> items in ol) {
 
-                        IDictionary<string, object> map = new Dictionary<string, object>();
+                        nl.Add(new Dictionary<string, object>() {
 
-                        map.Add("id", items[0]);
-                        map.Add("from", items[1]);
-                        map.Add("mtype", items[2]);
-                        map.Add("mid", items[3]);
-                        map.Add("deleted", items[4]);
-                        map.Add("msg", items[5]);
-                        map.Add("attrs", items[6]);
-                        map.Add("mtime", items[7]);
-
-                        nl.Add(map);
+                            { "id", items[0] },
+                            { "from", items[1] },
+                            { "mtype", items[2] },
+                            { "mid", items[3] },
+                            { "deleted", items[4] },
+                            { "msg", items[5] },
+                            { "attrs", items[6] },
+                            { "mtime", items[7] }
+                        });
                     }
 
                     dict["msgs"] = nl;
@@ -674,11 +644,12 @@ namespace com.rtm {
          */
         public void GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("rid", rid);
-            payload.Add("desc", desc);
-            payload.Add("num", num);
+                { "rid", rid },
+                { "desc", desc },
+                { "num", num }
+            };
 
             if (begin > 0) {
 
@@ -695,12 +666,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getroommsg");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("getroommsg", payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -716,18 +682,17 @@ namespace com.rtm {
 
                     foreach (List<object> items in ol) {
 
-                        IDictionary<string, object> map = new Dictionary<string, object>();
+                        nl.Add(new Dictionary<string, object>() {
 
-                        map.Add("id", items[0]);
-                        map.Add("from", items[1]);
-                        map.Add("mtype", items[2]);
-                        map.Add("mid", items[3]);
-                        map.Add("deleted", items[4]);
-                        map.Add("msg", items[5]);
-                        map.Add("attrs", items[6]);
-                        map.Add("mtime", items[7]);
-
-                        nl.Add(map);
+                            { "id", items[0] },
+                            { "from", items[1] },
+                            { "mtype", items[2] },
+                            { "mid", items[3] },
+                            { "deleted", items[4] },
+                            { "msg", items[5] },
+                            { "attrs", items[6] },
+                            { "mtime", items[7] }
+                        });
                     }
 
                     dict["msgs"] = nl;
@@ -770,10 +735,11 @@ namespace com.rtm {
          */
         public void GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("desc", desc);
-            payload.Add("num", num);
+                { "desc", desc },
+                { "num", num }
+            };
 
             if (begin > 0) {
 
@@ -790,12 +756,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getbroadcastmsg");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("getbroadcastmsg", payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -811,18 +772,17 @@ namespace com.rtm {
 
                     foreach (List<object> items in ol) {
 
-                        IDictionary<string, object> map = new Dictionary<string, object>();
+                        nl.Add(new Dictionary<string, object>() {
 
-                        map.Add("id", items[0]);
-                        map.Add("from", items[1]);
-                        map.Add("mtype", items[2]);
-                        map.Add("mid", items[3]);
-                        map.Add("deleted", items[4]);
-                        map.Add("msg", items[5]);
-                        map.Add("attrs", items[6]);
-                        map.Add("mtime", items[7]);
-
-                        nl.Add(map);
+                            { "id", items[0] },
+                            { "from", items[1] },
+                            { "mtype", items[2] },
+                            { "mid", items[3] },
+                            { "deleted", items[4] },
+                            { "msg", items[5] },
+                            { "attrs", items[6] },
+                            { "mtime", items[7] }
+                        });
                     }
 
                     dict["msgs"] = nl;
@@ -866,11 +826,12 @@ namespace com.rtm {
          */
         public void GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("ouid", ouid);
-            payload.Add("desc", desc);
-            payload.Add("num", num);
+                { "ouid", ouid },
+                { "desc", desc },
+                { "num", num }
+            };
 
             if (begin > 0) {
 
@@ -887,12 +848,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getp2pmsg");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("getp2pmsg", payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -908,18 +864,17 @@ namespace com.rtm {
 
                     foreach (List<object> items in ol) {
 
-                        IDictionary<string, object> map = new Dictionary<string, object>();
+                        nl.Add(new Dictionary<string, object>() {
 
-                        map.Add("id", items[0]);
-                        map.Add("direction", items[1]);
-                        map.Add("mtype", items[2]);
-                        map.Add("mid", items[3]);
-                        map.Add("deleted", items[4]);
-                        map.Add("msg", items[5]);
-                        map.Add("attrs", items[6]);
-                        map.Add("mtime", items[7]);
-
-                        nl.Add(map);
+                            { "id", items[0] },
+                            { "direction", items[1] },
+                            { "mtype", items[2] },
+                            { "mid", items[3] },
+                            { "deleted", items[4] },
+                            { "msg", items[5] },
+                            { "attrs", items[6] },
+                            { "mtime", items[7] }
+                        });
                     }
 
                     dict["msgs"] = nl;
@@ -951,9 +906,10 @@ namespace com.rtm {
          */
         public void FileToken(string cmd, List<long> tos, long to, long rid, long gid, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("cmd", cmd);
+                { "cmd", cmd }
+            };
 
             if (tos != null && tos.Count > 0) {
 
@@ -988,16 +944,8 @@ namespace com.rtm {
                 this._isClose = true;
             }
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("bye");
-
             RTMClient self = this;
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("bye", new Dictionary<string, object>(), (cbd) => {
 
                 lock (self_locker) {
 
@@ -1024,16 +972,12 @@ namespace com.rtm {
          */
         public void AddAttrs(IDictionary<string, string> attrs, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("attrs", attrs);
+                { "attrs", attrs }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("addattrs");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("addattrs", payload, callback, timeout);
         }
 
         /**
@@ -1059,14 +1003,7 @@ namespace com.rtm {
          */
         public void GetAttrs(int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getattrs");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("getattrs", new Dictionary<string, object>(), callback, timeout);
         }
 
         /**
@@ -1088,17 +1025,13 @@ namespace com.rtm {
          */
         public void AddDebugLog(string msg, string attrs, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("msg", msg);
-            payload.Add("attrs", attrs);
+                { "msg", msg },
+                { "attrs", attrs }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("adddebuglog");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("adddebuglog", payload, callback, timeout);
         }
 
         /**
@@ -1120,17 +1053,13 @@ namespace com.rtm {
          */
         public void AddDevice(string apptype, string devicetoken, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("apptype", apptype);
-            payload.Add("devicetoken", devicetoken);
+                { "apptype", apptype },
+                { "devicetoken", devicetoken }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("adddevice");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("adddevice", payload, callback, timeout);
         }
 
         /**
@@ -1151,16 +1080,12 @@ namespace com.rtm {
          */
         public void RemoveDevice(string devicetoken, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("devicetoken", devicetoken);
+                { "devicetoken", devicetoken }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("removedevice");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("removedevice", payload, callback, timeout);
         }
 
         /**
@@ -1181,16 +1106,12 @@ namespace com.rtm {
          */
         public void SetTranslationLanguage(string targetLanguage, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("lang", targetLanguage);
+                { "lang", targetLanguage }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("setlang");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("setlang", payload, callback, timeout);
         }
 
         /**
@@ -1213,22 +1134,18 @@ namespace com.rtm {
          */
         public void Translate(string originalMessage, string originalLanguage, string targetLanguage, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("text", originalMessage);
-            payload.Add("dst", targetLanguage);
+                { "text", originalMessage },
+                { "dst", targetLanguage }
+            };
 
             if (!string.IsNullOrEmpty(originalLanguage)) {
 
                 payload.Add("src", originalLanguage);
             }
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("translate");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("translate", payload, callback, timeout);
         }
 
         /**
@@ -1249,16 +1166,12 @@ namespace com.rtm {
          */
         public void AddFriends(List<long> friends, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("friends", friends);
+                { "friends", friends }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("addfriends");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("addfriends", payload, callback, timeout);
         }
 
         /**
@@ -1279,16 +1192,12 @@ namespace com.rtm {
          */
         public void DeleteFriends(List<long> friends, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("friends", friends);
+                { "friends", friends }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("delfriends");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("delfriends", payload, callback, timeout);
         }
 
         /**
@@ -1308,12 +1217,7 @@ namespace com.rtm {
          */
         public void GetFriends(int timeout, CallbackDelegate callback) {
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getfriends");
-
-            this.SendQuest(data, new Dictionary<string, object>(), (cbd) => {
+            this.SendQuest("getfriends", new Dictionary<string, object>(), (cbd) => {
 
                 if (callback == null) {
 
@@ -1352,17 +1256,13 @@ namespace com.rtm {
          */
         public void AddGroupMembers(long gid, List<long> uids, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("gid", gid);
-            payload.Add("uids", uids);
+                { "gid", gid },
+                { "uids", uids }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("addgroupmembers");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("addgroupmembers", payload, callback, timeout);
         }
 
         /**
@@ -1384,17 +1284,13 @@ namespace com.rtm {
          */
         public void DeleteGroupMembers(long gid, List<long> uids, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("gid", gid);
-            payload.Add("uids", uids);
+                { "gid", gid },
+                { "uids", uids }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("delgroupmembers");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("delgroupmembers", payload, callback, timeout);
         }
 
         /**
@@ -1415,16 +1311,12 @@ namespace com.rtm {
          */
         public void GetGroupMembers(long gid, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("gid", gid);
+                { "gid", gid }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getgroupmembers");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("getgroupmembers", payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -1461,14 +1353,7 @@ namespace com.rtm {
          */
         public void GetUserGroups(int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
-
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getusergroups");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("getusergroups", new Dictionary<string, object>(), (cbd) => {
 
                 if (callback == null) {
 
@@ -1506,16 +1391,12 @@ namespace com.rtm {
          */
         public void EnterRoom(long rid, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("rid", rid);
+                { "rid", rid }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("enterroom");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("enterroom", payload, callback, timeout);
         }
 
         /**
@@ -1536,16 +1417,12 @@ namespace com.rtm {
          */
         public void LeaveRoom(long rid, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("rid", rid);
+                { "rid", rid }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("leaveroom");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("leaveroom", payload, callback, timeout);
         }
 
         /**
@@ -1565,12 +1442,7 @@ namespace com.rtm {
          */
         public void GetUserRooms(int timeout, CallbackDelegate callback) {
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getuserrooms");
-
-            this.SendQuest(data, new Dictionary<string, object>(), (cbd) => {
+            this.SendQuest("getuserrooms", new Dictionary<string, object>(), (cbd) => {
 
                 if (callback == null) {
 
@@ -1608,16 +1480,12 @@ namespace com.rtm {
          */
         public void GetOnlineUsers(List<long> uids, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("uids", uids);
+                { "uids", uids }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("getonlineusers");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("getonlineusers", payload, (cbd) => {
 
                 if (callback == null) {
 
@@ -1657,18 +1525,14 @@ namespace com.rtm {
          */
         public void DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("mid", mid);
-            payload.Add("xid", xid);
-            payload.Add("type", type);
+                { "mid", mid },
+                { "xid", xid },
+                { "type", type }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("delmsg");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("delmsg", payload, callback, timeout);
         }
 
         /**
@@ -1689,16 +1553,12 @@ namespace com.rtm {
          */
         public void Kickout(string ce, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("ce", ce);
+                { "ce", ce }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("kickout");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("kickout", payload, callback, timeout);
         }
 
         /**
@@ -1719,16 +1579,12 @@ namespace com.rtm {
          */
         public void DBGet(string key, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("key", key);
+                { "key", key }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("dbget");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("dbget", payload, callback, timeout);
         }
 
         /**
@@ -1750,17 +1606,13 @@ namespace com.rtm {
          */
         public void DBSet(string key, string value, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("key", key);
-            payload.Add("val", value);
+                { "key", key },
+                { "val", value }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("dbset");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("dbset", payload, callback, timeout);
         }
 
         /**
@@ -1791,12 +1643,13 @@ namespace com.rtm {
                 return;
             }
 
-            Hashtable ops = new Hashtable();
+            Hashtable ops = new Hashtable() {
 
-            ops.Add("cmd", "sendfile");
-            ops.Add("to", to);
-            ops.Add("mtype", mtype);
-            ops.Add("file", fileBytes);
+                { "cmd", "sendfile" },
+                { "to", to },
+                { "mtype", mtype },
+                { "file", fileBytes }
+            };
 
             this.FileSendProcess(ops, mid, timeout, callback);
         }
@@ -1829,12 +1682,13 @@ namespace com.rtm {
                 return;
             }
 
-            Hashtable ops = new Hashtable();
+            Hashtable ops = new Hashtable() {
 
-            ops.Add("cmd", "sendgroupfile");
-            ops.Add("gid", gid);
-            ops.Add("mtype", mtype);
-            ops.Add("file", fileBytes);
+                { "cmd", "sendgroupfile" },
+                { "gid", gid },
+                { "mtype", mtype },
+                { "file", fileBytes }
+            };
 
             this.FileSendProcess(ops, mid, timeout, callback);
         }
@@ -1867,12 +1721,13 @@ namespace com.rtm {
                 return;
             }
 
-            Hashtable ops = new Hashtable();
+            Hashtable ops = new Hashtable() {
 
-            ops.Add("cmd", "sendroomfile");
-            ops.Add("rid", rid);
-            ops.Add("mtype", mtype);
-            ops.Add("file", fileBytes);
+                { "cmd", "sendroomfile" },
+                { "rid", rid },
+                { "mtype", mtype },
+                { "file", fileBytes }
+            };
 
             this.FileSendProcess(ops, mid, timeout, callback);
         }
@@ -1885,20 +1740,16 @@ namespace com.rtm {
         private void Auth(int timeout) {
 
             RTMClient self = this;
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("pid", this._pid);
-            payload.Add("uid", this._uid);
-            payload.Add("token", this._token);
-            payload.Add("version", this._version);
-            payload.Add("attrs", this._attrs);
+                { "pid", this._pid },
+                { "uid", this._uid },
+                { "token", this._token },
+                { "version", this._version },
+                { "attrs", this._attrs }
+            };
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("auth");
-
-            this.SendQuest(data, payload, (cbd) => {
+            this.SendQuest("auth", payload, (cbd) => {
 
                 Exception exception = cbd.GetException();
 
@@ -2035,9 +1886,10 @@ namespace com.rtm {
 
         private void FileSendProcess(Hashtable ops, long mid, int timeout, CallbackDelegate callback) {
 
-            IDictionary<string, object> payload = new Dictionary<string, object>();
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
 
-            payload.Add("cmd", ops["cmd"]);
+                { "cmd", ops["cmd"] }
+            };
 
             if (ops.Contains("tos")) {
 
@@ -2088,12 +1940,13 @@ namespace com.rtm {
 
                     FileClient fileClient = new FileClient(endpoint, timeout);
 
-                    dict = new Dictionary<string, object>();
+                    dict = new Dictionary<string, object>() {
 
-                    dict.Add("pid", self._pid);
-                    dict.Add("mtype", ops["mtype"]);
-                    dict.Add("mid", mid != 0 ? mid : MidGenerator.Gen());
-                    dict.Add("from", self._uid);
+                        { "pid", self._pid },
+                        { "mtype", ops["mtype"] },
+                        { "mid", mid != 0 ? mid : MidGenerator.Gen() },
+                        { "from", self._uid }
+                    };
 
                     if (ops.Contains("tos")) {
 
@@ -2122,12 +1975,7 @@ namespace com.rtm {
 
         private void Filetoken(IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
-            FPData data = new FPData();
-            data.SetFlag(0x1);
-            data.SetMtype(0x1);
-            data.SetMethod("filetoken");
-
-            this.SendQuest(data, payload, callback, timeout);
+            this.SendQuest("filetoken", payload, callback, timeout);
         }
 
         private int _reconnCount = 0;
@@ -2266,8 +2114,10 @@ namespace com.rtm {
                         base.Connect();
                     }
 
-                    IDictionary<string, string> attrs = new Dictionary<string, string>();
-                    attrs.Add("sign", sign);
+                    IDictionary<string, string> attrs = new Dictionary<string, string>() {
+
+                        { "sign", sign }
+                    };
 
                     payload.Add("token", token);
                     payload.Add("file", fileBytes);

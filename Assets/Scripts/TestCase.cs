@@ -36,10 +36,10 @@ namespace com.test {
             this._fileBytes = fileBytes;
 
             this._client = new RTMClient(
-                // "52.83.245.22:13325",
-                // 11000001,
-                // this._uid,
-                // this._token,
+                "52.83.245.22:13325",
+                11000001,
+                this._uid,
+                this._token,
 
                 // "rtm-intl-frontgate.funplus.com:13325",
                 // 11000002,
@@ -51,10 +51,10 @@ namespace com.test {
                 // 654321,
                 // "63B3F146B2A1DA8660B167D26A610C0D",
                 
-                "rtm-intl-frontgate.funplus.com:13325",
-                11000001,
-                777779,
-                "12861748F2D641907D181D1CDB6DF174",
+                // "rtm-intl-frontgate.funplus.com:13325",
+                // 11000001,
+                // 777779,
+                // "12861748F2D641907D181D1CDB6DF174",
                 
                 null,
                 new Dictionary<string, string>(),
@@ -749,7 +749,7 @@ namespace com.test {
                 }
             });
 
-            this.ThreadSleep(sleep);
+            this.ThreadSleep(sleep * 5);
 
             //fileGate (3)
             //---------------------------------SendGroupFile--------------------------------------
@@ -766,7 +766,7 @@ namespace com.test {
                 }
             });
 
-            this.ThreadSleep(sleep);
+            this.ThreadSleep(sleep * 5);
 
             //fileGate (4)
             //---------------------------------SendRoomFile--------------------------------------
@@ -783,7 +783,7 @@ namespace com.test {
                 }
             });
 
-            this.ThreadSleep(sleep);
+            this.ThreadSleep(sleep * 5);
 
             //rtmGate (13)
             //---------------------------------Close--------------------------------------

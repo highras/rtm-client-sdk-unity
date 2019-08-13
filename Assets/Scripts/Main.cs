@@ -18,17 +18,17 @@ public class Main : MonoBehaviour {
 
     void Start() {
 
-        // byte[] fileBytes = null;
-        byte[] fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
+        byte[] fileBytes = null;
+        // byte[] fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
 
         //SingleClientSend
-        // this._testCase = new SingleClientSend();
+        this._testCase = new SingleClientSend();
 
         //SingleClientPush
         // this._testCase = new SingleClientPush();
 
         //TestCase
-        this._testCase = new TestCase(777779, "204841DE531E4C39EEF54AC2046A4C4B");
+        // this._testCase = new TestCase(777779, "7D2159FB2C1B8FA2E028965283EFB3E7");
 
         this._testCase.StartTest(fileBytes);
     }
