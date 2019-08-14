@@ -113,29 +113,31 @@ namespace com.rtm {
 
             lock(service_locker) {
 
-                this._serviceCache.Add(() => {
+                if (this._serviceCache.Count < 3000) {
 
-                	if (client != null) {
+                    this._serviceCache.Add(() => {
 
-                        byte[] bytes;
+                        if (client != null) {
 
-                        using (MemoryStream outputStream = new MemoryStream()) {
+                            byte[] bytes;
 
-                            MsgPack.Serialize(payload, outputStream);
-                            outputStream.Seek(0, SeekOrigin.Begin);
+                            using (MemoryStream outputStream = new MemoryStream()) {
 
-                            bytes = outputStream.ToArray();
+                                MsgPack.Serialize(payload, outputStream);
+                                outputStream.Seek(0, SeekOrigin.Begin);
+
+                                bytes = outputStream.ToArray();
+                            }
+
+                            data.SetPayload(bytes);
+                            client.SendQuest(data, callback, timeout);
                         }
+                    });
+                }
 
-                        data.SetPayload(bytes);
-                        client.SendQuest(data, callback, timeout);
-                	}
-                });
+                if (this._serviceCache.Count == 2998) {
 
-                if (this._serviceCache.Count >= 3000) {
-
-                    this._serviceCache.Clear();
-                    ErrorRecorderHolder.recordError(new Exception("Quests Call Limit!"));
+                    ErrorRecorderHolder.recordError(new Exception("Quest Calls Limit!"));
                 }
 
                 this._serviceEvent.Set();

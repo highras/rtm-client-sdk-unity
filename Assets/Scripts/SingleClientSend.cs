@@ -140,7 +140,7 @@ namespace com.test {
                                 if (cbd.GetException() != null) {
 
                                     self.RevcInc(true);
-                                    Debug.Log(cbd.GetException());
+                                    // Debug.Log(cbd.GetException());
                                 } else {
 
                                     self.RevcInc(false);

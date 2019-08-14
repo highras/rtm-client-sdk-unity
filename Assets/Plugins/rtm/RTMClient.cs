@@ -197,13 +197,13 @@ namespace com.rtm {
 
                 if (this._baseClient != null) {
 
-                    this._baseClient.Destroy();
+                    this._baseClient.Close();
                     this._baseClient = null;
                 }
 
                 if (this._dispatchClient != null) {
 
-                    this._dispatchClient.Destroy();
+                    this._dispatchClient.Close();
                     this._dispatchClient = null;
                 }
 
@@ -260,7 +260,6 @@ namespace com.rtm {
 
                             if (self._dispatchClient != null) {
 
-                                self._dispatchClient.Destroy();
                                 self._dispatchClient = null;
                             }
 
@@ -1860,7 +1859,6 @@ namespace com.rtm {
 
                         if (self._baseClient != null) {
 
-                            self._baseClient.Destroy();
                             self._baseClient = null;
                         }
 
@@ -2135,7 +2133,7 @@ namespace com.rtm {
                     sender.AddQuest(this, data, payload, this.QuestCallback((cbd) => {
 
                         cbd.SetMid(mid);
-                        self.Destroy();
+                        self.Close();
 
                         if (callback != null) {
 

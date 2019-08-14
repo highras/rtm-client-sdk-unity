@@ -53,9 +53,9 @@ namespace com.fpnn {
 
             lock(timer_locker) {
 
-                if (this._secondCalls.Count >= 10) {
+                if (this._secondCalls.Count >= 50) {
 
-                    ErrorRecorderHolder.recordError(new Exception("Seonds Call Limit!"));
+                    ErrorRecorderHolder.recordError(new Exception("Seond Calls Limit!"));
                     return;
                 }
 
@@ -235,18 +235,20 @@ namespace com.fpnn {
 
             lock(service_locker) {
 
-                this._serviceCache.Add(() => {
+                if (this._serviceCache.Count < 3000) {
 
-                    if (callback != null) {
+                    this._serviceCache.Add(() => {
 
-                        callback(evd);
-                    }
-                });
+                        if (callback != null) {
 
-                if (this._serviceCache.Count >= 3000) {
+                            callback(evd);
+                        }
+                    });
+                } 
 
-                    this._serviceCache.Clear();
-                    ErrorRecorderHolder.recordError(new Exception("Events Call Limit!"));
+                if (this._serviceCache.Count == 2998) {
+
+                    ErrorRecorderHolder.recordError(new Exception("Event Calls Limit!"));
                 }
 
                 this._serviceEvent.Set();
@@ -259,18 +261,20 @@ namespace com.fpnn {
 
             lock(service_locker) {
 
-                this._serviceCache.Add(() => {
+                if (this._serviceCache.Count < 3000) {
 
-                    if (callback != null) {
+                    this._serviceCache.Add(() => {
 
-                        callback(cbd);
-                    }
-                });
+                        if (callback != null) {
 
-                if (this._serviceCache.Count >= 3000) {
+                            callback(cbd);
+                        }
+                    });
+                } 
 
-                    this._serviceCache.Clear();
-                    ErrorRecorderHolder.recordError(new Exception("Backs Call Limit!"));
+                if (this._serviceCache.Count == 2998) {
+
+                    ErrorRecorderHolder.recordError(new Exception("Back Calls Limit!"));
                 }
 
                 this._serviceEvent.Set();

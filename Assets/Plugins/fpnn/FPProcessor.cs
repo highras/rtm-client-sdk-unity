@@ -165,18 +165,21 @@ namespace com.fpnn {
             lock(service_locker) {
 
                 FPProcessor self = this;
-                this._serviceCache.Add(() => {
 
-                    lock (self_locker) {
+                if (this._serviceCache.Count < 3000) {
 
-                        self._processor.Service(data, answer);
-                    }
-                });
+                    this._serviceCache.Add(() => {
 
-                if (this._serviceCache.Count >= 3000) {
+                        lock (self_locker) {
 
-                    this._serviceCache.Clear();
-                    ErrorRecorderHolder.recordError(new Exception("Pushs Call Limit!"));
+                            self._processor.Service(data, answer);
+                        }
+                    });
+                }
+
+                if (this._serviceCache.Count == 2998) {
+
+                    ErrorRecorderHolder.recordError(new Exception("Push Calls Limit!"));
                 }
 
                 this._serviceEvent.Set();

@@ -185,6 +185,8 @@ namespace com.fpnn {
 
         public void Close(Exception ex) {
 
+            bool firstClose = false;
+
             lock (socket_locker) {
 
                 if (socket_locker.Status == 0) {
@@ -196,10 +198,23 @@ namespace com.fpnn {
                         this.OnError(ex);
                     }
 
-                    this.OnClose();
+                    firstClose = true;
                 }
 
                 this.TryClose();
+            }
+
+            if (firstClose) {
+
+                Thread.Sleep(200);
+
+                lock (socket_locker) {
+
+                    if (socket_locker.Status != 3) {
+
+                        this.SocketClose();
+                    }
+                }
             }
         }
 
@@ -215,6 +230,11 @@ namespace com.fpnn {
                 return;
             }
 
+            this.SocketClose();
+        }
+
+        private void SocketClose() {
+
             socket_locker.Status = 3;
 
             lock(this._sendQueue) {
@@ -225,12 +245,16 @@ namespace com.fpnn {
             if (this._stream != null) {
 
                 this._stream.Close();
+                this._stream = null;
             }
 
             if (this._socket != null) {
 
                 this._socket.Close();
+                this._socket = null;
             }
+
+            this.OnClose();
         }
 
         private void OnClose() {
@@ -239,6 +263,8 @@ namespace com.fpnn {
 
                 this.Socket_Close(new EventData("close"));
             }
+
+            this.Destroy();
         }
 
         public void Write(byte[] buffer) {
@@ -254,10 +280,8 @@ namespace com.fpnn {
             }
         }
 
-        public void Destroy() {
+        private void Destroy() {
 
-            this.Close(null);
-            
             this._onData = null;
 
             this.Socket_Connect = null;
@@ -309,7 +333,7 @@ namespace com.fpnn {
 
                 try {
 
-                    self.OnWrite();
+                    self.OnWrite(self._stream);
                 } catch (ThreadAbortException tex) {
                 } catch (Exception ex) {
 
@@ -318,7 +342,7 @@ namespace com.fpnn {
             }));
         }
 
-        private void OnWrite() {
+        private void OnWrite(NetworkStream stream) {
 
             this._sendEvent.WaitOne();
 
@@ -332,10 +356,10 @@ namespace com.fpnn {
                 this._sendEvent.Reset();
             }
 
-            this.WriteSocket(buffer, OnWrite);
+            this.WriteSocket(stream, buffer, OnWrite);
         }
 
-        private void WriteSocket(byte[] buffer, Action calllback) {
+        private void WriteSocket(NetworkStream stream, byte[] buffer, Action<NetworkStream> calllback) {
 
             lock (socket_locker) {
 
@@ -346,14 +370,13 @@ namespace com.fpnn {
 
                 FPSocket self = this;
 
-                this._stream.BeginWrite(buffer, 0, buffer.Length, (ar) => {
+                stream.BeginWrite(buffer, 0, buffer.Length, (ar) => {
 
                     try {
 
                         try {
 
-                            self._stream.EndWrite(ar);
-
+                            stream.EndWrite(ar);
                         } catch (Exception ex) {
 
                             self.Close(ex);
@@ -366,7 +389,7 @@ namespace com.fpnn {
 
                         if (calllback != null) {
 
-                            calllback();
+                            calllback(stream);
                         }
                     } catch (Exception ex) {
 

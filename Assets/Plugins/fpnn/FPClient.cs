@@ -145,9 +145,7 @@ namespace com.fpnn {
             } 
         }
 
-        public void Destroy() {
-
-            this.Close();
+        private void Destroy() {
 
             lock (self_locker) {
 
@@ -259,15 +257,12 @@ namespace com.fpnn {
                 this._cyr.Clear();
             }
 
-            if (this._sock != null) {
-
-                this._sock.Destroy();
-            }
-
             if (this.Client_Close != null) {
 
                 this.Client_Close(new EventData("close"));
             }
+
+            this.Destroy();
         }
 
         private void OnData(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
