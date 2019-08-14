@@ -65,6 +65,8 @@ namespace com.fpnn {
 
         public void RemoveSecond(EventDelegate callback) {
 
+            bool stop = false;
+
             lock(timer_locker) {
 
                 int index = this._secondCalls.IndexOf(callback);
@@ -74,14 +76,16 @@ namespace com.fpnn {
                     this._secondCalls.RemoveAt(index);
                 }
 
-                if (this._secondCalls.Count == 0) {
+                stop = this._secondCalls.Count == 0;
+            }
 
-                    this.StopTimerThread();
-                }
+            if (stop) {
+
+                this.StopTimerThread();
             }
         }
 
-        private void StartTimerThread() {
+        public void StartTimerThread() {
 
             lock(timer_locker) {
 
@@ -94,7 +98,7 @@ namespace com.fpnn {
 
                 if (this._threadTimer == null) {
 
-                    this._threadTimer = new Timer(new TimerCallback(OnSecond), null, 0, 1000);
+                    this._threadTimer = new Timer(new TimerCallback(OnSecond), null, 1000, 1000);
                 }
             }
         }
@@ -124,7 +128,7 @@ namespace com.fpnn {
             }
         }
 
-        private void StopTimerThread() {
+        public void StopTimerThread() {
 
             lock(timer_locker) {
 
