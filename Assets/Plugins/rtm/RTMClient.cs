@@ -1906,11 +1906,13 @@ namespace com.rtm {
 
             this.Filetoken(payload, (cbd) => {
 
-                Exception exception = cbd.GetException();
+                if (cbd.GetException() != null) {
 
-                if (exception != null) {
+                    if (callback != null) {
 
-                    self.GetEvent().FireEvent(new EventData("error", exception));
+                        callback(cbd);
+                    }
+
                     return;
                 }
 

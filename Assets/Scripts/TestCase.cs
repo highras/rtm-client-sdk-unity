@@ -149,8 +149,6 @@ namespace com.test {
 
         private void OnLogin() {
 
-            Debug.Log("test start!");
-
             long to = 778899;
             long fuid = 778898;
             long gid = 999;
@@ -789,8 +787,7 @@ namespace com.test {
             //---------------------------------Close--------------------------------------
             // this._client.Close();
 
-            Debug.Log("test end! " + (this._sleepCount - 1));
-            Debug.Log("=====================================================================");
+            Debug.Log("[ " + (this._sleepCount - 1) + " ]=====================================================================");
         }
 
         private void ThreadSleep(int ms) {
