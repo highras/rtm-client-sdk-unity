@@ -39,7 +39,7 @@ namespace com.test {
                 "52.83.245.22:13325",
                 11000001,
                 777779,
-                "7D2159FB2C1B8FA2E028965283EFB3E7",
+                "03F1136E7704C985BE4359E85B22E73C",
                 null,
                 new Dictionary<string, string>(),
                 true,

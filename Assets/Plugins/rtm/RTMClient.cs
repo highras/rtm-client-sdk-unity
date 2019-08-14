@@ -253,7 +253,6 @@ namespace com.rtm {
 
                     this._dispatchClient.Client_Close = (evd) => {
 
-                        // Debug.Log("[DispatchClient] closed!");
                         bool reconn = false;
 
                         lock (self_locker) {
@@ -274,7 +273,6 @@ namespace com.rtm {
 
                     this._dispatchClient.Client_Connect = (evd) => {
 
-                        // Debug.Log("[DispatchClient] connected!");
                         IDictionary<string, object> payload = new Dictionary<string, object>() {
 
                             { "pid", self._pid },
@@ -1872,11 +1870,6 @@ namespace com.rtm {
                     self.Reconnect();
                 };
 
-                this._baseClient.Client_Error = (evd) => {
-
-                    self.GetEvent().FireEvent(new EventData("error", evd.GetException()));
-                };
-
                 this._baseClient.GetProcessor().SetProcessor(this._processor);
                 this._baseClient.Connect();
             }
@@ -2051,10 +2044,7 @@ namespace com.rtm {
 
             public override void AddListener() {
 
-                base.Client_Error = (evd) => {
-
-                    ErrorRecorderHolder.recordError(evd.GetException());
-                };
+                base.AddListener();
             }
 
             public void Which(RTMSender sender, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
@@ -2078,20 +2068,7 @@ namespace com.rtm {
 
             public override void AddListener() {
 
-                // base.Client_Connect = (evd) => {
-
-                //     Debug.Log("[FileClient] connected!");
-                // };
-
-                // base.Client_Close = (evd) => {
-
-                //     Debug.Log("[FileClient] closed!");
-                // };
-
-                base.Client_Error = (evd) => {
-
-                    ErrorRecorderHolder.recordError(evd.GetException());
-                };
+                base.AddListener();
             }
 
             public void Send(RTMSender sender, string method, byte[] fileBytes, string token, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
@@ -2156,7 +2133,13 @@ namespace com.rtm {
                 this.AddListener();
             }
 
-            public virtual void AddListener() {}
+            public virtual void AddListener() {
+
+                base.Client_Error = (evd) => {
+
+                    ErrorRecorderHolder.recordError(evd.GetException());
+                };
+            }
 
             public string CalcMd5(string str, bool upper) {
 
