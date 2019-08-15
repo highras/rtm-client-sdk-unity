@@ -9,7 +9,7 @@ using com.fpnn;
 
 namespace com.rtm {
 
-	public class RTMSender {
+    public class RTMSender {
 
         private class ServiceLocker {
 
@@ -148,5 +148,5 @@ namespace com.rtm {
 
             this.StopServiceThread();
         }
-	}
+    }
 }
