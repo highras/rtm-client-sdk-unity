@@ -90,6 +90,11 @@ namespace com.fpnn {
 
                 lock (conn_locker) {
 
+                    if (conn_locker.Status == 1) {
+
+                        return;
+                    }
+
                     conn_locker.Status = 1;
                 }
 
@@ -99,6 +104,11 @@ namespace com.fpnn {
                     IAsyncResult result = null;
 
                     lock (socket_locker) {
+
+                        if (self._socket != null) {
+
+                            return;
+                        }
 
                         IPHostEntry hostEntry = Dns.GetHostEntry(self._host);
                         IPAddress ipaddr = hostEntry.AddressList[0];

@@ -95,9 +95,9 @@ namespace com.fpnn {
 
                     return;
                 }
-            }
 
-            this._sock.Open();
+                this._sock.Open();
+            }
         }
 
         private void SocketClose(Exception e){
