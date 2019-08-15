@@ -8,6 +8,7 @@ namespace com.fpnn {
 
     public class FPEvent {
 
+        private object self_locker = new object();
         private Hashtable _listeners = new Hashtable();
 
         public FPEvent() {}
@@ -16,7 +17,7 @@ namespace com.fpnn {
 
             ArrayList queue = null;
 
-            lock(this._listeners) {
+            lock(self_locker) {
 
                 if (!this._listeners.Contains(type)) {
 
@@ -24,14 +25,11 @@ namespace com.fpnn {
                 }
 
                 queue = (ArrayList)this._listeners[type];
-            }
 
-            if (queue == null) {
+                if (queue == null) {
 
-                return;
-            }
-
-            lock (queue) {
+                    return;
+                }
 
                 if (queue.IndexOf(lisr) == -1) {
 
@@ -42,7 +40,7 @@ namespace com.fpnn {
 
         public void RemoveListener() {
 
-            lock (this._listeners) {
+            lock (self_locker) {
 
                 this._listeners.Clear();
             }
@@ -50,7 +48,7 @@ namespace com.fpnn {
 
         public void RemoveListener(string type) {
 
-            lock (this._listeners) {
+            lock (self_locker) {
 
                 this._listeners.Remove(type);
             }
@@ -58,24 +56,21 @@ namespace com.fpnn {
 
         public void RemoveListener(string type, EventDelegate lisr) {
 
-            if (!this._listeners.Contains(type)) {
-
-                return;
-            }
-
             ArrayList queue = null;
 
-            lock (this._listeners) {
+            lock (self_locker) {
+
+                if (!this._listeners.Contains(type)) {
+
+                    return;
+                }
 
                 queue = ((ArrayList)this._listeners[type]);
-            }
 
-            if (queue == null) {
+                if (queue == null) {
 
-                return;
-            }
-
-            lock (queue) {
+                    return;
+                }
 
                 int index = queue.IndexOf(lisr);
 
@@ -91,20 +86,19 @@ namespace com.fpnn {
             ArrayList queue = null;
             string type = evd.GetEventType();
 
-            lock (this._listeners) {
+            lock (self_locker) {
 
-                if (this._listeners.Contains(type)) {
+                if (!this._listeners.Contains(type)) {
 
-                    queue = (ArrayList)this._listeners[type];
+                    return;
                 }
-            }
 
-            if (queue == null) {
+                queue = ((ArrayList)this._listeners[type]);
 
-                return;
-            }
+                if (queue == null) {
 
-            lock (queue) {
+                    return;
+                }
 
                 IEnumerator ie = queue.GetEnumerator();
 
