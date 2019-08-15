@@ -88,7 +88,7 @@ processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
 // 开启连接
 client.Login(null);
 
-// destory
+// Destroy 
 // client.Destroy();
 // client = null;
 ```
