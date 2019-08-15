@@ -21,15 +21,10 @@ namespace com.fpnn {
 
                 if (!this._listeners.Contains(type)) {
 
-                    this._listeners[type] = new ArrayList();
+                    this._listeners.Add(type, new ArrayList());
                 }
 
                 queue = (ArrayList)this._listeners[type];
-
-                if (queue == null) {
-
-                    return;
-                }
 
                 if (queue.IndexOf(lisr) == -1) {
 
@@ -67,11 +62,6 @@ namespace com.fpnn {
 
                 queue = ((ArrayList)this._listeners[type]);
 
-                if (queue == null) {
-
-                    return;
-                }
-
                 int index = queue.IndexOf(lisr);
 
                 if (index != -1) {
@@ -94,11 +84,6 @@ namespace com.fpnn {
                 }
 
                 queue = ((ArrayList)this._listeners[type]);
-
-                if (queue == null) {
-
-                    return;
-                }
 
                 IEnumerator ie = queue.GetEnumerator();
 

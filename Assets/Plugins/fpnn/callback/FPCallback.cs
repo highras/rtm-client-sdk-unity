@@ -23,6 +23,7 @@ namespace com.fpnn {
 
                 int ts = timeout <= 0 ? FPConfig.SEND_TIMEOUT : timeout;
                 long expire = ts + FPManager.Instance.GetMilliTimestamp();
+
                 this._exMap.Add(key, expire);
             }
         }
@@ -96,9 +97,9 @@ namespace com.fpnn {
 
         public void OnSecond(long timestamp) {
 
-            lock (this._exMap) {
+            List<string> keys = new List<string>(); 
 
-                List<string> keys = new List<string>(); 
+            lock (this._exMap) {
 
                 foreach (DictionaryEntry entry in this._exMap) {
 
@@ -112,12 +113,11 @@ namespace com.fpnn {
 
                     keys.Add(key);
                 }
+            }
 
-                foreach (string rkey in keys) {
+            foreach (string rkey in keys) {
 
-                    this._exMap.Remove(rkey);
-                    this.ExecCallback(rkey, new Exception("timeout with expire"));
-                }
+                this.ExecCallback(rkey, new Exception("timeout with expire"));
             }
         }
     }
