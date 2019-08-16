@@ -38,7 +38,8 @@ RTMClient client = new RTMClient(
     null,
     new Dictionary<string, string>(),
     true,
-    20 * 1000
+    20 * 1000,
+    true
 );
 
 // 添加监听
@@ -208,7 +209,7 @@ this.BaseTest(fileBytes);
             * `data.mtime`: **(long)**
 
 #### API ####
-* `Constructor(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout)`: 构造RTMClient
+* `Constructor(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug)`: 构造RTMClient
     * `dispatch`: **(string)** Dispatch服务地址, RTM提供
     * `pid`: **(int)** 应用编号, RTM提供
     * `uid`: **(long)** 用户ID
@@ -217,6 +218,7 @@ this.BaseTest(fileBytes);
     * `attrs`: **(IDictionary(string,string))** 设置用户端信息, 保存在当前链接中, 客户端可以获取到
     * `reconnect`: **(bool)** 是否自动重连
     * `timeout`: **(int)** 超时时间(ms), 默认: `30 * 1000`
+    * `debug`: **(bool)** 是否开启调试日志
 
 * `GetProcessor`: **(RTMProcessor)** 监听PushService的句柄
 

@@ -40,6 +40,7 @@ namespace com.fpnn {
             public void OnSecond(long timestamp) {}
         }
 
+        private bool _destroyed;
         private IProcessor _processor;
         private object self_locker = new object();
 
@@ -57,6 +58,14 @@ namespace com.fpnn {
         private ServiceLocker service_locker = new ServiceLocker();
 
         private void StartServiceThread() {
+
+            lock (self_locker) {
+
+                if (this._destroyed) {
+
+                    return;
+                }
+            }
 
             lock(service_locker) {
 
@@ -198,6 +207,16 @@ namespace com.fpnn {
         }
 
         public void Destroy() {
+
+            lock (self_locker) {
+
+                if (this._destroyed) {
+
+                    return;
+                }
+
+                this._destroyed = true;
+            }
 
             this.StopServiceThread();
         }

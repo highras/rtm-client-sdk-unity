@@ -59,7 +59,8 @@ namespace com.test {
                 null,
                 new Dictionary<string, string>(),
                 true,
-                20 * 1000
+                20 * 1000,
+                true
             );
 
             RTMProcessor processor = this._client.GetProcessor();

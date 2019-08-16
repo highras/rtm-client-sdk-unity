@@ -71,6 +71,7 @@ namespace com.rtm {
         private IDictionary<string, string> _attrs;
         private bool _reconnect;
         private int _timeout;
+        private bool _debug = true;
 
         private bool _isClose;
         private string _endpoint;
@@ -92,8 +93,9 @@ namespace com.rtm {
          * @param {IDictionary(string,string)}  attrs
          * @param {bool}                        reconnect
          * @param {int}                         timeout
+         * @param {bool}                        debug 
          */
-        public RTMClient(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout) {
+        public RTMClient(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug) {
 
             Debug.Log("Hello RTM! rtm@" + RTMConfig.VERSION + ", fpnn@" + FPConfig.VERSION);
 
@@ -105,6 +107,7 @@ namespace com.rtm {
             this._attrs = new Dictionary<string, string>(attrs);
             this._reconnect = reconnect;
             this._timeout = timeout;
+            this._debug = debug;
 
             this.InitProcessor();
         }
@@ -157,7 +160,7 @@ namespace com.rtm {
             };
 
             FPManager.Instance.AddSecond(this._eventDelegate);
-            ErrorRecorderHolder.setInstance(new RTMErrorRecorder());
+            ErrorRecorderHolder.setInstance(new RTMErrorRecorder(this._debug));
         }
 
         public RTMProcessor GetProcessor() {
@@ -2278,10 +2281,19 @@ namespace com.rtm {
 
         private class RTMErrorRecorder:ErrorRecorder {
 
-            public override void recordError(Exception e) {
+            private bool _debug;
+
+            public RTMErrorRecorder(bool debug) {
+
+                this._debug = debug;
+            }
+
+            public override void recordError(Exception ex) {
             
-                // Debug
-                // Debug.LogError(e);
+                if (this._debug) {
+
+                    Debug.LogError(ex);
+                }
             }
         }
     }

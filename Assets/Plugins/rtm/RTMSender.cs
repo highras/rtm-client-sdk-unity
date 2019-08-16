@@ -16,12 +16,23 @@ namespace com.rtm {
             public int Status = 0;
         }
 
+        private bool _destroyed;
+        private object self_locker = new object();
+
         private Thread _serviceThread = null;
         private ManualResetEvent _serviceEvent = new ManualResetEvent(false);
 
         private ServiceLocker service_locker = new ServiceLocker();
 
         private void StartServiceThread() {
+
+            lock (self_locker) {
+
+                if (this._destroyed) {
+
+                    return;
+                }
+            }
 
             lock(service_locker) {
 
@@ -145,6 +156,16 @@ namespace com.rtm {
         }
 
         public void Destroy() {
+
+            lock (self_locker) {
+
+                if (this._destroyed) {
+
+                    return;
+                }
+
+                this._destroyed = true;
+            }
 
             this.StopServiceThread();
         }
