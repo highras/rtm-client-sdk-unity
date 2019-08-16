@@ -233,9 +233,15 @@ namespace com.fpnn {
 
         private void OnConnect(EventData evd) {
 
-            if (this.Client_Connect != null) {
+            try {
 
-                this.Client_Connect(evd);
+                if (this.Client_Connect != null) {
+
+                    this.Client_Connect(evd);
+                }
+            } catch (Exception ex) {
+
+                ErrorRecorderHolder.recordError(ex);
             }
         }
 
@@ -257,9 +263,15 @@ namespace com.fpnn {
                 this._cyr.Clear();
             }
 
-            if (this.Client_Close != null) {
+            try {
 
-                this.Client_Close(new EventData("close"));
+                if (this.Client_Close != null) {
+
+                    this.Client_Close(new EventData("close"));
+                }
+            } catch (Exception ex) {
+                
+                ErrorRecorderHolder.recordError(ex);
             }
 
             this.Destroy();
@@ -451,9 +463,15 @@ namespace com.fpnn {
 
         private void OnError(EventData evd) {
 
-            if (this.Client_Error != null) {
+            try {
 
-                this.Client_Error(evd);
+                if (this.Client_Error != null) {
+
+                    this.Client_Error(evd);
+                }
+            } catch (Exception ex) {
+                
+                ErrorRecorderHolder.recordError(ex);
             }
         }
 
