@@ -121,7 +121,11 @@ namespace com.rtm {
                 lock (self_locker) {
 
                     self._isClose = true;
-                    self._baseClient.Close();
+
+                    if (self._baseClient != null) {
+
+                        self._baseClient.Close();
+                    }
                 }
             });
 
@@ -130,16 +134,22 @@ namespace com.rtm {
                 long lastPingTimestamp = 0;
                 long timestamp = evd.GetTimestamp();
 
-                if (self._processor != null) {
+                lock (self_locker) {
 
-                    lastPingTimestamp = self._processor.GetPingTimestamp();
+                    if (self._processor != null) {
+
+                        lastPingTimestamp = self._processor.GetPingTimestamp();
+                    }
                 }
 
-                if (lastPingTimestamp > 0 && self._baseClient != null && self._baseClient.IsOpen()) {
+                if (lastPingTimestamp > 0 && timestamp - lastPingTimestamp > RTMConfig.RECV_PING_TIMEOUT) {
 
-                    if (timestamp - lastPingTimestamp > RTMConfig.RECV_PING_TIMEOUT) {
+                    lock (self_locker) {
 
-                        self._baseClient.Close(new Exception("ping timeout"));
+                        if (self._baseClient != null && self._baseClient.IsOpen()) {
+
+                            self._baseClient.Close(new Exception("ping timeout"));
+                        }
                     }
                 }
 
@@ -152,14 +162,20 @@ namespace com.rtm {
 
         public RTMProcessor GetProcessor() {
 
-            return this._processor;
+            lock (self_locker) {
+
+                return this._processor;
+            }
         }
 
         public FPPackage GetPackage() {
 
-            if (this._baseClient != null) {
+            lock (self_locker) {
 
-                return this._baseClient.GetPackage();
+                if (this._baseClient != null) {
+
+                    return this._baseClient.GetPackage();
+                }
             }
 
             return null;
@@ -167,15 +183,17 @@ namespace com.rtm {
 
         public void SendQuest(string method, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
-            if (this._sender != null && this._baseClient != null) {
+            FPData data = new FPData();
+            data.SetFlag(0x1);
+            data.SetMtype(0x1);
+            data.SetMethod(method);
 
-                FPData data = new FPData();
+            lock (self_locker) {
 
-                data.SetFlag(0x1);
-                data.SetMtype(0x1);
-                data.SetMethod(method);
+                if (this._sender != null && this._baseClient != null) {
 
-                this._sender.AddQuest(this._baseClient, data, payload, this._baseClient.QuestCallback(callback), timeout);
+                    this._sender.AddQuest(this._baseClient, data, payload, this._baseClient.QuestCallback(callback), timeout);
+                }
             }
         }
 
@@ -278,29 +296,40 @@ namespace com.rtm {
                             { "pid", self._pid },
                             { "uid", self._uid },
                             { "what", "rtmGated" },
-                            { "addrType", self._dispatchClient.IsIPv6() ? "ipv6" : "ipv4" },
+                            { "addrType", "ipv4" },
                             { "version", self._version }
                         };
 
-                        self._dispatchClient.Which(self._sender, payload, self._timeout, (cbd) => {
+                        lock (self_locker) {
 
-                            IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
+                            if (self._dispatchClient != null) {
 
-                            lock (self_locker) {
+                                payload["addrType"] = self._dispatchClient.IsIPv6() ? "ipv6" : "ipv4";
 
-                                if (dict != null) {
+                                self._dispatchClient.Which(self._sender, payload, self._timeout, (cbd) => {
 
-                                    self._endpoint = Convert.ToString(dict["endpoint"]);
-                                }
+                                    IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
-                                if (self._dispatchClient != null) {
+                                    string ep = null;
 
-                                    self._dispatchClient.Close(cbd.GetException());
-                                }
+                                    lock (self_locker) {
+
+                                        if (dict != null) {
+
+                                            ep = Convert.ToString(dict["endpoint"]);
+                                            self._endpoint = ep;
+                                        }
+
+                                        if (self._dispatchClient != null) {
+
+                                            self._dispatchClient.Close(cbd.GetException());
+                                        }
+                                    }
+
+                                    self.Login(ep);
+                                });
                             }
-
-                            self.Login(self._endpoint);
-                        });
+                        }
                     };
 
                     this._dispatchClient.Connect();
@@ -946,7 +975,10 @@ namespace com.rtm {
 
                 lock (self_locker) {
 
-                    self._baseClient.Close();
+                    if (self._baseClient != null) {
+
+                        self._baseClient.Close();
+                    }
                 }
             }, 0);
         }
@@ -1773,11 +1805,6 @@ namespace com.rtm {
 
                     if (ok) {
 
-                        if (self._processor != null) {
-
-                            self._processor.InitPingTimestamp();
-                        }
-
                         lock (delayconn_locker) {
 
                             self._reconnCount = 0;
@@ -1786,6 +1813,11 @@ namespace com.rtm {
                         string endpoint = null;
 
                         lock (self_locker) {
+
+                            if (self._processor != null) {
+
+                                self._processor.InitPingTimestamp();
+                            }
 
                             endpoint = self._endpoint;
                         }
@@ -1961,7 +1993,10 @@ namespace com.rtm {
                         dict.Add("gid", ops["gid"]);
                     }
 
-                    fileClient.Send(self._sender, Convert.ToString(ops["cmd"]), (byte[])ops["file"], token, dict, timeout, callback);
+                    lock (self_locker) {
+
+                        fileClient.Send(self._sender, Convert.ToString(ops["cmd"]), (byte[])ops["file"], token, dict, timeout, callback);
+                    }
                 }
             }, timeout);
         }
@@ -1980,17 +2015,21 @@ namespace com.rtm {
                 return;
             }
 
+            string endpoint = null;
+
             lock (self_locker) {
+
+                if (this._processor != null) {
+
+                    this._processor.ClearPingTimestamp();
+                }
 
                 if (this._isClose) {
 
                     return;
                 }
-            }
 
-            if (this._processor != null) {
-
-                this._processor.ClearPingTimestamp();
+                endpoint = this._endpoint;
             }
 
             int count = 0;
@@ -2003,7 +2042,7 @@ namespace com.rtm {
 
             if (count <= RTMConfig.RECONN_COUNT_ONCE) {
 
-                this.Login(this._endpoint);
+                this.Login(endpoint);
                 return;
             }
 
@@ -2036,7 +2075,14 @@ namespace com.rtm {
                 this._reconnCount = 0;
             }
 
-            this.Login(this._endpoint);
+            string endpoint = null;
+
+            lock (self_locker) {
+
+                endpoint = this._endpoint;
+            }
+
+            this.Login(endpoint);
         }
 
         private class DispatchClient:BaseClient {
@@ -2051,12 +2097,12 @@ namespace com.rtm {
 
             public void Which(RTMSender sender, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
 
-                if (sender != null) {
+                FPData data = new FPData();
+                data.SetFlag(0x1);
+                data.SetMtype(0x1);
+                data.SetMethod("which");
 
-                    FPData data = new FPData();
-                    data.SetFlag(0x1);
-                    data.SetMtype(0x1);
-                    data.SetMethod("which");
+                if (sender != null) {
 
                     sender.AddQuest(this, data, payload, this.QuestCallback(callback), timeout);
                 }
@@ -2075,39 +2121,39 @@ namespace com.rtm {
 
             public void Send(RTMSender sender, string method, byte[] fileBytes, string token, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
 
+                string fileMd5 = base.CalcMd5(fileBytes, false);
+                string sign = base.CalcMd5(fileMd5 + ":" + token, false);
+
+                if (string.IsNullOrEmpty(sign)) {
+
+                    ErrorRecorderHolder.recordError(new Exception("wrong sign!"));
+                    return;
+                }
+
+                if (!base.HasConnect()) {
+
+                    base.Connect();
+                }
+
+                IDictionary<string, string> attrs = new Dictionary<string, string>() {
+
+                    { "sign", sign }
+                };
+
+                payload.Add("token", token);
+                payload.Add("file", fileBytes);
+                payload.Add("attrs", Json.SerializeToString(attrs));
+
+                long mid = (long)Convert.ToInt64(payload["mid"]);
+
+                FPData data = new FPData();
+                data.SetFlag(0x1);
+                data.SetMtype(0x1);
+                data.SetMethod(method);
+
+                FileClient self = this;
+
                 if (sender != null) {
-
-                    string fileMd5 = base.CalcMd5(fileBytes, false);
-                    string sign = base.CalcMd5(fileMd5 + ":" + token, false);
-
-                    if (string.IsNullOrEmpty(sign)) {
-
-                        ErrorRecorderHolder.recordError(new Exception("wrong sign!"));
-                        return;
-                    }
-
-                    if (!base.HasConnect()) {
-
-                        base.Connect();
-                    }
-
-                    IDictionary<string, string> attrs = new Dictionary<string, string>() {
-
-                        { "sign", sign }
-                    };
-
-                    payload.Add("token", token);
-                    payload.Add("file", fileBytes);
-                    payload.Add("attrs", Json.SerializeToString(attrs));
-
-                    long mid = (long)Convert.ToInt64(payload["mid"]);
-
-                    FPData data = new FPData();
-                    data.SetFlag(0x1);
-                    data.SetMtype(0x1);
-                    data.SetMethod(method);
-
-                    FileClient self = this;
 
                     sender.AddQuest(this, data, payload, this.QuestCallback((cbd) => {
 
