@@ -269,9 +269,15 @@ namespace com.fpnn {
 
         private void OnClose() {
 
-            if (this.Socket_Close != null) {
+            try {
 
-                this.Socket_Close(new EventData("close"));
+                if (this.Socket_Close != null) {
+
+                    this.Socket_Close(new EventData("close"));
+                }
+            } catch (Exception ex) {
+                
+                ErrorRecorderHolder.recordError(ex);
             }
 
             this.Destroy();
@@ -316,9 +322,15 @@ namespace com.fpnn {
 
         private void OnConnect() {
 
-            if (this.Socket_Connect != null) {
+            try {
 
-                this.Socket_Connect(new EventData("connect"));
+                if (this.Socket_Connect != null) {
+
+                    this.Socket_Connect(new EventData("connect"));
+                }
+            } catch (Exception ex) {
+
+                ErrorRecorderHolder.recordError(ex);
             }
         }
 
@@ -329,9 +341,15 @@ namespace com.fpnn {
 
         private void OnError(Exception ex) {
 
-            if (this.Socket_Error != null) {
+            try {
 
-                this.Socket_Error(new EventData("error", ex));
+                if (this.Socket_Error != null) {
+
+                    this.Socket_Error(new EventData("error", ex));
+                }
+            } catch (Exception e) {
+                
+                ErrorRecorderHolder.recordError(e);
             }
         }
 
