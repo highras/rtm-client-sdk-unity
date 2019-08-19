@@ -13,6 +13,9 @@ namespace com.rtm {
 
     public class RTMProcessor:FPProcessor.IProcessor {
 
+        private static string JSON_PAYLOAD = "{}";
+        private static byte[] MSGPACK_PAYLOAD = { 0x80 };
+
         private class PingLocker {
 
             public int Status = 0;
@@ -58,7 +61,8 @@ namespace com.rtm {
 
                 if (callCb) {
 
-                    answer(Json.SerializeToString(new Dictionary<string, object>()), false);
+                    // answer(Json.SerializeToString(new Dictionary<string, object>()), false);
+                    answer(JSON_PAYLOAD, false);
                 }
 
                 try {
@@ -74,13 +78,14 @@ namespace com.rtm {
 
                 if (callCb) {
 
-                    using (MemoryStream msgpackStream = new MemoryStream()) {
+                    // using (MemoryStream msgpackStream = new MemoryStream()) {
 
-                        MsgPack.Serialize(new Dictionary<string, object>(), msgpackStream);
-                        msgpackStream.Seek(0, SeekOrigin.Begin);
+                    //     MsgPack.Serialize(new Dictionary<string, object>(), msgpackStream);
+                    //     msgpackStream.Seek(0, SeekOrigin.Begin);
 
-                        answer(msgpackStream.ToArray(), false);
-                    }
+                    //     answer(msgpackStream.ToArray(), false);
+                    // }
+                    answer(MSGPACK_PAYLOAD, false);
                 }
 
                 try {
