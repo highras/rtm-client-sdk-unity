@@ -97,7 +97,7 @@ namespace com.rtm {
          */
         public RTMClient(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug) {
 
-            Debug.Log("Hello RTM! rtm@" + RTMConfig.VERSION + ", fpnn@" + FPConfig.VERSION);
+            Debug.Log("[RTM] rtm_sdk@" + RTMConfig.VERSION + ", fpnn_sdk@" + FPConfig.VERSION);
 
             this._dispatch = dispatch;
             this._pid = pid;
