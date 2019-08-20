@@ -51,6 +51,7 @@ namespace com.rtm {
                     this._serviceThread.Name = "rtm_sender_thread";
                 }
 
+                this._serviceThread.IsBackground = true;
                 this._serviceThread.Start();
             }
         }

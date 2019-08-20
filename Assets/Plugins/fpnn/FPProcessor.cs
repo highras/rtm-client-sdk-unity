@@ -84,6 +84,7 @@ namespace com.fpnn {
                     this._serviceThread.Name = "fpnn_push_thread";
                 }
 
+                this._serviceThread.IsBackground = true;
                 this._serviceThread.Start();
             }
         }

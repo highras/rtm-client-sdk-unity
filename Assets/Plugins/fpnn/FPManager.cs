@@ -49,9 +49,7 @@ namespace com.fpnn {
 
         public void AddSecond(EventDelegate callback) {
 
-            this.StartTimerThread();
-
-            lock(timer_locker) {
+            lock (timer_locker) {
 
                 if (this._secondCalls.Count >= 50) {
 
@@ -61,13 +59,15 @@ namespace com.fpnn {
 
                 this._secondCalls.Add(callback);
             }       
+
+            this.StartTimerThread();
         }
 
         public void RemoveSecond(EventDelegate callback) {
 
             bool stop = false;
 
-            lock(timer_locker) {
+            lock (timer_locker) {
 
                 int index = this._secondCalls.IndexOf(callback);
 
@@ -87,7 +87,7 @@ namespace com.fpnn {
 
         public void StartTimerThread() {
 
-            lock(timer_locker) {
+            lock (timer_locker) {
 
                 if (timer_locker.Status != 0) {
 
@@ -105,7 +105,7 @@ namespace com.fpnn {
 
         private void OnSecond(object state) {
 
-            lock(timer_locker) {
+            lock (timer_locker) {
 
                 this.CallSecond(this._secondCalls);
             }
@@ -130,7 +130,7 @@ namespace com.fpnn {
 
         public void StopTimerThread() {
 
-            lock(timer_locker) {
+            lock (timer_locker) {
 
                 timer_locker.Status = 0;
 
@@ -149,7 +149,7 @@ namespace com.fpnn {
 
         private void StartServiceThread() {
 
-            lock(service_locker) {
+            lock (service_locker) {
 
                 if (service_locker.Status != 0) {
 
@@ -224,7 +224,7 @@ namespace com.fpnn {
 
         private void StopServiceThread() {
 
-            lock(service_locker) {
+            lock (service_locker) {
 
                 service_locker.Status = 0;
                 this._serviceEvent.Set();
@@ -236,8 +236,8 @@ namespace com.fpnn {
         public void AddEventCall(EventDelegate callback, EventData evd) {
 
             this.StartServiceThread();
-
-            lock(service_locker) {
+            
+            lock (service_locker) {
 
                 if (this._serviceCache.Count < 3000) {
 
@@ -263,7 +263,7 @@ namespace com.fpnn {
 
             this.StartServiceThread();
 
-            lock(service_locker) {
+            lock (service_locker) {
 
                 if (this._serviceCache.Count < 3000) {
 
