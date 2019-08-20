@@ -1,17 +1,15 @@
 # fpnn rtm sdk unity #
 
-#### 关于依赖 ####
+#### 依赖 ####
 * [fpnn.unitypackage](https://github.com/highras/fpnn-sdk-unity)
 * [Json&MsgPack.unitypackage](https://github.com/deniszykov/msgpack-unity3d)
 
-#### 异步函数 ####
-* 异步函数均由子线程呼叫, 不要在其中调用仅UI线程可执行的函数, 不要阻塞事件和回调函数
-
-#### 关于IPV6 ####
+#### IPV6 ####
 * `SOCKET`链接支持`IPV6`接口
 * 兼容`DNS64/NAT64`网络环境
 
 #### 其他 ####
+* 异步函数均由子线程呼叫, 不要在其中调用仅UI线程可执行的函数, 不要阻塞事件和回调函数
 * 默认连接会自动保持, 如实现按需连接则需要通过`Login()`和`Close()`进行连接或关闭处理
 * 或可通过`login`和`close`事件以及注册`ping`服务来对连接进行管理
 * 消息发送接口仅支持`UTF-8`格式编码的`string`类型数据, `Binary`数据需进行`Base64`编解码
