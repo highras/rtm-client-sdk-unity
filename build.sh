@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
-# chmod 777 build.sh
-# go to project root.
-echo [LiveData] Unity Exporting... {$(pwd)}
-
 # kill unity
 killall Unity
+
+# go to project root. chmod 777
+echo [LiveData] Unity Exporting... {$(pwd)}
 
 UNITY_PATH="/Applications/Unity/Unity.app/Contents/MacOS/Unity"
 $UNITY_PATH -batchmode -nographics -projectPath $(pwd) -executeMethod ExportPackage.ExportPlugin -quit \
