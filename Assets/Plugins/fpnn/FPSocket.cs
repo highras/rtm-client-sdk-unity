@@ -283,6 +283,15 @@ namespace com.fpnn {
             this.Destroy();
         }
 
+        private void Destroy() {
+
+            this._onData = null;
+
+            this.Socket_Connect = null;
+            this.Socket_Close = null;
+            this.Socket_Error = null;
+        }
+
         public void Write(byte[] buffer) {
 
             lock(this._sendQueue) {
@@ -294,15 +303,6 @@ namespace com.fpnn {
 
                 this._sendEvent.Set();
             }
-        }
-
-        private void Destroy() {
-
-            this._onData = null;
-
-            this.Socket_Connect = null;
-            this.Socket_Close = null;
-            this.Socket_Error = null;
         }
 
         public string GetHost() {

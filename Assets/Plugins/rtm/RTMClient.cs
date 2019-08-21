@@ -217,16 +217,10 @@ namespace com.rtm {
 
             lock (self_locker) {
 
-                if (this._baseClient != null) {
+                if (this._eventDelegate != null) {
 
-                    this._baseClient.Close();
-                    this._baseClient = null;
-                }
-
-                if (this._dispatchClient != null) {
-
-                    this._dispatchClient.Close();
-                    this._dispatchClient = null;
+                    FPManager.Instance.RemoveSecond(this._eventDelegate);
+                    this._eventDelegate = null;
                 }
 
                 if (this._sender != null) {
@@ -241,13 +235,19 @@ namespace com.rtm {
                     this._processor = null;
                 }
 
-                this._event.RemoveListener();
+                if (this._dispatchClient != null) {
 
-                if (this._eventDelegate != null) {
-
-                    FPManager.Instance.RemoveSecond(this._eventDelegate);
-                    this._eventDelegate = null;
+                    this._dispatchClient.Close();
+                    this._dispatchClient = null;
                 }
+
+                if (this._baseClient != null) {
+
+                    this._baseClient.Close();
+                    this._baseClient = null;
+                }
+
+                this._event.RemoveListener();
             }
         }
 
@@ -974,17 +974,7 @@ namespace com.rtm {
                 this._isClose = true;
             }
 
-            RTMClient self = this;
-            this.SendQuest("bye", new Dictionary<string, object>(), (cbd) => {
-
-                lock (self_locker) {
-
-                    if (self._baseClient != null) {
-
-                        self._baseClient.Close();
-                    }
-                }
-            }, 0);
+            this.SendQuest("bye", new Dictionary<string, object>(), null, 0);
         }
 
         /**
