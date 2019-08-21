@@ -20,6 +20,7 @@ namespace com.fpnn {
         private class ConnectingLocker {
 
             public int Status = 0;
+            public long timestamp = 0;
         }
 
         public Action<EventData> Socket_Connect;
@@ -40,6 +41,7 @@ namespace com.fpnn {
         private ManualResetEvent _sendEvent = new ManualResetEvent(false);
 
         private SocketLocker socket_locker = new SocketLocker();
+        private ConnectingLocker conn_locker = new ConnectingLocker();
 
         public FPSocket(OnDataDelegate onData, string host, int port, int timeout) {
 
@@ -48,8 +50,6 @@ namespace com.fpnn {
             this._timeout = timeout;
             this._onData = onData;
         }
-
-        private ConnectingLocker conn_locker = new ConnectingLocker();
 
         public void Open() {
 
@@ -65,14 +65,6 @@ namespace com.fpnn {
                 return;
             }
 
-            lock (conn_locker) {
-
-                if (conn_locker.Status == 1) {
-
-                    return;
-                }
-            }
-
             lock (socket_locker) {
 
                 if (this._socket != null) {
@@ -84,24 +76,30 @@ namespace com.fpnn {
                 socket_locker.Status = 0;
             }
 
+            lock (conn_locker) {
+
+                if (conn_locker.Status != 0) {
+
+                    return;
+                }
+            }
+
             FPSocket self = this;
 
             ThreadPool.QueueUserWorkItem(new WaitCallback((state) => {
 
                 lock (conn_locker) {
 
-                    if (conn_locker.Status == 1) {
+                    if (conn_locker.Status != 0) {
 
                         return;
                     }
 
                     conn_locker.Status = 1;
+                    conn_locker.timestamp = FPManager.Instance.GetMilliTimestamp();
                 }
 
                 try {
-
-                    var success = false;
-                    IAsyncResult result = null;
 
                     lock (socket_locker) {
 
@@ -122,36 +120,8 @@ namespace com.fpnn {
                             self._socket = new TcpClient(AddressFamily.InterNetworkV6);
                         }
 
-                        result = self._socket.BeginConnect(ipaddr, self._port, null, null);
-                        success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds((double)self._timeout));
+                        self._socket.BeginConnect(ipaddr, self._port, new AsyncCallback(ConnectCallback), null);
                     }
-
-                    if (!success) {
-
-                        lock (conn_locker) {
-
-                            conn_locker.Status = 0;
-                        }
-
-                        self.Close(new Exception("Connect Timeout"));
-                        return;
-                    } 
-
-                    lock (socket_locker) {
-
-                        self._socket.EndConnect(result);
-                        self._stream = self._socket.GetStream();
-                    }
-
-                    lock (conn_locker) {
-
-                        conn_locker.Status = 0;
-                    }
-
-                    self.StartSendThread();
-                    self.OnRead(self._stream, socket_locker);
-
-                    self.OnConnect();
                 } catch (Exception ex) {
 
                     lock (conn_locker) {
@@ -162,6 +132,45 @@ namespace com.fpnn {
                     self.Close(ex);
                 } 
             }));
+        }
+
+        private void ConnectCallback(IAsyncResult ar) {
+
+            try {
+
+                bool isClose = false;
+
+                lock (socket_locker) {
+
+                    this._socket.EndConnect(ar);
+                    this._stream = this._socket.GetStream();
+
+                    isClose = socket_locker.Status != 0;
+                }
+
+                lock (conn_locker) {
+
+                    conn_locker.Status = 0;
+                }
+
+                if (isClose) {
+
+                    return;
+                }
+
+                this.StartSendThread();
+                this.OnRead(this._stream, socket_locker);
+
+                this.OnConnect();
+            } catch (Exception ex) {
+
+                lock (conn_locker) {
+
+                    conn_locker.Status = 0;
+                }
+
+                this.Close(ex);
+            }
         }
 
         public bool IsIPv6() {
@@ -193,43 +202,67 @@ namespace com.fpnn {
             }
         }
 
-        public void Close(Exception ex) {
+        public void OnSecond(long timestamp) {
 
-            bool firstClose = false;
+            bool timeout = false;
 
-            lock (socket_locker) {
+            lock (conn_locker) {
 
-                if (socket_locker.Status == 0) {
+                if (conn_locker.Status == 1) {
 
-                    socket_locker.Status = 1;
+                    if (timestamp - conn_locker.timestamp >= this._timeout) {
 
-                    if (ex != null) {
-
-                        this.OnError(ex);
-                    }
-
-                    firstClose = true;
+                        timeout = true;
+                        conn_locker.Status = 0;
+                    } 
                 }
-
-                this.TryClose();
             }
 
-            if (firstClose) {
+            if (timeout) {
 
-                lock (this._sendQueue) {
+                this.Close(new Exception("Connect Timeout"));
+            }
+        }
 
-                    this._sendEvent.Set();
-                }
+        public void Close(Exception ex) {
 
-                Thread.Sleep(200);
+            try {
+
+                bool firstClose = false;
 
                 lock (socket_locker) {
 
-                    if (socket_locker.Status != 3) {
+                    if (socket_locker.Status == 0) {
 
-                        this.SocketClose();
+                        firstClose = true;
+                        socket_locker.Status = 1;
+
+                        if (ex != null) {
+
+                            this.OnError(ex);
+                        }
+
+                        this._sendEvent.Set();
+                    }
+
+                    this.TryClose();
+                }
+
+                if (firstClose) {
+
+                    Thread.Sleep(200);
+
+                    lock (socket_locker) {
+
+                        if (socket_locker.Status != 3) {
+
+                            this.SocketClose();
+                        }
                     }
                 }
+            } catch (Exception e) {
+
+                ErrorRecorderHolder.recordError(e);
             }
         }
 
@@ -264,6 +297,7 @@ namespace com.fpnn {
                 this._socket = null;
             }
 
+            this._sendEvent.Close();
             this.OnClose();
         }
 
@@ -300,9 +334,9 @@ namespace com.fpnn {
 
                     this._sendQueue.Add(buffer[i]);
                 }
-
-                this._sendEvent.Set();
             }
+
+            this._sendEvent.Set();
         }
 
         public string GetHost() {

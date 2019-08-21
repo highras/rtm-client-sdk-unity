@@ -461,6 +461,7 @@ namespace com.fpnn {
 
         private void OnSecond(long timestamp) {
 
+            this._sock.OnSecond(timestamp);
             this._psr.OnSecond(timestamp);
             this._callback.OnSecond(timestamp);
         }
