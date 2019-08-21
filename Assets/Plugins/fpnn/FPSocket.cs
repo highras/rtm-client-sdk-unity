@@ -216,6 +216,11 @@ namespace com.fpnn {
 
             if (firstClose) {
 
+                lock (this._sendQueue) {
+
+                    this._sendEvent.Set();
+                }
+
                 Thread.Sleep(200);
 
                 lock (socket_locker) {
@@ -246,11 +251,6 @@ namespace com.fpnn {
         private void SocketClose() {
 
             socket_locker.Status = 3;
-
-            lock(this._sendQueue) {
-
-                this._sendEvent.Set();
-            }
 
             if (this._stream != null) {
 
@@ -379,9 +379,7 @@ namespace com.fpnn {
             lock(this._sendQueue) {
 
                 buffer = this._sendQueue.ToArray();
-
                 this._sendQueue.Clear();
-                this._sendEvent.Reset();
             }
 
             this.WriteSocket(stream, buffer, OnWrite);
@@ -390,6 +388,11 @@ namespace com.fpnn {
         private void WriteSocket(NetworkStream stream, byte[] buffer, Action<NetworkStream> calllback) {
 
             lock (socket_locker) {
+
+                if (socket_locker.Status == 0) {
+
+                    this._sendEvent.Reset();
+                }
 
                 socket_locker.Count++;
             }
