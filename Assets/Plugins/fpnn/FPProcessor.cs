@@ -118,7 +118,7 @@ namespace com.fpnn {
                 ErrorRecorderHolder.recordError(ex);
             } finally {
 
-                this.StopServiceThread(false);
+                this.StopServiceThread();
             }
         }
 
@@ -139,7 +139,7 @@ namespace com.fpnn {
             }
         }
 
-        private void StopServiceThread(bool destroy) {
+        private void StopServiceThread() {
 
             lock (service_locker) {
 
@@ -148,11 +148,6 @@ namespace com.fpnn {
                     service_locker.Status = 0;
                     this._serviceEvent.Set();
                 }
-            }
-
-            if (destroy) {
-
-                this._serviceEvent.Close(); 
             }
         }
 
@@ -230,7 +225,7 @@ namespace com.fpnn {
                 this._destroyed = true;
             }
 
-            this.StopServiceThread(true);
+            this.StopServiceThread();
         }
     }
 }

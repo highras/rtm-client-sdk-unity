@@ -85,7 +85,7 @@ namespace com.rtm {
                 ErrorRecorderHolder.recordError(ex);
             } finally {
 
-                this.StopServiceThread(false);
+                this.StopServiceThread();
             }
         }
 
@@ -106,7 +106,7 @@ namespace com.rtm {
             }
         }
 
-        private void StopServiceThread(bool destroy) {
+        private void StopServiceThread() {
 
             lock (service_locker) {
 
@@ -115,11 +115,6 @@ namespace com.rtm {
                     service_locker.Status = 0;
                     this._serviceEvent.Set();
                 }
-            }
-
-            if (destroy) {
-
-                this._serviceEvent.Close();
             }
         }
 
@@ -179,7 +174,7 @@ namespace com.rtm {
                 this._destroyed = true;
             }
 
-            this.StopServiceThread(true);
+            this.StopServiceThread();
         }
     }
 }
