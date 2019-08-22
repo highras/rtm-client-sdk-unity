@@ -223,6 +223,9 @@ namespace com.rtm {
                     this._eventDelegate = null;
                 }
 
+                this._event.FireEvent(new EventData("close", false));
+                this._event.RemoveListener();
+
                 if (this._sender != null) {
 
                     this._sender.Destroy();
@@ -246,8 +249,6 @@ namespace com.rtm {
                     this._baseClient.Close();
                     this._baseClient = null;
                 }
-
-                this._event.RemoveListener();
             }
         }
 

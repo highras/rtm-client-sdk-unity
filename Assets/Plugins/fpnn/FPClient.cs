@@ -17,11 +17,6 @@ namespace com.fpnn {
         private bool _isClose = false;
 
         private FPSocket _sock;
-        private FPData _peekData = null;
-
-        private int _readLen = 0;
-        private byte[] _buffer = null;
-
         private EventDelegate _eventDelegate;
 
         private FPPackage _pkg;
@@ -60,9 +55,9 @@ namespace com.fpnn {
 
             FPManager.Instance.AddSecond(this._eventDelegate);
 
-            this._sock = new FPSocket((stream, socket_locker) => {
+            this._sock = new FPSocket((stream) => {
 
-                self.OnData(stream, socket_locker);
+                self.OnData(stream);
             }, host, port, connectionTimeout);
 
             this._sock.Socket_Connect = this.OnConnect;
@@ -234,14 +229,6 @@ namespace com.fpnn {
             lock (self_locker) {
 
                 this._seq = 0;
-                this._readLen = 0;
-                this._peekData = null;
-
-                if (this._buffer != null) {
-
-                    Array.Clear(this._buffer, 0, this._buffer.Length);
-                    this._buffer = null;
-                }
 
                 this._callback.RemoveCallback();
                 this._cyr.Clear();
@@ -261,187 +248,104 @@ namespace com.fpnn {
             this.Destroy();
         }
 
-        private void OnData(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
+        private void OnData(NetworkStream stream) {
 
-            this.ReadHead(stream, socket_locker);
+            this.ReadHead(stream);
         }
 
-        private void ReadHead(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
+        private void ReadHead(NetworkStream stream) {
 
-            lock (self_locker) {
+            int rlen = 0;
+            byte[] buffer = new byte[FPConfig.READ_BUFFER_LEN];
 
-                if (this._buffer == null) {
+            this.ReadBytes(stream, null, buffer, rlen, BuildHead);
+        }
 
-                    this._readLen = 0;
-                    this._buffer = new byte[FPConfig.READ_BUFFER_LEN];
-                }
+        private void BuildHead(NetworkStream stream, FPData peek, byte[] buffer) {
 
-                if (this._readLen < this._buffer.Length) {
+            peek = this._cyr.PeekHead(buffer);
 
-                    this.ReadSocket(stream, socket_locker, ReadHead);
-                    return;
-                }
+            if (peek == null) {
+
+                this._sock.Close(new Exception("worng package head!"));
+                return;
             }
 
-            this.BuildHead(stream, socket_locker);
+            this.ReadBody(stream, peek);
         }
 
-        private void BuildHead(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
+        private void ReadBody(NetworkStream stream, FPData peek) {
 
-            lock (self_locker) {
+            int diff = peek.GetPkgLen() - peek.Bytes.Length;
 
-                if (this._peekData == null) {
+            if (diff <= 0) {
 
-                    this._peekData = this._cyr.PeekHead(this._buffer);
-
-                    Array.Clear(this._buffer, 0, this._buffer.Length);
-                    this._buffer = null;
-                }
-
-                if (this._peekData == null) {
-
-                    this._sock.Close(new Exception("worng package head!"));
-                    return;
-                }
-            } 
-
-            this.ReadBody(stream, socket_locker);
-        }
-
-        private void ReadBody(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
-
-            lock (self_locker) {
-
-                if (this._buffer == null) {
-
-                    int diff = this._peekData.GetPkgLen() - this._peekData.Bytes.Length;
-
-                    if (diff > 0) {
-
-                        this._readLen = 0;
-                        this._buffer = new byte[diff];
-                    }
-                }
-
-                if (this._readLen < this._buffer.Length) {
-
-                    this.ReadSocket(stream, socket_locker, ReadBody);
-                    return;
-                }
+                this.BuildBody(stream, peek, null);
+                return;
             }
 
-            this.BuildBody(stream, socket_locker);
+            int rlen = 0;
+            byte[] buffer = new byte[diff];
+
+            this.ReadBytes(stream, peek, buffer, rlen, BuildBody);
         }
 
-        private void BuildBody(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
+        private void BuildBody(NetworkStream stream, FPData peek, byte[] buffer) {
 
-            lock (self_locker) {
+            if (buffer != null) {
 
-                if (this._buffer != null) {
+                List<byte> lb = new List<byte>(peek.Bytes);
 
-                    List<byte> lb = new List<byte>(this._peekData.Bytes);
+                lb.AddRange(buffer);
+                peek.Bytes = lb.ToArray();
 
-                    lb.AddRange(this._buffer);
-
-                    Array.Clear(this._buffer, 0, this._buffer.Length);
-                    this._buffer = null;
-
-                    this._peekData.Bytes = lb.ToArray();
-
-                    lb.Clear();
-                }
+                lb.Clear();
             }
 
-            this.BuildData(stream, socket_locker);
+            this.BuildData(stream, peek);
         }
 
-        private void BuildData(NetworkStream stream, FPSocket.SocketLocker socket_locker) {
+        private void BuildData(NetworkStream stream, FPData peek) {
 
-            lock (self_locker) {
+            peek.Bytes = this._cyr.DeCode(peek.Bytes);
+            FPData data = this._cyr.PeekHead(peek);
 
-                this._peekData.Bytes = this._cyr.DeCode(this._peekData.Bytes);
-                this._peekData = this._cyr.PeekHead(this._peekData);
+            if (!this._pkg.DeCode(data)) {
 
-                if (!this._pkg.DeCode(this._peekData)) {
-
-                    this._sock.Close(new Exception("worng package body!"));
-                    return;
-                }
-
-                if (this._pkg.IsAnswer(this._peekData)) {
-
-                    this.ExecCallback(this._peekData);
-                }
-
-                if (this._pkg.IsQuest(this._peekData)) {
-
-                    this.PushService(this._peekData);
-                }
-
-                this._peekData = null;
+                this._sock.Close(new Exception("worng package body!"));
+                return;
             }
 
-            this.OnData(stream, socket_locker);
+            if (this._pkg.IsAnswer(data)) {
+
+                this.ExecCallback(data);
+            }
+
+            if (this._pkg.IsQuest(data)) {
+
+                this.PushService(data);
+            }
+
+            this.ReadHead(stream);
         }
 
-        private void ReadSocket(NetworkStream stream, FPSocket.SocketLocker socket_locker, Action<NetworkStream, FPSocket.SocketLocker> calllback) {
+        private void ReadBytes(NetworkStream stream, FPData peek, byte[] buffer, int rlen, Action<NetworkStream, FPData, byte[]> calllback) {
 
-            lock (socket_locker) {
-
-                socket_locker.Count++;
-            }
-
-            try {
+            if (rlen < buffer.Length) {
 
                 FPClient self = this;
 
-                lock (self_locker) {
+                this._sock.ReadSocket(stream, buffer, rlen, (buf, len) => {
 
-                    int len = this._buffer.Length - this._readLen;
+                    self.ReadBytes(stream, peek, buf, len, calllback);
+                });
 
-                    stream.BeginRead(this._buffer, this._readLen, len, (ar) => {
+                return;
+            } 
 
-                        try {
+            if (calllback != null) {
 
-                            int rlen = 0;
-
-                            try {
-
-                                rlen = stream.EndRead(ar);
-                            } catch (Exception ex) {
-
-                                self._sock.Close(ex);
-                            }
-
-                            lock (socket_locker) {
-
-                                socket_locker.Count--;
-                            }
-
-                            if (rlen == 0) {
-
-                                self._sock.Close(null);
-                            } else {
-
-                                lock (self_locker) {
-
-                                    self._readLen += rlen;
-                                }
-
-                                if (calllback != null) {
-
-                                    calllback(stream, socket_locker);
-                                }
-                            }
-                        } catch (Exception ex) {
-
-                            self._sock.Close(ex);
-                        }
-                    }, null);
-                }
-            } catch (Exception ex) {
-
-                this._sock.Close(ex);
+                calllback(stream, peek, buffer);
             }
         }
 

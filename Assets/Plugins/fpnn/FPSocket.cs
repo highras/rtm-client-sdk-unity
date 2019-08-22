@@ -7,7 +7,7 @@ using System.Net.Sockets;
 
 namespace com.fpnn {
 
-    public delegate void OnDataDelegate(NetworkStream stream, FPSocket.SocketLocker socket_locker);
+    public delegate void OnDataDelegate(NetworkStream stream);
 
     public class FPSocket {
 
@@ -160,7 +160,7 @@ namespace com.fpnn {
 
                 this.OnConnect();
 
-                this.OnRead(this._stream, socket_locker);
+                this.OnRead(this._stream);
                 this.OnWrite(this._stream);
             } catch (Exception ex) {
 
@@ -331,6 +331,14 @@ namespace com.fpnn {
 
         public void Write(byte[] buffer) {
 
+            lock (socket_locker) {
+
+                if (socket_locker.Status != 0) {
+
+                    return;
+                }
+            }
+
             lock (this._sendQueue) {
 
                 for (int i = 0; i < buffer.Length; i++) {
@@ -371,9 +379,12 @@ namespace com.fpnn {
             }
         }
 
-        private void OnRead(NetworkStream stream, SocketLocker socket_locker) {
+        private void OnRead(NetworkStream stream) {
 
-            this._onData(stream, socket_locker);
+            if (this._onData != null) {
+
+                this._onData(stream);
+            }
         }
 
         private void OnError(Exception ex) {
@@ -441,6 +452,59 @@ namespace com.fpnn {
                         if (calllback != null) {
 
                             calllback(stream);
+                        }
+                    } catch (Exception ex) {
+
+                        self.Close(ex);
+                    }
+                }, null);
+            } catch (Exception ex) {
+
+                this.Close(ex);
+            }
+        }
+
+        public void ReadSocket(NetworkStream stream, byte[] buffer, int rlen, Action<byte[], int> calllback) {
+
+            lock (socket_locker) {
+
+                socket_locker.Count++;
+            }
+
+            try {
+
+                FPSocket self = this;
+
+                stream.BeginRead(buffer, rlen, buffer.Length - rlen, (ar) => {
+
+                    try {
+
+                        int len = 0;
+
+                        try {
+
+                            len = stream.EndRead(ar);
+                        } catch (Exception ex) {
+
+                            self.Close(ex);
+                        }
+
+                        lock (socket_locker) {
+
+                            socket_locker.Count--;
+                        }
+
+                        if (len == 0) {
+
+                            self.Close(null);
+                        } else {
+
+                            rlen += len;
+
+                            if (calllback != null) {
+
+                                calllback(buffer, rlen);
+                            }
                         }
                     } catch (Exception ex) {
 
