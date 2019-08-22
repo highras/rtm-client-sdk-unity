@@ -93,7 +93,7 @@ namespace com.fpnn {
 
                     if (callback != null) {
 
-                        FPManager.Instance.AddEventCall(callback, evd);
+                        FPManager.Instance.EventTask(callback, evd);
                     }
                 }
             }

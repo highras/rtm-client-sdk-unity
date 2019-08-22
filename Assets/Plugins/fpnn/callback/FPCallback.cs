@@ -64,7 +64,7 @@ namespace com.fpnn {
 
             if (callback != null) {
 
-                FPManager.Instance.AddBackCall(callback, new CallbackData(data));
+                FPManager.Instance.CallbackTask(callback, new CallbackData(data));
             }
         }
 
@@ -91,7 +91,7 @@ namespace com.fpnn {
 
             if (callback != null) {
 
-                FPManager.Instance.AddBackCall(callback, new CallbackData(ex));
+                FPManager.Instance.CallbackTask(callback, new CallbackData(ex));
             }
         }
 

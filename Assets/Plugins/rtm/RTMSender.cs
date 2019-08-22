@@ -34,7 +34,7 @@ namespace com.rtm {
                 }
             }
 
-            lock(service_locker) {
+            lock (service_locker) {
 
                 if (service_locker.Status != 0) {
 
@@ -51,7 +51,6 @@ namespace com.rtm {
                     this._serviceThread.Name = "rtm_sender_thread";
                 }
 
-                this._serviceThread.IsBackground = true;
                 this._serviceThread.Start();
             }
         }
@@ -75,10 +74,9 @@ namespace com.rtm {
 
                         list = this._serviceCache;
                         this._serviceCache = new List<ServiceDelegate>();
-
-                        this._serviceEvent.Reset();
                     }
 
+                    this._serviceEvent.Reset();
                     this.CallService(list);
                 }
             } catch (ThreadAbortException tex) {
@@ -87,7 +85,7 @@ namespace com.rtm {
                 ErrorRecorderHolder.recordError(ex);
             } finally {
 
-                this.StopServiceThread();
+                this.StopServiceThread(false);
             }
         }
 
@@ -108,12 +106,20 @@ namespace com.rtm {
             }
         }
 
-        private void StopServiceThread() {
+        private void StopServiceThread(bool destroy) {
 
-            lock(service_locker) {
+            lock (service_locker) {
 
-                service_locker.Status = 0;
-                this._serviceEvent.Set();
+                if (service_locker.Status != 0) {
+
+                    service_locker.Status = 0;
+                    this._serviceEvent.Set();
+                }
+            }
+
+            if (destroy) {
+
+                this._serviceEvent.Close();
             }
         }
 
@@ -121,39 +127,44 @@ namespace com.rtm {
 
         public void AddQuest(FPClient client, FPData data, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
 
+            this.AddService(() => {
+
+                if (client != null) {
+
+                    byte[] bytes;
+
+                    using (MemoryStream outputStream = new MemoryStream()) {
+
+                        MsgPack.Serialize(payload, outputStream);
+                        outputStream.Seek(0, SeekOrigin.Begin);
+
+                        bytes = outputStream.ToArray();
+                    }
+
+                    data.SetPayload(bytes);
+                    client.SendQuest(data, callback, timeout);
+                }
+            });
+        }
+
+        private void AddService(ServiceDelegate service) {
+
             this.StartServiceThread();
 
-            lock(service_locker) {
+            lock (service_locker) {
 
                 if (this._serviceCache.Count < 3000) {
 
-                    this._serviceCache.Add(() => {
-
-                        if (client != null) {
-
-                            byte[] bytes;
-
-                            using (MemoryStream outputStream = new MemoryStream()) {
-
-                                MsgPack.Serialize(payload, outputStream);
-                                outputStream.Seek(0, SeekOrigin.Begin);
-
-                                bytes = outputStream.ToArray();
-                            }
-
-                            data.SetPayload(bytes);
-                            client.SendQuest(data, callback, timeout);
-                        }
-                    });
-                }
+                    this._serviceCache.Add(service);
+                } 
 
                 if (this._serviceCache.Count == 2998) {
 
                     ErrorRecorderHolder.recordError(new Exception("Quest Calls Limit!"));
                 }
-
-                this._serviceEvent.Set();
-            }       
+            } 
+            
+            this._serviceEvent.Set();
         }
 
         public void Destroy() {
@@ -168,7 +179,7 @@ namespace com.rtm {
                 this._destroyed = true;
             }
 
-            this.StopServiceThread();
+            this.StopServiceThread(true);
         }
     }
 }

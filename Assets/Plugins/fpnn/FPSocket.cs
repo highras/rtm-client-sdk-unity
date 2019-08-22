@@ -86,7 +86,7 @@ namespace com.fpnn {
 
             FPSocket self = this;
 
-            ThreadPool.QueueUserWorkItem(new WaitCallback((state) => {
+            FPManager.Instance.AsyncTask(() => {
 
                 lock (conn_locker) {
 
@@ -131,7 +131,7 @@ namespace com.fpnn {
 
                     self.Close(ex);
                 } 
-            }));
+            });
         }
 
         private void ConnectCallback(IAsyncResult ar) {
@@ -158,10 +158,10 @@ namespace com.fpnn {
                     return;
                 }
 
-                this.StartSendThread();
-                this.OnRead(this._stream, socket_locker);
-
                 this.OnConnect();
+
+                this.OnRead(this._stream, socket_locker);
+                this.OnWrite(this._stream);
             } catch (Exception ex) {
 
                 lock (conn_locker) {
@@ -250,15 +250,18 @@ namespace com.fpnn {
 
                 if (firstClose) {
 
-                    Thread.Sleep(200);
+                    FPSocket self = this;
 
-                    lock (socket_locker) {
+                    FPManager.Instance.DelayTask(200, () => {
 
-                        if (socket_locker.Status != 3) {
+                        lock (socket_locker) {
 
-                            this.SocketClose();
+                            if (socket_locker.Status != 3) {
+
+                                self.SocketClose();
+                            }
                         }
-                    }
+                    });
                 }
             } catch (Exception e) {
 
@@ -328,7 +331,7 @@ namespace com.fpnn {
 
         public void Write(byte[] buffer) {
 
-            lock(this._sendQueue) {
+            lock (this._sendQueue) {
 
                 for (int i = 0; i < buffer.Length; i++) {
 
@@ -387,30 +390,13 @@ namespace com.fpnn {
             }
         }
 
-        private void StartSendThread() {
-
-            FPSocket self = this;
-
-            ThreadPool.QueueUserWorkItem(new WaitCallback((state) => { 
-
-                try {
-
-                    self.OnWrite(self._stream);
-                } catch (ThreadAbortException tex) {
-                } catch (Exception ex) {
-
-                    self.Close(ex);
-                } 
-            }));
-        }
-
         private void OnWrite(NetworkStream stream) {
 
             this._sendEvent.WaitOne();
 
             byte[] buffer = new byte[0];
 
-            lock(this._sendQueue) {
+            lock (this._sendQueue) {
 
                 buffer = this._sendQueue.ToArray();
                 this._sendQueue.Clear();
