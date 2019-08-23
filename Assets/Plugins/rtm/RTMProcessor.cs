@@ -59,13 +59,13 @@ namespace com.rtm {
 
             if (data.GetFlag() == 0) {
 
-                if (callCb) {
-
-                    // answer(Json.SerializeToString(new Dictionary<string, object>()), false);
-                    answer(JSON_PAYLOAD, false);
-                }
-
                 try {
+
+                    if (callCb) {
+
+                        // answer(Json.SerializeToString(new Dictionary<string, object>()), false);
+                        answer(JSON_PAYLOAD, false);
+                    }
 
                     payload = Json.Deserialize<IDictionary<string, object>>(data.JsonPayload());
                 }catch(Exception ex) {
@@ -76,19 +76,19 @@ namespace com.rtm {
 
             if (data.GetFlag() == 1) {
 
-                if (callCb) {
-
-                    // using (MemoryStream msgpackStream = new MemoryStream()) {
-
-                    //     MsgPack.Serialize(new Dictionary<string, object>(), msgpackStream);
-                    //     msgpackStream.Seek(0, SeekOrigin.Begin);
-
-                    //     answer(msgpackStream.ToArray(), false);
-                    // }
-                    answer(MSGPACK_PAYLOAD, false);
-                }
-
                 try {
+
+                    if (callCb) {
+
+                        // using (MemoryStream msgpackStream = new MemoryStream()) {
+
+                        //     MsgPack.Serialize(new Dictionary<string, object>(), msgpackStream);
+                        //     msgpackStream.Seek(0, SeekOrigin.Begin);
+
+                        //     answer(msgpackStream.ToArray(), false);
+                        // }
+                        answer(MSGPACK_PAYLOAD, false);
+                    }
 
                     using (MemoryStream inputStream = new MemoryStream(data.MsgpackPayload())) {
 
@@ -102,12 +102,18 @@ namespace com.rtm {
 
             if (payload != null) {
 
-                MethodInfo method = this._type.GetMethod(data.GetMethod());
+                try {
 
-                if (method != null) {
+                    MethodInfo method = this._type.GetMethod(data.GetMethod());
 
-                    object[] paras = new object[] {payload};
-                    method.Invoke(this, paras);
+                    if (method != null) {
+
+                        object[] paras = new object[] {payload};
+                        method.Invoke(this, paras);
+                    }
+                } catch(Exception ex) {
+
+                    ErrorRecorderHolder.recordError(ex);
                 }
             }
         }
@@ -158,9 +164,15 @@ namespace com.rtm {
 
                     Action<IDictionary<string, object>> action = this._actionDict[name];
 
-                    if (action != null) {
+                    try {
 
-                        action(data);
+                        if (action != null) {
+
+                            action(data);
+                        }
+                    } catch(Exception ex) {
+
+                        ErrorRecorderHolder.recordError(ex);
                     }
                 }
             }

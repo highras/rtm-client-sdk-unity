@@ -26,14 +26,6 @@ namespace com.rtm {
 
         private void StartServiceThread() {
 
-            lock (self_locker) {
-
-                if (this._destroyed) {
-
-                    return;
-                }
-            }
-
             lock (service_locker) {
 
                 if (service_locker.Status != 0) {
@@ -42,16 +34,23 @@ namespace com.rtm {
                 }
 
                 service_locker.Status = 1;
-                this._serviceEvent.Reset();
 
-                this._serviceThread = new Thread(new ThreadStart(ServiceThread));
+                try {
 
-                if (this._serviceThread.Name == null) {
+                    this._serviceEvent.Reset();
 
-                    this._serviceThread.Name = "rtm_sender_thread";
+                    this._serviceThread = new Thread(new ThreadStart(ServiceThread));
+
+                    if (this._serviceThread.Name == null) {
+
+                        this._serviceThread.Name = "RTM-SENDER";
+                    }
+
+                    this._serviceThread.Start();
+                } catch(Exception ex) {
+
+                    ErrorRecorderHolder.recordError(ex); 
                 }
-
-                this._serviceThread.Start();
             }
         }
 
@@ -113,7 +112,14 @@ namespace com.rtm {
                 if (service_locker.Status != 0) {
 
                     service_locker.Status = 0;
-                    this._serviceEvent.Set();
+
+                    try {
+
+                        this._serviceEvent.Set();
+                    } catch(Exception ex) {
+
+                        ErrorRecorderHolder.recordError(ex); 
+                    }
                 }
             }
         }
@@ -143,6 +149,14 @@ namespace com.rtm {
         }
 
         private void AddService(ServiceDelegate service) {
+
+            lock (self_locker) {
+
+                if (this._destroyed) {
+
+                    return;
+                }
+            }
 
             this.StartServiceThread();
 
@@ -175,6 +189,11 @@ namespace com.rtm {
             }
 
             this.StopServiceThread();
+
+            lock (service_locker) {
+
+                this._serviceCache.Clear();
+            }
         }
     }
 }

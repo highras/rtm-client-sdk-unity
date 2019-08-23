@@ -41,6 +41,9 @@ namespace com.fpnn {
             }
         }
 
+        private bool _destroyed;
+        private object self_locker = new object();
+
         public FPManager() {}
 
         private Timer _threadTimer = null;
@@ -48,6 +51,14 @@ namespace com.fpnn {
         private List<EventDelegate> _secondCalls = new List<EventDelegate>();
 
         public void AddSecond(EventDelegate callback) {
+
+            lock (self_locker) {
+
+                if (this._destroyed) {
+
+                    return;
+                }
+            }
 
             lock (timer_locker) {
 
@@ -98,7 +109,13 @@ namespace com.fpnn {
 
                 if (this._threadTimer == null) {
 
-                    this._threadTimer = new Timer(new TimerCallback(OnSecond), null, 1000, 1000);
+                    try {
+
+                        this._threadTimer = new Timer(new TimerCallback(OnSecond), null, 1000, 1000);
+                    } catch (Exception ex) {
+
+                        ErrorRecorderHolder.recordError(ex);
+                    }
                 }
             }
         }
@@ -136,8 +153,14 @@ namespace com.fpnn {
 
                 if (this._threadTimer != null) {
 
-                    this._threadTimer.Dispose();
-                    this._threadTimer = null;
+                    try {
+
+                        this._threadTimer.Dispose();
+                        this._threadTimer = null;
+                    } catch (Exception ex) {
+
+                        ErrorRecorderHolder.recordError(ex);
+                    }
                 }
             }
         }
@@ -157,16 +180,23 @@ namespace com.fpnn {
                 }
 
                 service_locker.Status = 1;
-                this._serviceEvent.Reset();
 
-                this._serviceThread = new Thread(new ThreadStart(ServiceThread));
+                try {
 
-                if (this._serviceThread.Name == null) {
+                    this._serviceEvent.Reset();
 
-                    this._serviceThread.Name = "fpnn_service_thread";
+                    this._serviceThread = new Thread(new ThreadStart(ServiceThread));
+
+                    if (this._serviceThread.Name == null) {
+
+                        this._serviceThread.Name = "FPNN-SERVICE";
+                    }
+
+                    this._serviceThread.Start();
+                } catch (Exception ex) {
+
+                    ErrorRecorderHolder.recordError(ex);
                 }
-
-                this._serviceThread.Start();
             }
         }
 
@@ -228,7 +258,14 @@ namespace com.fpnn {
                 if (service_locker.Status != 0) {
 
                     service_locker.Status = 0;
-                    this._serviceEvent.Set();
+
+                    try {
+
+                        this._serviceEvent.Set();
+                    } catch(Exception ex) {
+
+                        ErrorRecorderHolder.recordError(ex);
+                    }
                 }
             }
         }
@@ -289,6 +326,14 @@ namespace com.fpnn {
         }
 
         private void AddService(ServiceDelegate service) {
+
+            lock (self_locker) {
+
+                if (this._destroyed) {
+
+                    return;
+                }
+            }
 
             this.StartServiceThread();
 

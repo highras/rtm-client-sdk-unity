@@ -91,13 +91,10 @@ client.Login(null);
 ```
 
 #### 测试 ####
-参考`Assets/Scripts/Main.cs`:
+`../Assets/Scripts/TestCase.cs`:
+`../Assets/Scripts/SingleClientPush.cs`:
+`../Assets/Scripts/SingleClientSend.cs`:
 
-```c#
-
-//TestCase
-this.BaseTest(fileBytes);
-```
 
 #### Events ####
 * `event`:

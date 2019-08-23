@@ -1,5 +1,3 @@
 Base path: /Applications/Unity/Unity.app/Contents
 Cmd: initializeCompiler
-Unhandled exception: Protocol error - unexpected end of data (did the Editor crash?)
-
-Quitting shader compiler process
+Cmd: initializeCompiler

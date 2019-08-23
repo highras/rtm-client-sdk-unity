@@ -59,14 +59,6 @@ namespace com.fpnn {
 
         private void StartServiceThread() {
 
-            lock (self_locker) {
-
-                if (this._destroyed) {
-
-                    return;
-                }
-            }
-
             lock (service_locker) {
 
                 if (service_locker.Status != 0) {
@@ -75,16 +67,23 @@ namespace com.fpnn {
                 }
 
                 service_locker.Status = 1;
-                this._serviceEvent.Reset();
 
-                this._serviceThread = new Thread(new ThreadStart(ServiceThread));
+                try {
 
-                if (this._serviceThread.Name == null) {
+                    this._serviceEvent.Reset();
 
-                    this._serviceThread.Name = "fpnn_push_thread";
+                    this._serviceThread = new Thread(new ThreadStart(ServiceThread));
+
+                    if (this._serviceThread.Name == null) {
+
+                        this._serviceThread.Name = "FPNN_PUSH";
+                    }
+
+                    this._serviceThread.Start();
+                } catch(Exception ex) {
+
+                    ErrorRecorderHolder.recordError(ex);
                 }
-
-                this._serviceThread.Start();
             }
         }
 
@@ -146,7 +145,14 @@ namespace com.fpnn {
                 if (service_locker.Status != 0) {
 
                     service_locker.Status = 0;
-                    this._serviceEvent.Set();
+
+                    try {
+
+                        this._serviceEvent.Set();
+                    } catch(Exception ex) {
+
+                        ErrorRecorderHolder.recordError(ex);
+                    }
                 }
             }
         }
@@ -184,6 +190,14 @@ namespace com.fpnn {
 
         private void AddService(ServiceDelegate service) {
 
+            lock (self_locker) {
+
+                if (this._destroyed) {
+
+                    return;
+                }
+            }
+
             this.StartServiceThread();
 
             lock (service_locker) {
@@ -204,12 +218,18 @@ namespace com.fpnn {
 
         public void OnSecond(long timestamp) {
 
-            lock (self_locker) {
+            try {
 
-                if (this._processor != null) {
+                lock (self_locker) {
 
-                    this._processor.OnSecond(timestamp);
+                    if (this._processor != null) {
+
+                        this._processor.OnSecond(timestamp);
+                    }
                 }
+            } catch(Exception ex) {
+
+                ErrorRecorderHolder.recordError(ex);
             }
         }
 
@@ -226,6 +246,11 @@ namespace com.fpnn {
             }
 
             this.StopServiceThread();
+
+            lock (service_locker) {
+
+                this._serviceCache.Clear();
+            }
         }
     }
 }

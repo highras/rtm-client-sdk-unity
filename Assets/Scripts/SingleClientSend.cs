@@ -100,7 +100,6 @@ namespace com.test {
                 send_locker.Status = 1;
 
                 this._thread = new Thread(new ThreadStart(SendMessage));
-                this._thread.IsBackground = true;
                 this._thread.Start();
             }
         }
