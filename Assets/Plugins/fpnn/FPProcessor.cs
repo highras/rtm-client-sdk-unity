@@ -76,7 +76,7 @@ namespace com.fpnn {
 
                     if (this._serviceThread.Name == null) {
 
-                        this._serviceThread.Name = "FPNN_PUSH";
+                        this._serviceThread.Name = "FPNN-PUSH";
                     }
 
                     this._serviceThread.Start();
@@ -125,15 +125,15 @@ namespace com.fpnn {
 
             foreach (ServiceDelegate service in list) {
 
-                if (service != null) {
+                try {
 
-                    try {
+                    if (service != null) {
 
                         service();
-                    } catch(Exception ex) {
-
-                        ErrorRecorderHolder.recordError(ex);
                     }
+                } catch(Exception ex) {
+
+                    ErrorRecorderHolder.recordError(ex);
                 }
             }
         }
