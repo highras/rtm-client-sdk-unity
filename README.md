@@ -209,8 +209,8 @@ this.BaseTest(fileBytes);
     * `dispatch`: **(string)** Dispatch服务地址, RTM提供
     * `pid`: **(int)** 应用编号, RTM提供
     * `uid`: **(long)** 用户ID
-    * `token`: **(string)** 用户登录Token, RTM提供
-    * `version`: **(string)** 服务器版本号, RTM提供
+    * `token`: **(string)** 用户登录Token, 通过服务端RTM获取
+    * `version`: **(string)** RTM服务版本号, RTM提供
     * `attrs`: **(IDictionary(string,string))** 设置用户端信息, 保存在当前链接中, 客户端可以获取到
     * `reconnect`: **(bool)** 是否自动重连
     * `timeout`: **(int)** 超时时间(ms), 默认: `30 * 1000`
