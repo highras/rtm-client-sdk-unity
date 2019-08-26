@@ -73,45 +73,24 @@ namespace com.fpnn {
 
                     return;
                 }
-            }
 
-            FPProcessor self = this;
+                service_locker.Status = 1;
 
-            FPManager.Instance.ExecTask((state) => {
+                try {
 
-                lock (self_locker) {
+                    this._serviceThread = new Thread(new ThreadStart(ServiceThread));
 
-                    if (self._destroyed) {
+                    if (this._serviceThread.Name == null) {
 
-                        return;
+                        this._serviceThread.Name = "FPNN-PUSH";
                     }
+
+                    this._serviceThread.Start();
+                } catch(Exception ex) {
+
+                    ErrorRecorderHolder.recordError(ex);
                 }
-
-                lock (service_locker) {
-
-                    if (service_locker.Status != 0) {
-
-                        return;
-                    }
-
-                    service_locker.Status = 1;
-
-                    try {
-
-                        self._serviceThread = new Thread(new ThreadStart(ServiceThread));
-
-                        if (self._serviceThread.Name == null) {
-
-                            self._serviceThread.Name = "FPNN-PUSH";
-                        }
-
-                        self._serviceThread.Start();
-                    } catch(Exception ex) {
-
-                        ErrorRecorderHolder.recordError(ex);
-                    }
-                } 
-            }, null);
+            } 
         }
 
         private void ServiceThread() {

@@ -40,45 +40,24 @@ namespace com.rtm {
 
                     return;
                 }
+
+                service_locker.Status = 1;
+
+                try {
+
+                    this._serviceThread = new Thread(new ThreadStart(ServiceThread));
+
+                    if (this._serviceThread.Name == null) {
+
+                        this._serviceThread.Name = "RTM-SENDER";
+                    }
+
+                    this._serviceThread.Start();
+                } catch(Exception ex) {
+
+                    ErrorRecorderHolder.recordError(ex); 
+                }
             }
-
-            RTMSender self = this;
-
-            FPManager.Instance.ExecTask((state) => {
-
-                lock (self_locker) {
-
-                    if (self._destroyed) {
-
-                        return;
-                    }
-                }
-
-                lock (service_locker) {
-
-                    if (service_locker.Status != 0) {
-
-                        return;
-                    }
-
-                    service_locker.Status = 1;
-
-                    try {
-
-                        self._serviceThread = new Thread(new ThreadStart(ServiceThread));
-
-                        if (self._serviceThread.Name == null) {
-
-                            self._serviceThread.Name = "RTM-SENDER";
-                        }
-
-                        self._serviceThread.Start();
-                    } catch(Exception ex) {
-
-                        ErrorRecorderHolder.recordError(ex); 
-                    }
-                }
-            }, null);
         }
 
         private void ServiceThread() {

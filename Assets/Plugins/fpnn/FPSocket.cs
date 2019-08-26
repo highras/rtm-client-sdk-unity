@@ -82,6 +82,9 @@ namespace com.fpnn {
 
                     return;
                 }
+
+                conn_locker.Status = 1;
+                conn_locker.timestamp = FPManager.Instance.GetMilliTimestamp();
             }
 
             FPSocket self = this;
@@ -90,13 +93,12 @@ namespace com.fpnn {
 
                 lock (conn_locker) {
 
-                    if (conn_locker.Status != 0) {
+                    if (conn_locker.Status != 1) {
 
                         return;
                     }
 
-                    conn_locker.Status = 1;
-                    conn_locker.timestamp = FPManager.Instance.GetMilliTimestamp();
+                    conn_locker.Status = 2;
                 }
 
                 try {
@@ -198,7 +200,7 @@ namespace com.fpnn {
 
             lock (conn_locker) {
 
-                return conn_locker.Status == 1;
+                return conn_locker.Status != 0;
             }
         }
 
@@ -208,7 +210,7 @@ namespace com.fpnn {
 
             lock (conn_locker) {
 
-                if (conn_locker.Status == 1) {
+                if (conn_locker.Status != 0) {
 
                     if (timestamp - conn_locker.timestamp >= this._timeout) {
 
