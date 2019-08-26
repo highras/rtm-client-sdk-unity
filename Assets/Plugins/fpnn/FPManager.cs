@@ -41,24 +41,19 @@ namespace com.fpnn {
             }
         }
 
-        private bool _destroyed;
-        private object self_locker = new object();
-
         public FPManager() {}
 
         private Timer _threadTimer = null;
         private TimerLocker timer_locker = new TimerLocker();
         private List<EventDelegate> _secondCalls = new List<EventDelegate>();
 
+        public void Init() {
+
+            this.StartTimerThread();
+            this.StartServiceThread();
+        }
+
         public void AddSecond(EventDelegate callback) {
-
-            lock (self_locker) {
-
-                if (this._destroyed) {
-
-                    return;
-                }
-            }
 
             lock (timer_locker) {
 
@@ -76,8 +71,6 @@ namespace com.fpnn {
 
         public void RemoveSecond(EventDelegate callback) {
 
-            bool stop = false;
-
             lock (timer_locker) {
 
                 int index = this._secondCalls.IndexOf(callback);
@@ -86,13 +79,6 @@ namespace com.fpnn {
 
                     this._secondCalls.RemoveAt(index);
                 }
-
-                stop = this._secondCalls.Count == 0;
-            }
-
-            if (stop) {
-
-                this.StopTimerThread();
             }
         }
 
@@ -134,13 +120,7 @@ namespace com.fpnn {
 
                 if (service != null) {
 
-                    try {
-
-                        service(new EventData("second", FPManager.Instance.GetMilliTimestamp()));
-                    } catch(Exception ex) {
-
-                        ErrorRecorderHolder.recordError(ex);
-                    }
+                    this.EventTask(service, new EventData("second", FPManager.Instance.GetMilliTimestamp()));
                 }
             }
         }
@@ -162,6 +142,8 @@ namespace com.fpnn {
                         ErrorRecorderHolder.recordError(ex);
                     }
                 }
+
+                this._secondCalls.Clear();
             }
         }
 
@@ -182,8 +164,6 @@ namespace com.fpnn {
                 service_locker.Status = 1;
 
                 try {
-
-                    this._serviceEvent.Reset();
 
                     this._serviceThread = new Thread(new ThreadStart(ServiceThread));
 
@@ -294,6 +274,17 @@ namespace com.fpnn {
             });
         }
 
+        public void ExecTask(Action<object> taskAction, object state) {
+
+            this.AddService(() => {
+
+                if (taskAction != null) {
+
+                    taskAction(state);
+                }
+            });
+        }
+
         public void AsyncTask(Action taskAction) {
 
             this.DelayTask(0, taskAction);
@@ -327,14 +318,6 @@ namespace com.fpnn {
 
         private void AddService(ServiceDelegate service) {
 
-            lock (self_locker) {
-
-                if (this._destroyed) {
-
-                    return;
-                }
-            }
-
             this.StartServiceThread();
 
             lock (service_locker) {
@@ -350,7 +333,13 @@ namespace com.fpnn {
                 }
             } 
 
-            this._serviceEvent.Set();
+            try {
+
+                this._serviceEvent.Set();
+            } catch (Exception ex) {
+
+                ErrorRecorderHolder.recordError(ex);
+            }
         }
 
         public Int64 GetMilliTimestamp() {

@@ -11,6 +11,14 @@ using UnityEngine;
 
 namespace com.rtm {
 
+    public static class RTMRegistration {
+
+        static public void Register() {
+
+            FPManager.Instance.Init();
+        }
+    }
+
     public class RTMClient {
 
         private static class MidGenerator {

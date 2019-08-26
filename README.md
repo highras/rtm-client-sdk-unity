@@ -9,9 +9,11 @@
 * 兼容`DNS64/NAT64`网络环境
 
 #### 其他 ####
+* `RTMClient`可在任意线程中构造实例和调用函数, 前提是`RTMRegistration`已被初始化
+* `RTMRegistration`初始化, 在Unity主线程中调用`RTMRegistration.Register();`
 * 异步函数均由子线程呼叫, 不要在其中调用仅UI线程可执行的函数, 不要阻塞事件和回调函数
 * 默认连接会自动保持, 如实现按需连接则需要通过`Login()`和`Close()`进行连接或关闭处理
-* 或可通过`login`和`close`事件以及注册`ping`服务来对连接进行管理
+* 可通过`login`和`close`事件以及注册`ping`服务来对连接进行管理
 * 消息发送接口仅支持`UTF-8`格式编码的`string`类型数据, `Binary`数据需进行`Base64`编解码
 
 #### 一个例子 ####
@@ -25,7 +27,10 @@ using com.rtm;
 using UnityEngine;
 ...
 
-// 创建Client
+// UnityMainThread
+RTMRegistration.Register();
+
+// AnyThread
 RTMClient client = new RTMClient(
     "52.83.245.22:13325",
     1000012,

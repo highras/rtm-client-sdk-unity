@@ -26,32 +26,59 @@ namespace com.rtm {
 
         private void StartServiceThread() {
 
+            lock (self_locker) {
+
+                if (this._destroyed) {
+
+                    return;
+                }
+            }
+
             lock (service_locker) {
 
                 if (service_locker.Status != 0) {
 
                     return;
                 }
+            }
 
-                service_locker.Status = 1;
+            RTMSender self = this;
 
-                try {
+            FPManager.Instance.ExecTask((state) => {
 
-                    this._serviceEvent.Reset();
+                lock (self_locker) {
 
-                    this._serviceThread = new Thread(new ThreadStart(ServiceThread));
+                    if (self._destroyed) {
 
-                    if (this._serviceThread.Name == null) {
+                        return;
+                    }
+                }
 
-                        this._serviceThread.Name = "RTM-SENDER";
+                lock (service_locker) {
+
+                    if (service_locker.Status != 0) {
+
+                        return;
                     }
 
-                    this._serviceThread.Start();
-                } catch(Exception ex) {
+                    service_locker.Status = 1;
 
-                    ErrorRecorderHolder.recordError(ex); 
+                    try {
+
+                        self._serviceThread = new Thread(new ThreadStart(ServiceThread));
+
+                        if (self._serviceThread.Name == null) {
+
+                            self._serviceThread.Name = "RTM-SENDER";
+                        }
+
+                        self._serviceThread.Start();
+                    } catch(Exception ex) {
+
+                        ErrorRecorderHolder.recordError(ex); 
+                    }
                 }
-            }
+            }, null);
         }
 
         private void ServiceThread() {
@@ -173,7 +200,13 @@ namespace com.rtm {
                 }
             } 
             
-            this._serviceEvent.Set();
+            try {
+
+                this._serviceEvent.Set();
+            } catch(Exception ex) {
+
+                ErrorRecorderHolder.recordError(ex);
+            }
         }
 
         public void Destroy() {

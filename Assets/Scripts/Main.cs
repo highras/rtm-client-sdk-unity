@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using com.test;
+using com.rtm;
 
 using UnityEngine;
 
@@ -18,8 +19,10 @@ public class Main : MonoBehaviour {
 
     void Start() {
 
+        RTMRegistration.Register();
+
         byte[] fileBytes = null;
-        // byte[] fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
+        // fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
 
         //SingleClientSend
         this._testCase = new SingleClientSend();
@@ -28,7 +31,7 @@ public class Main : MonoBehaviour {
         // this._testCase = new SingleClientPush();
 
         //TestCase
-        // this._testCase = new TestCase(777779, "47209A41E00470AC2919A6C13C7B996E");
+        this._testCase = new TestCase(777779, "64D464D591A479FAD3D9B2B89517CC62");
 
         this._testCase.StartTest(fileBytes);
     }

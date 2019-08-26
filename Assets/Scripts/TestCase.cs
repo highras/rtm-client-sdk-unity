@@ -170,6 +170,7 @@ namespace com.test {
             int timeout = 20 * 1000;
             int sleep = 1000;
 
+            Debug.Log("[TEST] begin");
             this.ThreadSleep(sleep);
 
             //rtmGate (2)
@@ -788,7 +789,7 @@ namespace com.test {
             //---------------------------------Close--------------------------------------
             // this._client.Close();
 
-            Debug.Log("[ " + (this._sleepCount - 1) + " ]=====================================================================");
+            Debug.Log("[TEST] end@" + (this._sleepCount - 1));
         }
 
         private void ThreadSleep(int ms) {
