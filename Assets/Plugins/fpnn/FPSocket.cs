@@ -89,7 +89,7 @@ namespace com.fpnn {
 
             FPSocket self = this;
 
-            FPManager.Instance.AsyncTask(() => {
+            FPManager.Instance.AsyncTask((state) => {
 
                 lock (conn_locker) {
 
@@ -133,7 +133,7 @@ namespace com.fpnn {
 
                     self.Close(ex);
                 } 
-            });
+            }, null);
         }
 
         private void ConnectCallback(IAsyncResult ar) {
@@ -244,7 +244,13 @@ namespace com.fpnn {
                             this.OnError(ex);
                         }
 
-                        this._sendEvent.Set();
+                        try {
+
+                            this._sendEvent.Set();
+                        } catch(Exception e) {
+
+                            ErrorRecorderHolder.recordError(e);
+                        }
                     }
 
                     this.TryClose();
@@ -254,7 +260,7 @@ namespace com.fpnn {
 
                     FPSocket self = this;
 
-                    FPManager.Instance.DelayTask(200, () => {
+                    FPManager.Instance.DelayTask(200, (state) => {
 
                         lock (socket_locker) {
 
@@ -263,7 +269,7 @@ namespace com.fpnn {
                                 self.SocketClose();
                             }
                         }
-                    });
+                    }, null);
                 }
             } catch (Exception e) {
 
@@ -302,7 +308,14 @@ namespace com.fpnn {
                 this._socket = null;
             }
 
-            this._sendEvent.Close();
+            try {
+
+                this._sendEvent.Close();
+            } catch(Exception ex) {
+
+                ErrorRecorderHolder.recordError(ex);
+            }
+
             this.OnClose();
         }
 
@@ -349,7 +362,13 @@ namespace com.fpnn {
                 }
             }
 
-            this._sendEvent.Set();
+            try {
+
+                this._sendEvent.Set();
+            } catch (Exception ex) {
+
+                ErrorRecorderHolder.recordError(ex);
+            }
         }
 
         public string GetHost() {
@@ -405,7 +424,16 @@ namespace com.fpnn {
 
         private void OnWrite(NetworkStream stream) {
 
-            this._sendEvent.WaitOne();
+            try {
+
+                if (!this._sendEvent.SafeWaitHandle.IsClosed) {
+
+                    this._sendEvent.WaitOne();
+                }
+            } catch(Exception ex) {
+
+                ErrorRecorderHolder.recordError(ex);
+            }
 
             byte[] buffer = new byte[0];
 
@@ -424,7 +452,13 @@ namespace com.fpnn {
 
                 if (socket_locker.Status == 0) {
 
-                    this._sendEvent.Reset();
+                    try {
+
+                        this._sendEvent.Reset();
+                    } catch(Exception ex) {
+
+                        ErrorRecorderHolder.recordError(ex);
+                    }
                 }
 
                 socket_locker.Count++;

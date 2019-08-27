@@ -285,16 +285,16 @@ namespace com.fpnn {
             });
         }
 
-        public void AsyncTask(Action taskAction) {
+        public void AsyncTask(Action<object> taskAction, object state) {
 
-            this.DelayTask(0, taskAction);
+            this.DelayTask(0, taskAction, state);
         }
 
-        public void DelayTask(int milliSecond, Action taskAction) {
+        public void DelayTask(int milliSecond, Action<object> taskAction, object state) {
 
             this.AddService(() => {
 
-                ThreadPool.QueueUserWorkItem(new WaitCallback((state) => {
+                ThreadPool.QueueUserWorkItem(new WaitCallback((st) => {
 
                     try {
 
@@ -305,14 +305,14 @@ namespace com.fpnn {
 
                         if (taskAction != null) {
 
-                            taskAction();
+                            taskAction(st);
                         }
                     } catch (ThreadAbortException tex) {
                     } catch (Exception ex) {
 
                         ErrorRecorderHolder.recordError(ex);
                     } 
-                }));
+                }), state);
             });
         }
 
