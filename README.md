@@ -96,9 +96,9 @@ client.Login(null);
 ```
 
 #### 测试 ####
-`../Assets/Scripts/TestCase.cs`:
-`../Assets/Scripts/SingleClientPush.cs`:
-`../Assets/Scripts/SingleClientSend.cs`:
+`../Assets/Scripts/TestCase.cs`
+`../Assets/Scripts/SingleClientPush.cs`
+`../Assets/Scripts/SingleClientSend.cs`
 
 
 #### Events ####
