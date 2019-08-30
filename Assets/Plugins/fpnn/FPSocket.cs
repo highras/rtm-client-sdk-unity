@@ -11,7 +11,7 @@ namespace com.fpnn {
 
     public class FPSocket {
 
-        public class SocketLocker {
+        private class SocketLocker {
 
             public int Count = 0;
             public int Status = 0;
