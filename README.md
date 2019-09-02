@@ -95,13 +95,6 @@ client.Login(null);
 // client = null;
 ```
 
-#### 测试 ####
-```
-../Assets/Scripts/TestCase.cs
-../Assets/Scripts/SingleClientPush.cs
-../Assets/Scripts/SingleClientSend.cs
-```
-
 #### Events ####
 * `event`:
     * `login`: 登陆
@@ -208,6 +201,8 @@ client.Login(null);
             * `data.mtime`: **(long)**
 
 #### API ####
+* `RTMRegistration.Register()`: 在`Unity`主线程中注册RTM服务
+
 * `Constructor(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug)`: 构造RTMClient
     * `dispatch`: **(string)** Dispatch服务地址, RTM提供
     * `pid`: **(int)** 应用编号, RTM提供
