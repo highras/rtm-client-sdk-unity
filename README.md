@@ -201,7 +201,7 @@ client.Login(null);
             * `data.mtime`: **(long)**
 
 #### API ####
-* `RTMRegistration.Register()`: 在`Unity`主线程中注册RTM服务
+* `RTMRegistration::Register()`: 在`Unity`主线程中注册RTM服务
 
 * `Constructor(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug)`: 构造RTMClient
     * `dispatch`: **(string)** Dispatch服务地址, RTM提供
