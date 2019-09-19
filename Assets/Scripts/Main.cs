@@ -2,10 +2,10 @@
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using com.test;
-using com.rtm;
 
 using UnityEngine;
+
+using com.rtm;
 
 public class Main : MonoBehaviour {
 
@@ -31,7 +31,7 @@ public class Main : MonoBehaviour {
         // this._testCase = new SingleClientPush();
 
         //TestCase
-        // this._testCase = new TestCase(777779, "FBD1143D8120FABB8E89F6B85CCF6DD6");
+        // this._testCase = new TestCase(777779, "49B361016F7AEFC489227F9A4101BA2F");
 
         this._testCase.StartTest(fileBytes);
     }

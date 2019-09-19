@@ -68,6 +68,7 @@
      <Compile Include="Assets\Plugins\fpnn\FPPackage.cs" />
      <Compile Include="Assets\Plugins\fpnn\FPProcessor.cs" />
      <Compile Include="Assets\Plugins\fpnn\FPSocket.cs" />
+     <Compile Include="Assets\Plugins\GameDevWare.Serialization\ArrayExtensions.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\GenerateTypeSerializerAttribute.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\IJsonReader.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\IJsonWriter.cs" />
@@ -105,6 +106,7 @@
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\Metadata\DataMemberDescription.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\Metadata\FieldDescription.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\Metadata\MemberDescription.cs" />
+     <Compile Include="Assets\Plugins\GameDevWare.Serialization\Metadata\MetadataReflection.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\Metadata\PropertyDescription.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\Metadata\ReflectionUtils.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\Metadata\TypeDescription.cs" />
