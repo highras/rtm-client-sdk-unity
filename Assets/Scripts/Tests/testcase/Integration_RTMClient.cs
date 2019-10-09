@@ -38,7 +38,6 @@ public class Integration_RTMClient {
             true
         );
         Assert.IsNotNull(client.GetProcessor());
-
         client.Destroy();
         yield return new WaitForSeconds(1.0f);
     }
@@ -57,7 +56,6 @@ public class Integration_RTMClient {
             true
         );
         Assert.IsNull(client.GetPackage());
-
         client.Destroy();
         yield return new WaitForSeconds(1.0f);
     }
@@ -87,10 +85,8 @@ public class Integration_RTMClient {
         yield return new WaitForSeconds(2.0f);
         Assert.IsNotNull(client.GetPackage());
         Assert.IsNotNull(client.GetProcessor());
-
         client.Destroy();
         yield return new WaitForSeconds(1.0f);
-
         Assert.AreEqual(1, loginCount);
         Assert.AreEqual(1, closeCount);
     }
@@ -119,10 +115,8 @@ public class Integration_RTMClient {
         client.Login(null);
         client.Login(null);
         yield return new WaitForSeconds(2.0f);
-
         client.Destroy();
         yield return new WaitForSeconds(1.0f);
-
         Assert.AreEqual(1, loginCount);
         Assert.AreEqual(1, closeCount);
     }
@@ -154,10 +148,8 @@ public class Integration_RTMClient {
         yield return new WaitForSeconds(1.0f);
         client.Login(null);
         yield return new WaitForSeconds(2.0f);
-
         client.Destroy();
         yield return new WaitForSeconds(1.0f);
-
         Assert.AreEqual(1, loginCount);
         Assert.AreEqual(1, closeCount);
     }
@@ -189,10 +181,8 @@ public class Integration_RTMClient {
         yield return new WaitForSeconds(1.0f);
         client.Login(null);
         yield return new WaitForSeconds(2.0f);
-
         client.Destroy();
         yield return new WaitForSeconds(1.0f);
-
         Assert.AreEqual(2, loginCount);
         Assert.AreEqual(2, closeCount);
     }
@@ -222,10 +212,8 @@ public class Integration_RTMClient {
         yield return new WaitForSeconds(1.0f);
         client.Login(null);
         yield return new WaitForSeconds(2.0f);
-
         client.Destroy();
         yield return new WaitForSeconds(1.0f);
-
         Assert.AreEqual(1, loginCount);
         Assert.AreEqual(1, closeCount);
     }
@@ -255,7 +243,6 @@ public class Integration_RTMClient {
         yield return new WaitForSeconds(1.0f);
         client.Login(null);
         yield return new WaitForSeconds(2.0f);
-
         Assert.AreEqual(0, loginCount);
         Assert.AreEqual(1, closeCount);
     }
