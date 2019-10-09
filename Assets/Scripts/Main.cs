@@ -18,49 +18,36 @@ public class Main : MonoBehaviour {
     private ITestCase _testCase;
 
     void Start() {
-
         RTMRegistration.Register();
-
         byte[] fileBytes = null;
         // fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
-
         //SingleClientSend
         this._testCase = new SingleClientSend();
-
         //SingleClientPush
         // this._testCase = new SingleClientPush();
-
         //TestCase
-        // this._testCase = new TestCase(777779, "49B361016F7AEFC489227F9A4101BA2F");
-
+        // this._testCase = new TestCase(777779, "B3D8012408C024293D0557FBE1CA0A88");
         this._testCase.StartTest(fileBytes);
     }
 
     byte[] LoadFile(string filePath) {
-
         FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         byte[] bytes = new byte[fs.Length];
-
         fs.Read(bytes, 0, bytes.Length);
         fs.Close();
-
         return bytes;
-    } 
+    }
 
     void Update() {}
 
     void OnApplicationQuit() {
-
         if (this._testCase != null) {
-
             this._testCase.StopTest();
         }
     }
 
     void OnApplicationPause() {
-    	
         if (this._testCase != null) {
-
             this._testCase.StopTest();
         }
     }

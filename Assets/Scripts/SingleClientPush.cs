@@ -23,7 +23,6 @@ public class SingleClientPush : Main.ITestCase {
     public SingleClientPush() {}
 
     public void StartTest(byte[] fileBytes) {
-
         this._client = new RTMClient(
             "rtm-intl-frontgate.funplus.com:13325",
             11000002,
@@ -36,93 +35,62 @@ public class SingleClientPush : Main.ITestCase {
             // false
             true
         );
-
         SingleClientPush self = this;
-
         this._client.GetEvent().AddListener("login", (evd) => {
-
             if (evd.GetException() == null) {
-
                 Debug.Log("test start!");
             } else {
-
                 Debug.Log(evd.GetException());
             }
         });
-
         this._client.GetEvent().AddListener("close", (evd) => {
-
             Debug.Log("closed!");
         });
-
         this._client.GetEvent().AddListener("error", (evd) => {
-
             Debug.Log(evd.GetException());
         });
-
         RTMProcessor processor = this._client.GetProcessor();
-
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvPing, (data) => {
-
             self.RevcInc();
             // Debug.Log("[PUSH] ping: " + Json.SerializeToString(data));
         });
-
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
-
             self.RevcInc();
             // Debug.Log("[recvMessage]: " + Json.SerializeToString(data));
         });
-
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupMessage, (data) => {
-
             self.RevcInc();
             // Debug.Log("[recvGroupMessage]: ");
         });
-
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomMessage, (data) => {
-
             self.RevcInc();
             // Debug.Log("[recvRoomMessage]: ");
         });
-
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastMessage, (data) => {
-
             self.RevcInc();
             // Debug.Log("[recvBroadcastMessage]: ");
         });
-
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvFile, (data) => {
-
             self.RevcInc();
             // Debug.Log("[recvFile]: ");
         });
-
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvRoomFile, (data) => {
-
             self.RevcInc();
             // Debug.Log("[recvRoomFile]: ");
         });
-
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvGroupFile, (data) => {
-
             self.RevcInc();
             // Debug.Log("[recvGroupFile]: ");
         });
-
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvBroadcastFile, (data) => {
-
             self.RevcInc();
             // Debug.Log("[recvBroadcastFile]: ");
         });
-
         this._client.Login(null);
     }
 
     public void StopTest() {
-
         if (this._client != null) {
-
             this._client.Destroy();
         }
     }
@@ -133,30 +101,24 @@ public class SingleClientPush : Main.ITestCase {
     private object inc_locker = new object();
 
     private void RevcInc() {
-
-        lock(inc_locker) {
-
+        lock (inc_locker) {
             this._recvCount++;
 
             if (this._traceTimestamp <= 0) {
-
                 this._traceTimestamp = com.fpnn.FPManager.Instance.GetMilliTimestamp();
             }
 
             int interval = (int)((com.fpnn.FPManager.Instance.GetMilliTimestamp() - this._traceTimestamp) / 1000);
 
             if (interval >= this.trace_interval) {
-
                 Debug.Log(
                     com.fpnn.FPManager.Instance.GetMilliTimestamp()
                     + ", trace interval: " + interval
-                    + ", revc qps: " + (int)(this._recvCount / interval) 
-                    );
-
+                    + ", revc qps: " + (int)(this._recvCount / interval)
+                );
                 this._traceTimestamp = com.fpnn.FPManager.Instance.GetMilliTimestamp();
-
                 this._recvCount = 0;
             }
         }
-    }   
+    }
 }

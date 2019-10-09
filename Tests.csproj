@@ -145,6 +145,8 @@
      <Compile Include="Assets\Scripts\Tests\rtm\RTMProcessor.cs" />
      <Compile Include="Assets\Scripts\Tests\rtm\RTMSender.cs" />
      <Compile Include="Assets\Scripts\Tests\testcase\Integration_RTMClient.cs" />
+     <Compile Include="Assets\Scripts\Tests\testcase\Integration_RTMProcessor.cs" />
+     <Compile Include="Assets\Scripts\Tests\testcase\Integration_RTMSender.cs" />
      <Compile Include="Assets\Scripts\Tests\testcase\Unit_RTMClient.cs" />
      <Compile Include="Assets\Scripts\Tests\testcase\Unit_RTMProcessor.cs" />
      <Compile Include="Assets\Scripts\Tests\testcase\Unit_RTMSender.cs" />

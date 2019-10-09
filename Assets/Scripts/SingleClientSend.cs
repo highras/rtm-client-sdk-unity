@@ -16,7 +16,7 @@ public class SingleClientSend : Main.ITestCase {
 
         public int Status = 0;
     }
-    
+
     private int send_qps = 500;
     private int trace_interval = 10;
     private int batch_count = 10;
@@ -31,12 +31,11 @@ public class SingleClientSend : Main.ITestCase {
     public SingleClientSend() {}
 
     public void StartTest(byte[] fileBytes) {
-
         this._client = new RTMClient(
             "52.83.245.22:13325",
             11000001,
             777779,
-            "49B361016F7AEFC489227F9A4101BA2F",
+            "B3D8012408C024293D0557FBE1CA0A88",
             null,
             new Dictionary<string, string>(),
             true,
@@ -44,41 +43,29 @@ public class SingleClientSend : Main.ITestCase {
             // false
             true
         );
-
         SingleClientSend self = this;
-
         this._client.GetEvent().AddListener("login", (evd) => {
-
             if (evd.GetException() == null) {
-
                 Debug.Log("test start!");
                 self.StartThread();
             } else {
-
                 Debug.Log(evd.GetException());
             }
         });
-
         this._client.GetEvent().AddListener("close", (evd) => {
-
             Debug.Log("closed!");
             self.StopThread();
         });
-
         this._client.GetEvent().AddListener("error", (evd) => {
-
             Debug.Log(evd.GetException());
         });
-
         this._client.Login(null);
     }
 
     public void StopTest() {
-
         this.StopThread();
 
         if (this._client != null) {
-
             this._client.Destroy();
         }
     }
@@ -86,30 +73,23 @@ public class SingleClientSend : Main.ITestCase {
     private Thread _thread;
 
     private void StartThread() {
-
         lock (send_locker) {
-
             if (send_locker.Status != 0) {
-
                 return;
             }
 
             send_locker.Status = 1;
-
             this._thread = new Thread(new ThreadStart(SendMessage));
             this._thread.Start();
         }
     }
 
     private void StopThread() {
-
         lock (send_locker) {
-
             send_locker.Status = 0;
         }
 
-        lock(inc_locker) {
-
+        lock (inc_locker) {
             this._sendCount = 0;
             this._erroCount = 0;
             this._recvCount = 0;
@@ -118,42 +98,37 @@ public class SingleClientSend : Main.ITestCase {
     }
 
     private void SendMessage() {
-
         SingleClientSend self = this;
 
         try {
-
-            while(true) {
-
+            while (true) {
                 lock (send_locker) {
-
                     if (send_locker.Status == 0) {
-
                         return;
-                    } 
+                    }
+
+                    this.batch_count = (this.send_qps < 10) ? this.send_qps : this.batch_count;
 
                     for (int i = 0; i < this.batch_count; i++) {
-
                         this._client.SendMessage(778899, (byte) 8, "hello !", "", 0, 20 * 1000, (cbd) => {
-
                             if (cbd.GetException() != null) {
-
                                 self.RevcInc(true);
                                 // Debug.Log(cbd.GetException());
                             } else {
-
                                 self.RevcInc(false);
                             }
                         });
-
                         this.SendInc();
                     }
                 }
 
-                Thread.Sleep((int) Math.Ceiling((1000f / this.send_qps) * this.batch_count));
+                if (this.send_qps > 0) {
+                    Thread.Sleep((int) Math.Ceiling((1000f / this.send_qps) * this.batch_count));
+                } else {
+                    Thread.Sleep(1000);
+                }
             }
-        }catch(Exception ex) {
-
+        } catch (Exception ex) {
             Debug.Log(ex);
         }
     }
@@ -166,46 +141,36 @@ public class SingleClientSend : Main.ITestCase {
     private object inc_locker = new object();
 
     private void SendInc() {
-
-        lock(inc_locker) {
-
+        lock (inc_locker) {
             this._sendCount++;
 
             if (this._traceTimestamp <= 0) {
-
                 this._traceTimestamp = com.fpnn.FPManager.Instance.GetMilliTimestamp();
             }
 
             int interval = (int)((com.fpnn.FPManager.Instance.GetMilliTimestamp() - this._traceTimestamp) / 1000);
 
             if (interval >= this.trace_interval) {
-
                 Debug.Log(
                     com.fpnn.FPManager.Instance.GetMilliTimestamp()
                     + ", trace interval: " + interval
-                    + ", send count: " + this._sendCount 
-                    + ", err count: " + this._erroCount 
-                    + ", revc qps: " + (int)(this._recvCount / interval) 
-                    );
-
+                    + ", send count: " + this._sendCount
+                    + ", err count: " + this._erroCount
+                    + ", revc qps: " + (int)(this._recvCount / interval)
+                );
                 this._traceTimestamp = com.fpnn.FPManager.Instance.GetMilliTimestamp();
-
                 this._sendCount = 0;
                 this._erroCount = 0;
                 this._recvCount = 0;
             }
         }
-    }   
+    }
 
     private void RevcInc(bool err) {
-
-        lock(inc_locker) {
-
+        lock (inc_locker) {
             if (err) {
-
                 this._erroCount++;
             } else {
-
                 this._recvCount++;
             }
         }

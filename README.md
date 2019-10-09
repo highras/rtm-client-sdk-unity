@@ -52,7 +52,8 @@ client.GetEvent().AddListener("login", (evd) => {
         return;
     }
 
-    Debug.Log("Authed!");
+    //RTMGate地址
+    Debug.Log("Authed! gate: " + evd.GetPayload());
 
     // 发送消息
     client.SendMessage(778899, (byte) 8, "hello !", "", 0, 5 * 1000, (cbd) => {

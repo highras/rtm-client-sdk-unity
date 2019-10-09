@@ -18,7 +18,7 @@ namespace com.rtm {
             public static byte video = 42;        //视频
             public static byte file = 50;         //泛指文件，服务器会修改此值（如果服务器可以判断出具体类型的话，仅在mtype=50的情况下）
         }
-        
+
         public static string KICKOUT = "kickout";
 
         public class SERVER_PUSH {

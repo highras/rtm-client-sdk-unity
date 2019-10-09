@@ -4,7 +4,7 @@ namespace com.fpnn {
 
     public class FPConfig {
 
-        public static string VERSION = "1.1.6";
+        public static string VERSION = "1.1.7";
 
         public static byte[] FPNN_VERSION = definedVersion();
         public static byte[] FP_FLAG = definedFlag();
@@ -16,43 +16,34 @@ namespace com.fpnn {
         public static int SEND_TIMEOUT = 20 * 1000;
 
         private static byte[] definedVersion() {
-
             byte[] bytes = new byte[2];
             bytes[0] = (byte) 0x0;
             bytes[1] = (byte) 0x1;
-
             return bytes;
         }
 
         private static byte[] definedFlag() {
-
             byte b = 0;
             b |= 0x80;
-
             byte[] bytes = new byte[2];
             bytes[0] = (byte) 0x40;         // 64: FP_FLAG_JSON
             bytes[1] = b;                   // 128: FP_FLAG_MSGPACK
-
             return bytes;
         }
 
         private static byte[] definedMsgType() {
-
             byte[] bytes = new byte[3];
             bytes[0] = (byte) 0x0;          // 0: FP_MT_ONEWAY
             bytes[1] = (byte) 0x1;          // 1: FP_MT_TWOWAY
             bytes[2] = (byte) 0x2;          // 2: FP_MT_ANSWER
-
             return bytes;
         }
 
         private static byte[] definedTcpMagic() {
-
             return System.Text.Encoding.UTF8.GetBytes("FPNN");
         }
 
         private static byte[] definedHttpMagic() {
-
             return System.Text.Encoding.UTF8.GetBytes("POST");
         }
 

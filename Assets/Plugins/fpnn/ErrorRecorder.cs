@@ -7,15 +7,12 @@ namespace com.fpnn {
         public abstract void recordError(Exception e);
     }
 
-    public class DefaultErrorRecorder:ErrorRecorder {
+    public class DefaultErrorRecorder: ErrorRecorder {
 
         public override void recordError(Exception e) {
-
             //TODO
-
             // Unity
             // UnityEngine.Debug.LogError(e);
-
             // C#
             // Console.WriteLine(e.Message);
             // Console.WriteLine(e.StackTrace);
@@ -30,19 +27,14 @@ namespace com.fpnn {
         private ErrorRecorderHolder() {}
 
         public static void setInstance(ErrorRecorder ins) {
-
             lock (lock_obj) {
-
                 uniqueInstance = ins;
             }
         }
 
         public static ErrorRecorder getInstance() {
-
             lock (lock_obj) {
-
                 if (uniqueInstance == null) {
-
                     uniqueInstance = new DefaultErrorRecorder();
                 }
 
@@ -50,8 +42,7 @@ namespace com.fpnn {
             }
         }
 
-        public static void recordError(Exception ex){
-            
+        public static void recordError(Exception ex) {
             ErrorRecorderHolder.getInstance().recordError(ex);
         }
     }
