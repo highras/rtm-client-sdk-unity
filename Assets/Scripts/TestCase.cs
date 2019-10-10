@@ -50,6 +50,7 @@ public class TestCase : Main.ITestCase {
             // 777779,
             // "12861748F2D641907D181D1CDB6DF174",
             null,
+            RTMConfig.TRANS_LANGUAGE.en,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -135,367 +136,7 @@ public class TestCase : Main.ITestCase {
         int sleep = 1000;
         Debug.Log("[TEST] begin");
         this.ThreadSleep(sleep);
-        //rtmGate (2)
-        //---------------------------------SendMessage--------------------------------------
-        this._client.SendMessage(to, (byte) 8, "hello !", "", 0, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] SendMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
-            } else {
-                Debug.Log("[ERR] SendMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (3)
-        //---------------------------------SendGroupMessage--------------------------------------
-        this._client.SendGroupMessage(gid, (byte) 8, "hello !", "", 0, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] SendGroupMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
-            } else {
-                Debug.Log("[ERR] SendGroupMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (4)
-        //---------------------------------SendRoomMessage--------------------------------------
-        this._client.SendRoomMessage(rid, (byte) 8, "hello !", "", 0, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] SendRoomMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
-            } else {
-                Debug.Log("[ERR] SendRoomMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (5)
-        //---------------------------------GetUnreadMessage--------------------------------------
-        this._client.GetUnreadMessage(timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetUnreadMessage: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetUnreadMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (6)
-        //---------------------------------CleanUnreadMessage--------------------------------------
-        this._client.CleanUnreadMessage(timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] CleanUnreadMessage: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] CleanUnreadMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (7)
-        //---------------------------------GetSession--------------------------------------
-        this._client.GetSession(timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetSession: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetSession: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (8)
-        //---------------------------------GetGroupMessage--------------------------------------
-        this._client.GetGroupMessage(gid, true, 10, 0, 0, 0, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetGroupMessage: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetGroupMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (9)
-        //---------------------------------GetRoomMessage--------------------------------------
-        this._client.GetRoomMessage(rid, true, 10, 0, 0, 0, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetRoomMessage: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetRoomMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (10)
-        //---------------------------------GetBroadcastMessage--------------------------------------
-        this._client.GetBroadcastMessage(true, 10, 0, 0, 0, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetBroadcastMessage: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetBroadcastMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (11)
-        //---------------------------------GetP2PMessage--------------------------------------
-        this._client.GetP2PMessage(to, true, 10, 0, 0, 0, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetP2PMessage: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetP2PMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (12)
-        //---------------------------------FileToken--------------------------------------
-        this._client.FileToken("sendfile", null, to, 0, 0, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] FileToken: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] FileToken: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (14)
-        //---------------------------------AddAttrs--------------------------------------
-        this._client.AddAttrs(attrs, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] AddAttrs: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] AddAttrs: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (15)
-        //---------------------------------GetAttrs--------------------------------------
-        this._client.GetAttrs(timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetAttrs: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetAttrs: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (16)
-        //---------------------------------AddDebugLog--------------------------------------
-        this._client.AddDebugLog("msg", "attrs", timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] AddDebugLog: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] AddDebugLog: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (17)
-        //---------------------------------AddDevice--------------------------------------
-        this._client.AddDevice("app-info", "device-token", timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] AddDevice: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] AddDevice: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (18)
-        //---------------------------------RemoveDevice--------------------------------------
-        this._client.RemoveDevice("device-token", timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] RemoveDevice: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] RemoveDevice: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (19)
-        //---------------------------------SetTranslationLanguage--------------------------------------
-        this._client.SetTranslationLanguage("en", timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] SetTranslationLanguage: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] SetTranslationLanguage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (20)
-        //---------------------------------Translate--------------------------------------
-        this._client.Translate("你好!", null, "en", timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] Translate: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] Translate: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (21)
-        //---------------------------------AddFriends--------------------------------------
-        this._client.AddFriends(friends, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] AddFriends: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] AddFriends: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (22)
-        //---------------------------------DeleteFriends--------------------------------------
-        this._client.DeleteFriends(friends, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] DeleteFriends: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] DeleteFriends: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (23)
-        //---------------------------------GetFriends--------------------------------------
-        this._client.GetFriends(timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetFriends: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetFriends: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (24)
-        //---------------------------------AddGroupMembers--------------------------------------
-        this._client.AddGroupMembers(gid, tos, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] AddGroupMembers: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] AddGroupMembers: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (25)
-        //---------------------------------DeleteGroupMembers--------------------------------------
-        this._client.DeleteGroupMembers(rid, tos, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] DeleteGroupMembers: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] DeleteGroupMembers: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (26)
-        //---------------------------------GetGroupMembers--------------------------------------
-        this._client.GetGroupMembers(gid, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetGroupMembers: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetGroupMembers: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (27)
-        //---------------------------------GetUserGroups--------------------------------------
-        this._client.GetUserGroups(timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetUserGroups: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetUserGroups: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (28)
-        //---------------------------------EnterRoom--------------------------------------
-        this._client.EnterRoom(rid, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] EnterRoom: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] EnterRoom: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (29)
-        //---------------------------------LeaveRoom--------------------------------------
-        this._client.LeaveRoom(rid, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] LeaveRoom: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] LeaveRoom: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (30)
-        //---------------------------------GetUserRooms--------------------------------------
-        this._client.GetUserRooms(timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetUserRooms: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetUserRooms: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (31)
-        //---------------------------------GetOnlineUsers--------------------------------------
-        this._client.GetOnlineUsers(tos, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] GetOnlineUsers: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] GetOnlineUsers: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (32)
-        //---------------------------------DeleteMessage--------------------------------------
-        this._client.DeleteMessage(0, to, (byte)1, timeout, (cbd) => {
-            object obj = cbd.GetPayload();
-
-            if (obj != null) {
-                Debug.Log("[DATA] DeleteMessage: " + Json.SerializeToString(obj));
-            } else {
-                Debug.Log("[ERR] DeleteMessage: " + cbd.GetException().Message);
-            }
-        });
-        this.ThreadSleep(sleep);
-        //rtmGate (33)
+        //rtmGate (1c)
         //---------------------------------Kickout--------------------------------------
         this._client.Kickout("", timeout, (cbd) => {
             object obj = cbd.GetPayload();
@@ -507,27 +148,615 @@ public class TestCase : Main.ITestCase {
             }
         });
         this.ThreadSleep(sleep);
-        //rtmGate (35)
-        //---------------------------------DBSet--------------------------------------
-        this._client.DBSet("db-test-key", "db-test-value", timeout, (cbd) => {
+        //rtmGate (1d)
+        //---------------------------------AddAttrs--------------------------------------
+        this._client.AddAttrs(attrs, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
-                Debug.Log("[DATA] DBSet: " + Json.SerializeToString(obj));
+                Debug.Log("[DATA] AddAttrs: " + Json.SerializeToString(obj));
             } else {
-                Debug.Log("[ERR] DBSet: " + cbd.GetException().Message);
+                Debug.Log("[ERR] AddAttrs: " + cbd.GetException().Message);
             }
         });
         this.ThreadSleep(sleep);
-        //rtmGate (34)
-        //---------------------------------DBGet--------------------------------------
-        this._client.DBGet("db-test-key", timeout, (cbd) => {
+        //rtmGate (1e)
+        //---------------------------------GetAttrs--------------------------------------
+        this._client.GetAttrs(timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
-                Debug.Log("[DATA] DBGet: " + Json.SerializeToString(obj));
+                Debug.Log("[DATA] GetAttrs: " + Json.SerializeToString(obj));
             } else {
-                Debug.Log("[ERR] DBGet: " + cbd.GetException().Message);
+                Debug.Log("[ERR] GetAttrs: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (1f)
+        //---------------------------------AddDebugLog--------------------------------------
+        this._client.AddDebugLog("msg", "attrs", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] AddDebugLog: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] AddDebugLog: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (1g)
+        //---------------------------------AddDevice--------------------------------------
+        this._client.AddDevice("app-info", "device-token", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] AddDevice: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] AddDevice: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (1h)
+        //---------------------------------RemoveDevice--------------------------------------
+        this._client.RemoveDevice("device-token", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] RemoveDevice: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] RemoveDevice: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2a)
+        //---------------------------------SendMessage--------------------------------------
+        this._client.SendMessage(to, (byte) 8, "hello !", "", 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SendMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
+            } else {
+                Debug.Log("[ERR] SendMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2b)
+        //---------------------------------SendGroupMessage--------------------------------------
+        this._client.SendGroupMessage(gid, (byte) 8, "hello !", "", 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SendGroupMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
+            } else {
+                Debug.Log("[ERR] SendGroupMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2c)
+        //---------------------------------SendRoomMessage--------------------------------------
+        this._client.SendRoomMessage(rid, (byte) 8, "hello !", "", 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SendRoomMessage: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
+            } else {
+                Debug.Log("[ERR] SendRoomMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2d)
+        //---------------------------------GetGroupMessage--------------------------------------
+        this._client.GetGroupMessage(gid, true, 10, 0, 0, 0, new byte[] {8}, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetGroupMessage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetGroupMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2e)
+        //---------------------------------GetRoomMessage--------------------------------------
+        this._client.GetRoomMessage(rid, true, 10, 0, 0, 0, new byte[] {8}, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetRoomMessage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetRoomMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2f)
+        //---------------------------------GetBroadcastMessage--------------------------------------
+        this._client.GetBroadcastMessage(true, 10, 0, 0, 0, new byte[] {8}, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetBroadcastMessage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetBroadcastMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2g)
+        //---------------------------------GetP2PMessage--------------------------------------
+        this._client.GetP2PMessage(to, true, 10, 0, 0, 0, new byte[] {8}, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetP2PMessage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetP2PMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2h)
+        //---------------------------------DeleteMessage--------------------------------------
+        this._client.DeleteMessage(0, to, (byte)1, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DeleteMessage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DeleteMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3a)
+        //---------------------------------SendChat--------------------------------------
+        this._client.SendChat(to, "hello !", "", 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SendChat: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
+            } else {
+                Debug.Log("[ERR] SendChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3b)
+        //---------------------------------SendGroupChat--------------------------------------
+        this._client.SendGroupChat(gid, "hello !", "", 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SendGroupChat: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
+            } else {
+                Debug.Log("[ERR] SendGroupChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3c)
+        //---------------------------------SendRoomChat--------------------------------------
+        this._client.SendRoomChat(rid, "hello !", "", 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SendRoomChat: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
+            } else {
+                Debug.Log("[ERR] SendRoomChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3d)
+        //---------------------------------GetGroupChat--------------------------------------
+        this._client.GetGroupChat(gid, true, 10, 0, 0, 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetGroupChat: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetGroupChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3e)
+        //---------------------------------GetRoomChat--------------------------------------
+        this._client.GetRoomChat(rid, true, 10, 0, 0, 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetRoomChat: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetRoomChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3f)
+        //---------------------------------GetBroadcastChat--------------------------------------
+        this._client.GetBroadcastChat(true, 10, 0, 0, 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetBroadcastChat: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetBroadcastChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3g)
+        //---------------------------------GetP2PChat--------------------------------------
+        this._client.GetP2PChat(to, true, 10, 0, 0, 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetP2PChat: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetP2PChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3h)
+        //---------------------------------GetUnreadMessage--------------------------------------
+        this._client.GetUnreadMessage(timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetUnreadMessage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetUnreadMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3i)
+        //---------------------------------CleanUnreadMessage--------------------------------------
+        this._client.CleanUnreadMessage(timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] CleanUnreadMessage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] CleanUnreadMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3j)
+        //---------------------------------GetSession--------------------------------------
+        this._client.GetSession(timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetSession: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetSession: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3k)
+        //---------------------------------DeleteChat--------------------------------------
+        this._client.DeleteChat(0, to, (byte)1, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DeleteChat: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DeleteChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3l)
+        //---------------------------------SetTranslationLanguage--------------------------------------
+        this._client.SetTranslationLanguage(RTMConfig.TRANS_LANGUAGE.en, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SetTranslationLanguage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] SetTranslationLanguage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3m)
+        //---------------------------------Translate--------------------------------------
+        this._client.Translate("你好,习近平!", RTMConfig.TRANS_LANGUAGE.zh_cn, RTMConfig.TRANS_LANGUAGE.en, "chat", "censor", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] Translate: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] Translate: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3n)
+        //---------------------------------Profanity--------------------------------------
+        this._client.Profanity("你好,习近平!", "stop", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] Profanity: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] Profanity: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (4a)
+        //---------------------------------FileToken--------------------------------------
+        this._client.FileToken("sendfile", to, 0, 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] FileToken: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] FileToken: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (5a)
+        //---------------------------------GetOnlineUsers--------------------------------------
+        this._client.GetOnlineUsers(tos, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetOnlineUsers: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetOnlineUsers: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (5b)
+        //---------------------------------SetUserInfo--------------------------------------
+        this._client.SetUserInfo("oinfo", "pinfo", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SetUserInfo: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] SetUserInfo: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (5c)
+        //---------------------------------GetUserInfo--------------------------------------
+        this._client.GetUserInfo(timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetUserInfo: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetUserInfo: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (5d)
+        //---------------------------------GetUserOpenInfo--------------------------------------
+        this._client.GetUserOpenInfo(tos, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetUserOpenInfo: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetUserOpenInfo: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (6a)
+        //---------------------------------AddFriends--------------------------------------
+        this._client.AddFriends(friends, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] AddFriends: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] AddFriends: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (6b)
+        //---------------------------------DeleteFriends--------------------------------------
+        this._client.DeleteFriends(friends, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DeleteFriends: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DeleteFriends: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (6c)
+        //---------------------------------GetFriends--------------------------------------
+        this._client.GetFriends(timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetFriends: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetFriends: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (7a)
+        //---------------------------------AddGroupMembers--------------------------------------
+        this._client.AddGroupMembers(gid, tos, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] AddGroupMembers: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] AddGroupMembers: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (7b)
+        //---------------------------------DeleteGroupMembers--------------------------------------
+        this._client.DeleteGroupMembers(rid, tos, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DeleteGroupMembers: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DeleteGroupMembers: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (7c)
+        //---------------------------------GetGroupMembers--------------------------------------
+        this._client.GetGroupMembers(gid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetGroupMembers: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetGroupMembers: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (7d)
+        //---------------------------------GetUserGroups--------------------------------------
+        this._client.GetUserGroups(timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetUserGroups: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetUserGroups: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (7e)
+        //---------------------------------SetGroupInfo--------------------------------------
+        this._client.SetGroupInfo(gid, "oinfo", "pinfo", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SetGroupInfo: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] SetGroupInfo: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (7f)
+        //---------------------------------GetGroupInfo--------------------------------------
+        this._client.GetGroupInfo(gid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetGroupInfo: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetGroupInfo: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (7g)
+        //---------------------------------GetGroupOpenInfo--------------------------------------
+        this._client.GetGroupOpenInfo(gid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetGroupOpenInfo: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetGroupOpenInfo: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (8a)
+        //---------------------------------EnterRoom--------------------------------------
+        this._client.EnterRoom(rid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] EnterRoom: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] EnterRoom: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (8b)
+        //---------------------------------LeaveRoom--------------------------------------
+        this._client.LeaveRoom(rid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] LeaveRoom: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] LeaveRoom: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (8c)
+        //---------------------------------GetUserRooms--------------------------------------
+        this._client.GetUserRooms(timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetUserRooms: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetUserRooms: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (8d)
+        //---------------------------------SetRoomInfo--------------------------------------
+        this._client.SetRoomInfo(rid, "oinfo", "pinfo", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SetRoomInfo: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] SetRoomInfo: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (8e)
+        //---------------------------------GetRoomInfo--------------------------------------
+        this._client.GetRoomInfo(rid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetRoomInfo: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetRoomInfo: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (8f)
+        //---------------------------------GetRoomOpenInfo--------------------------------------
+        this._client.GetRoomOpenInfo(rid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] GetRoomOpenInfo: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] GetRoomOpenInfo: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (9b)
+        //---------------------------------DataSet--------------------------------------
+        this._client.DataSet("db-test-key", "db-test-value", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DataSet: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DataSet: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (9a)
+        //---------------------------------DataGet--------------------------------------
+        this._client.DataGet("db-test-key", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DataGet: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DataGet: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (9c)
+        //---------------------------------DataGet--------------------------------------
+        this._client.DataDelete("db-test-key", timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DataDelete: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DataDelete: " + cbd.GetException().Message);
             }
         });
         this.ThreadSleep(sleep);
@@ -567,9 +796,9 @@ public class TestCase : Main.ITestCase {
             }
         });
         this.ThreadSleep(sleep * 5);
-        //rtmGate (13)
+        //rtmGate (1b)
         //---------------------------------Close--------------------------------------
-        // this._client.Close();
+        this._client.Close();
         Debug.Log("[TEST] end@" + (this._sleepCount - 1));
     }
 

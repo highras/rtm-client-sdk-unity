@@ -24,21 +24,54 @@ namespace com.rtm {
         public class SERVER_PUSH {
 
             public static string kickOutRoom = "kickoutroom";
+            public static string recvPing = "ping";
+
             public static string recvMessage = "pushmsg";
             public static string recvGroupMessage = "pushgroupmsg";
             public static string recvRoomMessage = "pushroommsg";
             public static string recvBroadcastMessage = "pushbroadcastmsg";
+
             public static string recvFile = "pushfile";
             public static string recvGroupFile = "pushgroupfile";
             public static string recvRoomFile = "pushroomfile";
             public static string recvBroadcastFile = "pushbroadcastfile";
-            public static string recvPing = "ping";
+
+            public static string recvChat = "pushchat";
+            public static string recvGroupChat = "pushgroupchat";
+            public static string recvRoomChat = "pushroomchat";
+            public static string recvBroadcastChat = "pushbroadcastchat";
         }
 
         public class SERVER_EVENT {
 
             public static string login = "login";
             public static string logout = "logout";
+        }
+
+        public class TRANS_LANGUAGE {
+
+            public static string ar = "ar";             //阿拉伯语
+            public static string nl = "nl";             //荷兰语
+            public static string en = "en";             //英语
+            public static string fr = "fr";             //法语
+            public static string de = "de";             //德语
+            public static string el = "el";             //希腊语
+            public static string id = "id";             //印度尼西亚语
+            public static string it = "it";             //意大利语
+            public static string ja = "ja";             //日语
+            public static string ko = "ko";             //韩语
+            public static string no = "no";             //挪威语
+            public static string pl = "pl";             //波兰语
+            public static string pt = "pt";             //葡萄牙语
+            public static string ru = "ru";             //俄语
+            public static string es = "es";             //西班牙语
+            public static string sv = "sv";             //瑞典语
+            public static string tl = "tl";             //塔加路语（菲律宾语）
+            public static string th = "th";             //泰语
+            public static string tr = "tr";             //土耳其语
+            public static string vi = "vi";             //越南语
+            public static string zh_cn = "zh-CN";       //中文（简体）
+            public static string zh_tw = "zh-TW";       //中文（繁体）
         }
 
         public class ERROR_CODE {

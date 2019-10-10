@@ -59,65 +59,48 @@ public class Integration_RTMProcessor {
             this._processor.Destroy();
             this._processor = null;
         }
-    }
-
-    [UnityTest]
-    public IEnumerator Processor_AddPushService() {
-        Assert.IsFalse(this._processor.HasPushService("ping"));
-        this._processor.AddPushService("ping", (dict) => {});
-        Assert.IsTrue(this._processor.HasPushService("ping"));
-        this._processor.Destroy();
-        yield return new WaitForSeconds(1.0f);
-    }
-
-    [UnityTest]
-    public IEnumerator Processor_AddPushService_AddPushService() {
-        Assert.IsFalse(this._processor.HasPushService("ping"));
-        this._processor.AddPushService("ping", (dict) => {});
-        Assert.IsTrue(this._processor.HasPushService("ping"));
-        this._processor.AddPushService("ping", (dict) => {});
-        Assert.IsTrue(this._processor.HasPushService("ping"));
-        this._processor.Destroy();
-        yield return new WaitForSeconds(1.0f);
-    }
-
-    [UnityTest]
-    public IEnumerator Processor_AddPushService_RemovePushService() {
-        Assert.IsFalse(this._processor.HasPushService("ping"));
-        this._processor.AddPushService("ping", (dict) => {});
-        Assert.IsTrue(this._processor.HasPushService("ping"));
-        this._processor.RemovePushService("bing");
-        Assert.IsTrue(this._processor.HasPushService("ping"));
-        this._processor.RemovePushService("ping");
-        Assert.IsFalse(this._processor.HasPushService("ping"));
-        this._processor.Destroy();
-        yield return new WaitForSeconds(1.0f);
-    }
-
-    [UnityTest]
-    public IEnumerator Processor_RemovePushService_AddPushService() {
-        Assert.IsFalse(this._processor.HasPushService("ping"));
-        this._processor.RemovePushService("ping");
-        Assert.IsFalse(this._processor.HasPushService("ping"));
-        this._processor.AddPushService("ping", (dict) => {});
-        Assert.IsTrue(this._processor.HasPushService("ping"));
-        this._processor.Destroy();
-        yield return new WaitForSeconds(1.0f);
-    }
-
-    [UnityTest]
-    public IEnumerator Processor_AddPushService_Destroy() {
-        Assert.IsFalse(this._processor.HasPushService("ping"));
-        this._processor.AddPushService("ping", (dict) => {});
-        Assert.IsTrue(this._processor.HasPushService("ping"));
-        this._processor.Destroy();
-        Assert.IsFalse(this._processor.HasPushService("ping"));
-        yield return new WaitForSeconds(1.0f);
-    }
+    } 
 
     [UnityTest]
     public IEnumerator Processor_AddPushService_Service() {
         int count = 0;
+        this._processor.AddPushService("ping", (dict) => {
+            count++;
+        });
+        byte[] bytes = { 0x80 };
+        FPData data = new FPData();
+        data.SetMethod("ping");
+        data.SetPayload(bytes);
+        this._processor.Service(data, (payload, exception) => {});
+        this._processor.Destroy();
+        yield return new WaitForSeconds(1.0f);
+        Assert.AreEqual(1, count);
+    }
+
+    [UnityTest]
+    public IEnumerator Processor_AddPushService_Destroy_Service() {
+        int count = 0;
+        this._processor.AddPushService("ping", (dict) => {
+            count++;
+        });
+        byte[] bytes = { 0x80 };
+        FPData data = new FPData();
+        data.SetMethod("ping");
+        data.SetPayload(bytes);
+        this._processor.Destroy();
+        this._processor.Service(data, (payload, exception) => {});
+
+        this._processor.Destroy();
+        yield return new WaitForSeconds(1.0f);
+        Assert.AreEqual(0, count);
+    }
+
+    [UnityTest]
+    public IEnumerator Processor_AddPushService_AddPushService_Service() {
+        int count = 0;
+        this._processor.AddPushService("ping", (dict) => {
+            count++;
+        });
         this._processor.AddPushService("ping", (dict) => {
             count++;
         });
@@ -146,6 +129,23 @@ public class Integration_RTMProcessor {
         this._processor.Destroy();
         yield return new WaitForSeconds(1.0f);
         Assert.AreEqual(0, count);
+    }
+
+    [UnityTest]
+    public IEnumerator Processor_RemovePushService_AddPushService_Service() {
+        int count = 0;
+        this._processor.RemovePushService("ping");
+        this._processor.AddPushService("ping", (dict) => {
+            count++;
+        });
+        byte[] bytes = { 0x80 };
+        FPData data = new FPData();
+        data.SetMethod("ping");
+        data.SetPayload(bytes);
+        this._processor.Service(data, (payload, exception) => {});
+        this._processor.Destroy();
+        yield return new WaitForSeconds(1.0f);
+        Assert.AreEqual(1, count);
     }
 
     [UnityTest]

@@ -7,7 +7,7 @@ using System.Reflection;
 using GameDevWare.Serialization;
 using com.fpnn;
 
-// using UnityEngine;
+using UnityEngine;
 
 namespace com.rtm {
 
@@ -99,10 +99,7 @@ namespace com.rtm {
             if (string.IsNullOrEmpty(name)) {
                 return false;
             }
-
-            lock (action_locker) {
-                return this._actionDict.ContainsKey(name);
-            }
+            return true;
         }
 
         public void AddPushService(string name, Action<IDictionary<string, object>> action) {
@@ -114,7 +111,7 @@ namespace com.rtm {
                 if (!this._actionDict.ContainsKey(name)) {
                     this._actionDict.Add(name, action);
                 } else {
-                    ErrorRecorderHolder.recordError(new Exception("push service exist"));
+                    Debug.LogWarning("push service exist");
                 }
             }
         }
@@ -148,6 +145,9 @@ namespace com.rtm {
         }
 
         /**
+         *
+         * serverPush(1a)
+         *
          * @param {IDictionary<string, object>} data
          */
         public void kickout(IDictionary<string, object> data) {
@@ -155,6 +155,23 @@ namespace com.rtm {
         }
 
         /**
+         *
+         * serverPush(1b)
+         *
+         * @param {Map} data
+         */
+        public void ping(IDictionary<string, object> data) {
+            this.PushService(RTMConfig.SERVER_PUSH.recvPing, data);
+
+            lock (ping_locker) {
+                this._lastPingTimestamp = FPManager.Instance.GetMilliTimestamp();
+            }
+        }
+
+        /**
+         *
+         * serverPush(1c)
+         *
          * @param {long} data.rid
          */
         public void kickoutroom(IDictionary<string, object> data) {
@@ -162,6 +179,9 @@ namespace com.rtm {
         }
 
         /**
+         *
+         * serverPush(2a)
+         *
          * @param {long}   data.from
          * @param {long}   data.to
          * @param {byte}   data.mtype
@@ -189,6 +209,10 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
+            if (mtype == 30) {
+                name = RTMConfig.SERVER_PUSH.recvChat;
+            }
+
             if (mtype >= 40 && mtype <= 50) {
                 name = RTMConfig.SERVER_PUSH.recvFile;
             }
@@ -197,6 +221,9 @@ namespace com.rtm {
         }
 
         /**
+         *
+         * serverPush(2b)
+         *
          * @param {long}   data.from
          * @param {long}   data.gid
          * @param {byte}   data.mtype
@@ -224,6 +251,10 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
+            if (mtype == 30) {
+                name = RTMConfig.SERVER_PUSH.recvGroupChat;
+            }
+
             if (mtype >= 40 && mtype <= 50) {
                 name = RTMConfig.SERVER_PUSH.recvGroupFile;
             }
@@ -232,6 +263,9 @@ namespace com.rtm {
         }
 
         /**
+         *
+         * serverPush(2c)
+         *
          * @param {long}   data.from
          * @param {long}   data.rid
          * @param {byte}   data.mtype
@@ -259,6 +293,10 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
+            if (mtype == 30) {
+                name = RTMConfig.SERVER_PUSH.recvRoomChat;
+            }
+
             if (mtype >= 40 && mtype <= 50) {
                 name = RTMConfig.SERVER_PUSH.recvRoomFile;
             }
@@ -267,6 +305,9 @@ namespace com.rtm {
         }
 
         /**
+         *
+         * serverPush(2d)
+         *
          * @param {long}   data.from
          * @param {byte}   data.mtype
          * @param {long}   data.mid
@@ -293,6 +334,10 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
+            if (mtype == 30) {
+                name = RTMConfig.SERVER_PUSH.recvBroadcastChat;
+            }
+
             if (mtype >= 40 && mtype <= 50) {
                 name = RTMConfig.SERVER_PUSH.recvBroadcastFile;
             }
@@ -301,15 +346,138 @@ namespace com.rtm {
         }
 
         /**
-         * @param {Map} data
+         *
+         * serverPush(a)
+         *
+         * @param {long}            data.from
+         * @param {long}            data.to
+         * @param {byte}            data.mtype
+         * @param {long}            data.mid
+         * @param {Url}             data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
          */
-        public void ping(IDictionary<string, object> data) {
-            this.PushService(RTMConfig.SERVER_PUSH.recvPing, data);
+        public void pushfile(IDictionary<string, object> data) {}
 
-            lock (ping_locker) {
-                this._lastPingTimestamp = FPManager.Instance.GetMilliTimestamp();
-            }
-        }
+        /**
+         *
+         * serverPush(b)
+         *
+         * @param {long}            data.from
+         * @param {long}            data.gid
+         * @param {byte}            data.mtype
+         * @param {long}            data.mid
+         * @param {Url}             data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushgroupfile(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(c)
+         *
+         * @param {long}            data.from
+         * @param {long}            data.rid
+         * @param {byte}            data.mtype
+         * @param {long}            data.mid
+         * @param {Url}             data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushroomfile(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(d)
+         *
+         * @param {long}            data.from
+         * @param {long}            data.mid
+         * @param {byte}            data.mtype
+         * @param {Url}             data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushbroadcastfile(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(3a)
+         *
+         * @param {long}            data.from
+         * @param {long}            data.to
+         * @param {long}            data.mid
+         * @param {JsonString}      data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         *
+         * <JsonString>
+         * @param {string}          source
+         * @param {string}          target
+         * @param {string}          sourceText
+         * @param {string}          targetText
+         * </JsonString>
+         */
+        public void pushchat(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(3b)
+         *
+         * @param {long}            data.from
+         * @param {long}            data.gid
+         * @param {long}            data.mid
+         * @param {JsonString}      data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         *
+         * <JsonString>
+         * @param {string}          source
+         * @param {string}          target
+         * @param {string}          sourceText
+         * @param {string}          targetText
+         * </JsonString>
+         */
+        public void pushgroupchat(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(3c)
+         *
+         * @param {long}            data.from
+         * @param {long}            data.rid
+         * @param {long}            data.mid
+         * @param {JsonString}      data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         *
+         * <JsonString>
+         * @param {string}          source
+         * @param {string}          target
+         * @param {string}          sourceText
+         * @param {string}          targetText
+         * </JsonString>
+         */
+        public void pushroomchat(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(3d)
+         *
+         * @param {long}            data.from
+         * @param {long}            data.mid
+         * @param {JsonString}      data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         *
+         * <JsonString>
+         * @param {string}          source
+         * @param {string}          target
+         * @param {string}          sourceText
+         * @param {string}          targetText
+         * </JsonString>
+         */
+        public void pushbroadcastchat(IDictionary<string, object> data) {}
 
         private long _lastPingTimestamp;
         private PingLocker ping_locker = new PingLocker();

@@ -75,10 +75,10 @@ namespace com.rtm {
         private bool _isClose;
         private string _endpoint;
         private string _switchGate;
+        private string _targetLanguage;
 
         private RTMSender _sender;
         private RTMProcessor _processor;
-        private EventDelegate _eventDelegate;
 
         private BaseClient _baseClient;
         private DispatchClient _dispatchClient;
@@ -89,18 +89,20 @@ namespace com.rtm {
          * @param {long}                        uid
          * @param {string}                      token
          * @param {string}                      version
+         * @param {string}                      lang
          * @param {IDictionary(string,string)}  attrs
          * @param {bool}                        reconnect
          * @param {int}                         timeout
          * @param {bool}                        debug
          */
-        public RTMClient(string dispatch, int pid, long uid, string token, string version, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug) {
+        public RTMClient(string dispatch, int pid, long uid, string token, string version, string lang, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug) {
             Debug.Log("[RTM] rtm_sdk@" + RTMConfig.VERSION + ", fpnn_sdk@" + FPConfig.VERSION);
             this._dispatch = dispatch;
             this._pid = pid;
             this._uid = uid;
             this._token = token;
             this._version = version;
+            this._targetLanguage = lang;
             this._reconnect = reconnect;
             this._timeout = timeout;
             this._debug = debug;
@@ -118,37 +120,40 @@ namespace com.rtm {
             RTMClient self = this;
             this._sender = new RTMSender();
             this._processor = new RTMProcessor();
-            this._processor.AddPushService(RTMConfig.KICKOUT, (data) => {
-                lock (self_locker) {
-                    self._isClose = true;
-
-                    if (self._baseClient != null) {
-                        self._baseClient.Close();
-                    }
-                }
-            });
-            this._eventDelegate = (evd) => {
-                long lastPingTimestamp = 0;
-                long timestamp = evd.GetTimestamp();
-
-                lock (self_locker) {
-                    if (self._processor != null) {
-                        lastPingTimestamp = self._processor.GetPingTimestamp();
-                    }
-                }
-
-                if (lastPingTimestamp > 0 && timestamp - lastPingTimestamp > RTMConfig.RECV_PING_TIMEOUT) {
-                    lock (self_locker) {
-                        if (self._baseClient != null && self._baseClient.IsOpen()) {
-                            self._baseClient.Close(new Exception("ping timeout"));
-                        }
-                    }
-                }
-
-                self.DelayConnect(timestamp);
-            };
-            FPManager.Instance.AddSecond(this._eventDelegate);
+            this._processor.AddPushService(RTMConfig.KICKOUT, OnKickout);
+            FPManager.Instance.AddSecond(OnSecondDelegate);
             ErrorRecorderHolder.setInstance(new RTMErrorRecorder(this._debug));
+        }
+
+        private void OnKickout(IDictionary<string, object> data) {
+            lock (self_locker) {
+                this._isClose = true;
+
+                if (this._baseClient != null) {
+                    this._baseClient.Close();
+                }
+            }
+        }
+
+        private void OnSecondDelegate(EventData evd) {
+            long lastPingTimestamp = 0;
+            long timestamp = evd.GetTimestamp();
+
+            lock (self_locker) {
+                if (this._processor != null) {
+                    lastPingTimestamp = this._processor.GetPingTimestamp();
+                }
+            }
+
+            if (lastPingTimestamp > 0 && timestamp - lastPingTimestamp > RTMConfig.RECV_PING_TIMEOUT) {
+                lock (self_locker) {
+                    if (this._baseClient != null && this._baseClient.IsOpen()) {
+                        this._baseClient.Close(new Exception("ping timeout"));
+                    }
+                }
+            }
+
+            this.DelayConnect(timestamp);
         }
 
         public RTMProcessor GetProcessor() {
@@ -175,7 +180,8 @@ namespace com.rtm {
 
             lock (self_locker) {
                 if (this._sender != null && this._baseClient != null) {
-                    this._sender.AddQuest(this._baseClient, data, payload, this._baseClient.QuestCallback(callback), timeout);
+                    BaseClient client = this._baseClient;
+                    this._sender.AddQuest(client, data, payload, client.QuestCallback(callback), timeout);
                 }
             }
         }
@@ -183,8 +189,6 @@ namespace com.rtm {
         private object self_locker = new object();
 
         public void Destroy() {
-            this.Close();
-
             lock (delayconn_locker) {
                 delayconn_locker.Status = 0;
                 this._reconnCount = 0;
@@ -192,11 +196,8 @@ namespace com.rtm {
             }
 
             lock (self_locker) {
-                if (this._eventDelegate != null) {
-                    FPManager.Instance.RemoveSecond(this._eventDelegate);
-                    this._eventDelegate = null;
-                }
-
+                this._isClose = true;
+                FPManager.Instance.RemoveSecond(OnSecondDelegate);
                 this._event.FireEvent(new EventData("close", false));
                 this._event.RemoveListener();
 
@@ -227,73 +228,396 @@ namespace com.rtm {
          */
         public void Login(string endpoint) {
             lock (self_locker) {
-                this._endpoint = endpoint;
                 this._isClose = false;
+                this._endpoint = endpoint;
 
-                if (!string.IsNullOrEmpty(this._endpoint)) {
-                    this.ConnectRTMGate(this._timeout);
+                if (string.IsNullOrEmpty(this._endpoint)) {
+                    this.ConnDispatchClient();
                     return;
                 }
 
-                RTMClient self = this;
+                this.ConnBaseClient();
+            }
+        }
 
+        private void ConnDispatchClient() {
+            if (this._dispatchClient == null) {
+                this._dispatchClient = new DispatchClient(this._dispatch, this._timeout);
+                this._dispatchClient.Client_Close = DispatchClient_OnClose;
+                this._dispatchClient.Client_Connect = DispatchClient_OnConnect;
+                this._dispatchClient.Connect();
+            }
+        }
+
+        private void DispatchClient_OnClose(EventData evd) {
+            bool reconn = false;
+
+            lock (self_locker) {
+                if (this._dispatchClient != null) {
+                    this._dispatchClient = null;
+                }
+
+                reconn = string.IsNullOrEmpty(this._endpoint);
+            }
+
+            if (reconn) {
+                this.Reconnect();
+            }
+        }
+
+        private void DispatchClient_OnConnect(EventData evd) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "pid", this._pid },
+                { "uid", this._uid },
+                { "what", "rtmGated" },
+                { "addrType", "ipv4" },
+                { "version", this._version }
+            };
+
+            lock (self_locker) {
                 if (this._dispatchClient == null) {
-                    this._dispatchClient = new DispatchClient(this._dispatch, this._timeout);
-                    this._dispatchClient.Client_Close = (evd) => {
-                        bool reconn = false;
+                    return;
+                }
+
+                payload["addrType"] = this._dispatchClient.IsIPv6() ? "ipv6" : "ipv4";
+                this._dispatchClient.Which(this._sender, payload, this._timeout, DispatchClient_Which_OnCallback);
+            }
+        }
+
+        private void ConnBaseClient() {
+            if (this._baseClient == null) {
+                this._baseClient = new BaseClient(this._endpoint, this._timeout);
+                this._baseClient.Client_Close = BaseClient_Close;
+                this._baseClient.Client_Connect = BaseClient_Connect;
+                this._baseClient.GetProcessor().SetProcessor(this._processor);
+                this._baseClient.Connect();
+            }
+        }
+
+        private void BaseClient_Connect(EventData evd) {
+            this.Auth();
+        }
+
+        private void BaseClient_Close(EventData evd) {
+            bool retry = false;
+
+            lock (self_locker) {
+                if (this._baseClient != null) {
+                    this._baseClient = null;
+                }
+
+                if (!string.IsNullOrEmpty(this._switchGate)) {
+                    this._endpoint = this._switchGate;
+                    this._switchGate = null;
+                }
+
+                retry = !this._isClose && this._reconnect;
+            }
+
+            this.GetEvent().FireEvent(new EventData("close", retry));
+            this.Reconnect();
+        }
+
+        private void DispatchClient_Which_OnCallback(CallbackData cbd) {
+            string ep = null;
+            IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
+
+            if (dict != null && dict.ContainsKey("endpoint")) {
+                ep = Convert.ToString(dict["endpoint"]);
+            }
+
+            lock (self_locker) {
+                if (this._dispatchClient != null) {
+                    this._dispatchClient.Close(cbd.GetException());
+                }
+            }
+
+            this.Login(ep);
+        }
+
+        /**
+         *
+         * rtmGate (1a)
+         *
+         */
+        private void Auth() {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "pid", this._pid },
+                { "uid", this._uid },
+                { "token", this._token },
+                { "version", this._version },
+                { "attrs", this._attrs }
+            };
+
+            lock (self_locker) {
+                if (!string.IsNullOrEmpty(this._targetLanguage)) {
+                    payload.Add("lang", this._targetLanguage);
+                }
+            }
+
+            this.SendQuest("auth", payload, Auth_OnCallback, this._timeout);
+        }
+
+        private void Auth_OnCallback(CallbackData cbd) {
+            Exception exception = cbd.GetException();
+
+            if (exception != null) {
+                lock (self_locker) {
+                    if (this._baseClient != null) {
+                        this._baseClient.Close(exception);
+                    }
+                }
+
+                return;
+            }
+
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                IDictionary<string, object> dict = (IDictionary<string, object>)obj;
+
+                if (dict.ContainsKey("ok")) {
+                    bool ok = Convert.ToBoolean(dict["ok"]);
+
+                    if (ok) {
+                        lock (delayconn_locker) {
+                            this._reconnCount = 0;
+                        }
+
+                        string ep = null;
 
                         lock (self_locker) {
-                            if (self._dispatchClient != null) {
-                                self._dispatchClient = null;
+                            if (this._processor != null) {
+                                this._processor.InitPingTimestamp();
                             }
 
-                            reconn = string.IsNullOrEmpty(self._endpoint);
+                            ep = this._endpoint;
                         }
 
-                        if (reconn) {
-                            self.Reconnect();
-                        }
-                    };
-                    this._dispatchClient.Client_Connect = (evd) => {
-                        IDictionary<string, object> payload = new Dictionary<string, object>() {
-                            { "pid", self._pid },
-                            { "uid", self._uid },
-                            { "what", "rtmGated" },
-                            { "addrType", "ipv4" },
-                            { "version", self._version }
-                        };
+                        this.GetEvent().FireEvent(new EventData("login", ep));
+                        return;
+                    }
+                }
 
+                if (dict.ContainsKey("gate")) {
+                    string gate = Convert.ToString(dict["gate"]);
+
+                    if (!string.IsNullOrEmpty(gate)) {
                         lock (self_locker) {
-                            if (self._dispatchClient != null) {
-                                payload["addrType"] = self._dispatchClient.IsIPv6() ? "ipv6" : "ipv4";
-                                self._dispatchClient.Which(self._sender, payload, self._timeout, (cbd) => {
-                                    IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
-                                    string ep = null;
+                            this._switchGate = gate;
 
-                                    lock (self_locker) {
-                                        if (dict != null) {
-                                            ep = Convert.ToString(dict["endpoint"]);
-                                            self._endpoint = ep;
-                                        }
-
-                                        if (self._dispatchClient != null) {
-                                            self._dispatchClient.Close(cbd.GetException());
-                                        }
-                                    }
-
-                                    self.Login(ep);
-                                });
+                            if (this._baseClient != null) {
+                                this._baseClient.Close();
                             }
                         }
-                    };
-                    this._dispatchClient.Connect();
+
+                        return;
+                    }
+                }
+
+                lock (self_locker) {
+                    this._isClose = true;
+                }
+
+                this.GetEvent().FireEvent(new EventData("login", new Exception("token error!")));
+                return;
+            }
+
+            lock (self_locker) {
+                if (this._baseClient != null) {
+                    this._baseClient.Close(new Exception("auth error!"));
                 }
             }
         }
 
         /**
+         * rtmGate (1b)
+         */
+        public void Close() {
+            BaseClient client;
+
+            lock (self_locker) {
+                this._isClose = true;
+                client = this._baseClient;
+            }
+
+            this.SendQuest("bye", new Dictionary<string, object>(), (cbd) => {
+                if (client != null) {
+                    client.Close();
+                }
+            }, 500);
+
+            lock (self_locker) {
+                this._baseClient = null;
+            }
+        }
+
+        /**
          *
-         * rtmGate (2)
+         * rtmGate (1c)
+         *
+         * @param {string}                  ce
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void Kickout(string ce, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "ce", ce
+                }
+            };
+            this.SendQuest("kickout", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (1d)
+         *
+         * @param {IDictionary(string,string)}      attrs
+         * @param {int}                             timeout
+         * @param {CallbackDelegate}                callback
+         *
+         * @callback
+         * @param {CallbackData}                    cbd
+         *
+         * <CallbackData>
+         * @param {Exception}                       exception
+         * @param {IDictionary}                     payload
+         * </CallbackData>
+         */
+        public void AddAttrs(IDictionary<string, string> attrs, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "attrs", attrs
+                }
+            };
+            this.SendQuest("addattrs", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (1e)
+         *
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Exception}               exception
+         * @param {List(IDictionary<string, string>)}    payload
+         * </CallbackData>
+         *
+         * <IDictionary<string, string>>
+         * @param {string}                  ce
+         * @param {string}                  login
+         * @param {string}                  my
+         * </IDictionary<string, string>>
+         */
+        public void GetAttrs(int timeout, CallbackDelegate callback) {
+            this.SendQuest("getattrs", new Dictionary<string, object>(), (cbd) => {
+                if (callback == null) {
+                    return;
+                }
+
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
+
+                if (dict != null && dict.ContainsKey("attrs")) {
+                    callback(new CallbackData(dict["attrs"]));
+                    return;
+                }
+
+                callback(cbd);
+            }, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (1f)
+         *
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void AddDebugLog(string msg, string attrs, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "msg", msg },
+                { "attrs", attrs }
+            };
+            this.SendQuest("adddebuglog", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (1g)
+         *
+         * @param {string}                  apptype
+         * @param {string}                  devicetoken
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void AddDevice(string apptype, string devicetoken, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "apptype", apptype },
+                { "devicetoken", devicetoken }
+            };
+            this.SendQuest("adddevice", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (1h)
+         *
+         * @param {string}                  devicetoken
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void RemoveDevice(string devicetoken, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "devicetoken", devicetoken
+                }
+            };
+            this.SendQuest("removedevice", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (2a)
          *
          * @param {long}                    to
          * @param {byte}                    mtype
@@ -335,7 +659,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (3)
+         * rtmGate (2b)
          *
          * @param {long}                    gid
          * @param {byte}                    mtype
@@ -377,7 +701,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (4)
+         * rtmGate (2c)
          *
          * @param {long}                    rid
          * @param {byte}                    mtype
@@ -419,67 +743,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (5)
-         *
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {long}                    mid
-         * @param {Exception}               exception
-         * @param {IDictionary(p2p:IDictionary(string,int),group:IDictionary(string,int))} payload
-         * </CallbackData>
-         */
-        public void GetUnreadMessage(int timeout, CallbackDelegate callback) {
-            this.SendQuest("getunreadmsg", new Dictionary<string, object>(), callback, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (6)
-         *
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {IDictionary}             payload
-         * @param {Exception}               exception
-         * @param {long}                    mid
-         * </CallbackData>
-         */
-        public void CleanUnreadMessage(int timeout, CallbackDelegate callback) {
-            this.SendQuest("cleanunreadmsg", new Dictionary<string, object>(), callback, timeout);
-        }
-
-        /**
-        *
-        * rtmGate (7)
-        *
-        * @param {int}                     timeout
-        * @param {CallbackDelegate}        callback
-        *
-        * @callback
-        * @param {CallbackData}            cbd
-        *
-        * <CallbackData>
-        * @param {long}                    mid
-        * @param {Exception}               exception
-        * @param {IDictionary(p2p:Map(string,long),IDictionary:Map(string,long))}    payload
-        * </CallbackData>
-        */
-        public void GetSession(int timeout, CallbackDelegate callback) {
-            this.SendQuest("getsession", new Dictionary<string, object>(), callback, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (8)
+         * rtmGate (2d)
          *
          * @param {long}                    gid
          * @param {bool}                    desc
@@ -487,6 +751,7 @@ namespace com.rtm {
          * @param {long}                    begin
          * @param {long}                    end
          * @param {long}                    lastid
+         * @param {byte[]}                  mtypes
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -509,7 +774,7 @@ namespace com.rtm {
          * @param {long}                    mtime
          * </GroupMsg>
          */
-        public void GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
+        public void GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "gid", gid },
                 { "desc", desc },
@@ -526,6 +791,10 @@ namespace com.rtm {
 
             if (lastid > 0) {
                 payload.Add("lastid", lastid);
+            }
+
+            if (mtypes != null && mtypes.Length > 0) {
+                payload.Add("mtypes", mtypes);
             }
 
             this.SendQuest("getgroupmsg", payload, (cbd) => {
@@ -561,7 +830,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (9)
+         * rtmGate (2e)
          *
          * @param {long}                    rid
          * @param {bool}                    desc
@@ -569,6 +838,7 @@ namespace com.rtm {
          * @param {long}                    begin
          * @param {long}                    end
          * @param {long}                    lastid
+         * @param {byte[]}                  mtypes
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -591,7 +861,7 @@ namespace com.rtm {
          * @param {long}                    mtime
          * </RoomMsg>
          */
-        public void GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
+        public void GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "rid", rid },
                 { "desc", desc },
@@ -608,6 +878,10 @@ namespace com.rtm {
 
             if (lastid > 0) {
                 payload.Add("lastid", lastid);
+            }
+
+            if (mtypes != null && mtypes.Length > 0) {
+                payload.Add("mtypes", mtypes);
             }
 
             this.SendQuest("getroommsg", payload, (cbd) => {
@@ -643,13 +917,14 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (10)
+         * rtmGate (2f)
          *
          * @param {bool}                    desc
          * @param {int}                     num
          * @param {long}                    begin
          * @param {long}                    end
          * @param {long}                    lastid
+         * @param {byte[]}                  mtypes
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -672,7 +947,7 @@ namespace com.rtm {
          * @param {long}                    mtime
          * </BroadcastMsg>
          */
-        public void GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
+        public void GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "desc", desc },
                 { "num", num }
@@ -688,6 +963,10 @@ namespace com.rtm {
 
             if (lastid > 0) {
                 payload.Add("lastid", lastid);
+            }
+
+            if (mtypes != null && mtypes.Length > 0) {
+                payload.Add("mtypes", mtypes);
             }
 
             this.SendQuest("getbroadcastmsg", payload, (cbd) => {
@@ -723,7 +1002,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (11)
+         * rtmGate (2g)
          *
          * @param {long}                    ouid
          * @param {bool}                    desc
@@ -731,6 +1010,7 @@ namespace com.rtm {
          * @param {long}                    begin
          * @param {long}                    end
          * @param {long}                    lastid
+         * @param {byte[]}                  mtypes
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -753,7 +1033,7 @@ namespace com.rtm {
          * @param {long}                    mtime
          * </P2PMsg>
          */
-        public void GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
+        public void GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "ouid", ouid },
                 { "desc", desc },
@@ -770,6 +1050,10 @@ namespace com.rtm {
 
             if (lastid > 0) {
                 payload.Add("lastid", lastid);
+            }
+
+            if (mtypes != null && mtypes.Length > 0) {
+                payload.Add("mtypes", mtypes);
             }
 
             this.SendQuest("getp2pmsg", payload, (cbd) => {
@@ -805,10 +1089,439 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (12)
+         * rtmGate (2h)
+         *
+         * @param {long}                    mid
+         * @param {long}                    xid
+         * @param {byte}                    type
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "mid", mid },
+                { "xid", xid },
+                { "type", type }
+            };
+            this.SendQuest("delmsg", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (3a)
+         *
+         * @param {long}                    to
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(mtime:long)} payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendChat(long to, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            this.SendMessage(to, 30, msg, attrs, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3b)
+         *
+         * @param {long}                    gid
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(mtime:long)} payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendGroupChat(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            this.SendGroupMessage(gid, 30, msg, attrs, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3c)
+         *
+         * @param {long}                    rid
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(mtime:long)} payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendRoomChat(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            this.SendRoomMessage(rid, 30, msg, attrs, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3d)
+         *
+         * @param {long}                    gid
+         * @param {bool}                    desc
+         * @param {int}                     num
+         * @param {long}                    begin
+         * @param {long}                    end
+         * @param {long}                    lastid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Exception}               exception
+         * @param {IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(GroupMsg))} payload
+         * </CallbackData>
+         *
+         * <GroupMsg>
+         * @param {long}                    id
+         * @param {long}                    from
+         * @param {byte}                    mtype
+         * @param {long}                    mid
+         * @param {bool}                    deleted
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {long}                    mtime
+         * </GroupMsg>
+         */
+        public void GetGroupChat(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
+            this.GetGroupMessage(gid, desc, num, begin, end, lastid, new byte[] { 30 }, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3e)
+         *
+         * @param {long}                    rid
+         * @param {bool}                    desc
+         * @param {int}                     num
+         * @param {long}                    begin
+         * @param {long}                    end
+         * @param {long}                    lastid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Exception}               exception
+         * @param {IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(RoomMsg))} payload
+         * </CallbackData>
+         *
+         * <RoomMsg>
+         * @param {long}                    id
+         * @param {long}                    from
+         * @param {byte}                    mtype
+         * @param {long}                    mid
+         * @param {bool}                    deleted
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {long}                    mtime
+         * </RoomMsg>
+         */
+        public void GetRoomChat(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
+            this.GetRoomMessage(rid, desc, num, begin, end, lastid, new byte[] { 30 }, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3f)
+         *
+         * @param {bool}                    desc
+         * @param {int}                     num
+         * @param {long}                    begin
+         * @param {long}                    end
+         * @param {long}                    lastid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Exception}               exception
+         * @param {IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(BroadcastMsg))} payload
+         * </CallbackData>
+         *
+         * <BroadcastMsg>
+         * @param {long}                    id
+         * @param {long}                    from
+         * @param {byte}                    mtype
+         * @param {long}                    mid
+         * @param {bool}                    deleted
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {long}                    mtime
+         * </BroadcastMsg>
+         */
+        public void GetBroadcastChat(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
+            this.GetBroadcastMessage(desc, num, begin, end, lastid, new byte[] { 30 }, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3g)
+         *
+         * @param {long}                    ouid
+         * @param {bool}                    desc
+         * @param {int}                     num
+         * @param {long}                    begin
+         * @param {long}                    end
+         * @param {long}                    lastid
+         * @param {byte[]}                  mtypes
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Exception}               exception
+         * @param {IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(P2PMsg))} payload
+         * </CallbackData>
+         *
+         * <P2PMsg>
+         * @param {long}                    id
+         * @param {byte}                    direction
+         * @param {byte}                    mtype
+         * @param {long}                    mid
+         * @param {bool}                    deleted
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {long}                    mtime
+         * </P2PMsg>
+         */
+        public void GetP2PChat(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
+            this.GetP2PMessage(ouid, desc, num, begin, end, lastid, new byte[] { 30 }, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3h)
+         *
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Exception}               exception
+         * @param {IDictionary(p2p:List(long),group:List(long))} payload
+         * </CallbackData>
+         */
+        public void GetUnreadMessage(int timeout, CallbackDelegate callback) {
+            this.SendQuest("getunreadmsg", new Dictionary<string, object>(), callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (3i)
+         *
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void CleanUnreadMessage(int timeout, CallbackDelegate callback) {
+            this.SendQuest("cleanunreadmsg", new Dictionary<string, object>(), callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (3j)
+         *
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Exception}               exception
+         * @param {IDictionary(p2p:List(long),group:List(long))}    payload
+         * </CallbackData>
+         */
+        public void GetSession(int timeout, CallbackDelegate callback) {
+            this.SendQuest("getsession", new Dictionary<string, object>(), callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (3k)
+         *
+         * @param {long}                    mid
+         * @param {long}                    xid
+         * @param {byte}                    type
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void DeleteChat(long mid, long xid, byte type, int timeout, CallbackDelegate callback) {
+            this.DeleteMessage(mid, xid, type, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3l)
+         *
+         * @param {string}                  targetLanguage
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void SetTranslationLanguage(string targetLanguage, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "lang", targetLanguage
+                }
+            };
+            RTMClient self = this;
+            this.SendQuest("setlang", payload, (cbd) => {
+                Exception ex = cbd.GetException();
+
+                if (ex == null) {
+                    lock (self_locker) {
+                        self._targetLanguage = targetLanguage;
+                    }
+                }
+
+                if (callback != null) {
+                    callback(cbd);
+                }
+            }, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (3m)
+         *
+         * @param {string}                  originalMessage
+         * @param {string}                  originalLanguage
+         * @param {string}                  targetLanguage
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {Exception}               exception
+         * @param {IDictionary(source:string,target:string,sourceText:string,targetText:string)}    payload
+         * </CallbackData>
+         */
+        public void Translate(string originalMessage, string originalLanguage, string targetLanguage, string type, string profanity, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "text", originalMessage },
+                { "dst", targetLanguage }
+            };
+
+            if (!string.IsNullOrEmpty(originalLanguage)) {
+                payload.Add("src", originalLanguage);
+            }
+
+            if (!string.IsNullOrEmpty(type)) {
+                payload.Add("type", type);
+            }
+
+            if (!string.IsNullOrEmpty(profanity)) {
+                payload.Add("profanity", profanity);
+            }
+
+            this.SendQuest("translate", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (3n)
+         *
+         * @param {string}                      text
+         * @param {string}                      action
+         * @param {int}                         timeout
+         * @param {CallbackDelegate}            callback
+         *
+         * @callback
+         * @param {CallbackData}                cbd
+         *
+         * <CallbackData>
+         * @param {Exception}                   exception
+         * @param {IDictionary(text:string)}    payload
+         * </CallbackData>
+         */
+        public void Profanity(string text, string action, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "text", text
+                }
+            };
+
+            if (!string.IsNullOrEmpty(action)) {
+                payload.Add("action", action);
+            }
+
+            this.SendQuest("profanity", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (4a)
          *
          * @param {string}                  cmd
-         * @param {List(long)}              tos
          * @param {long}                    to
          * @param {long}                    rid
          * @param {long}                    gid
@@ -823,15 +1536,12 @@ namespace com.rtm {
          * @param {IDictionary(token:string,endpoint:string)}   payload
          * </CallbackData>
          */
-        public void FileToken(string cmd, List<long> tos, long to, long rid, long gid, int timeout, CallbackDelegate callback) {
+        public void FileToken(string cmd, long to, long rid, long gid, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "cmd", cmd
+                {
+                    "cmd", cmd
                 }
             };
-
-            if (tos != null && tos.Count > 0) {
-                payload.Add("tos", tos);
-            }
 
             if (to > 0) {
                 payload.Add("to", to);
@@ -849,197 +1559,134 @@ namespace com.rtm {
         }
 
         /**
-         * rtmGate (13)
+         *
+         * rtmGate (5a)
+         *
+         * @param {List(long)}              uids
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {List(long)}              payload
+         * @param {Exception}               exception
+         * </CallbackData>
          */
-        public void Close() {
-            lock (self_locker) {
-                this._isClose = true;
+        public void GetOnlineUsers(List<long> uids, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "uids", uids
+                }
+            };
+            this.SendQuest("getonlineusers", payload, (cbd) => {
+                if (callback == null) {
+                    return;
+                }
+
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
+
+                if (dict != null && dict.ContainsKey("uids")) {
+                    callback(new CallbackData(dict["uids"]));
+                    return;
+                }
+
+                callback(cbd);
+            }, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (5b)
+         *
+         * @param {string}                  oinfo
+         * @param {string}                  pinfo
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void SetUserInfo(string oinfo, string pinfo, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>();
+
+            if (!string.IsNullOrEmpty(oinfo)) {
+                payload.Add("oinfo", oinfo);
             }
 
-            this.SendQuest("bye", new Dictionary<string, object>(), null, 0);
-        }
-
-        /**
-         *
-         * rtmGate (14)
-         *
-         * @param {IDictionary(string,string)}      attrs
-         * @param {int}                             timeout
-         * @param {CallbackDelegate}                callback
-         *
-         * @callback
-         * @param {CallbackData}                    cbd
-         *
-         * <CallbackData>
-         * @param {Exception}                       exception
-         * @param {IDictionary}                     payload
-         * </CallbackData>
-         */
-        public void AddAttrs(IDictionary<string, string> attrs, int timeout, CallbackDelegate callback) {
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "attrs", attrs
-                }
-            };
-            this.SendQuest("addattrs", payload, callback, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (15)
-         *
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {Exception}               exception
-         * @param {IDictionary(attrs:List(IDictionary<string, string>))}    payload
-         * </CallbackData>
-         *
-         * <IDictionary<string, string>>
-         * @param {string}                  ce
-         * @param {string}                  login
-         * @param {string}                  my
-         * </IDictionary<string, string>>
-         */
-        public void GetAttrs(int timeout, CallbackDelegate callback) {
-            this.SendQuest("getattrs", new Dictionary<string, object>(), callback, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (16)
-         *
-         * @param {string}                  msg
-         * @param {string}                  attrs
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {IDictionary}             payload
-         * @param {Exception}               exception
-         * </CallbackData>
-         */
-        public void AddDebugLog(string msg, string attrs, int timeout, CallbackDelegate callback) {
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "msg", msg },
-                { "attrs", attrs }
-            };
-            this.SendQuest("adddebuglog", payload, callback, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (17)
-         *
-         * @param {string}                  apptype
-         * @param {string}                  devicetoken
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {IDictionary}             payload
-         * @param {Exception}               exception
-         * </CallbackData>
-         */
-        public void AddDevice(string apptype, string devicetoken, int timeout, CallbackDelegate callback) {
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "apptype", apptype },
-                { "devicetoken", devicetoken }
-            };
-            this.SendQuest("adddevice", payload, callback, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (18)
-         *
-         * @param {string}                  devicetoken
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {IDictionary}             payload
-         * @param {Exception}               exception
-         * </CallbackData>
-         */
-        public void RemoveDevice(string devicetoken, int timeout, CallbackDelegate callback) {
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "devicetoken", devicetoken
-                }
-            };
-            this.SendQuest("removedevice", payload, callback, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (19)
-         *
-         * @param {string}                  targetLanguage
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {IDictionary}             payload
-         * @param {Exception}               exception
-         * </CallbackData>
-         */
-        public void SetTranslationLanguage(string targetLanguage, int timeout, CallbackDelegate callback) {
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "lang", targetLanguage
-                }
-            };
-            this.SendQuest("setlang", payload, callback, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (20)
-         *
-         * @param {string}                  originalMessage
-         * @param {string}                  originalLanguage
-         * @param {string}                  targetLanguage
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {Exception}               exception
-         * @param {IDictionary(stext:string,src:string,dtext:string,dst:string)}    payload
-         * </CallbackData>
-         */
-        public void Translate(string originalMessage, string originalLanguage, string targetLanguage, int timeout, CallbackDelegate callback) {
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "text", originalMessage },
-                { "dst", targetLanguage }
-            };
-
-            if (!string.IsNullOrEmpty(originalLanguage)) {
-                payload.Add("src", originalLanguage);
+            if (!string.IsNullOrEmpty(pinfo)) {
+                payload.Add("pinfo", pinfo);
             }
 
-            this.SendQuest("translate", payload, callback, timeout);
+            this.SendQuest("setuserinfo", payload, callback, timeout);
         }
 
         /**
          *
-         * rtmGate (21)
+         * rtmGate (5c)
+         *
+         * @param {int}                         timeout
+         * @param {CallbackDelegate}            callback
+         *
+         * @callback
+         * @param {CallbackData}                cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(oinfo:string,pinfo:string)}  payload
+         * @param {Exception}                   exception
+         * </CallbackData>
+         */
+        public void GetUserInfo(int timeout, CallbackDelegate callback) {
+            this.SendQuest("getuserinfo", new Dictionary<string, object>(), callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (5d)
+         *
+         * @param {List(long)}                  uids
+         * @param {int}                         timeout
+         * @param {CallbackDelegate}            callback
+         *
+         * @callback
+         * @param {CallbackData}                cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(string,string)}  payload
+         * @param {Exception}                   exception
+         * </CallbackData>
+         */
+        public void GetUserOpenInfo(List<long> uids, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "uids", uids
+                }
+            };
+            this.SendQuest("getuseropeninfo", payload, (cbd) => {
+                if (callback == null) {
+                    return;
+                }
+
+                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
+
+                if (dict != null && dict.ContainsKey("info")) {
+                    callback(new CallbackData(dict["info"]));
+                    return;
+                }
+
+                callback(cbd);
+            }, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (6a)
          *
          * @param {List(long)}              friends
          * @param {int}                     timeout
@@ -1055,7 +1702,8 @@ namespace com.rtm {
          */
         public void AddFriends(List<long> friends, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "friends", friends
+                {
+                    "friends", friends
                 }
             };
             this.SendQuest("addfriends", payload, callback, timeout);
@@ -1063,7 +1711,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (22)
+         * rtmGate (6b)
          *
          * @param {List(long)}              friends
          * @param {int}                     timeout
@@ -1079,7 +1727,8 @@ namespace com.rtm {
          */
         public void DeleteFriends(List<long> friends, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "friends", friends
+                {
+                    "friends", friends
                 }
             };
             this.SendQuest("delfriends", payload, callback, timeout);
@@ -1087,7 +1736,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (23)
+         * rtmGate (6c)
          *
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
@@ -1120,7 +1769,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (24)
+         * rtmGate (7a)
          *
          * @param {long}                    gid
          * @param {List(long)}              uids
@@ -1145,7 +1794,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (25)
+         * rtmGate (7b)
          *
          * @param {long}                    gid
          * @param {List(long)}              uids
@@ -1170,7 +1819,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (26)
+         * rtmGate (7c)
          *
          * @param {long}                    gid
          * @param {int}                     timeout
@@ -1186,7 +1835,8 @@ namespace com.rtm {
          */
         public void GetGroupMembers(long gid, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "gid", gid
+                {
+                    "gid", gid
                 }
             };
             this.SendQuest("getgroupmembers", payload, (cbd) => {
@@ -1196,9 +1846,8 @@ namespace com.rtm {
 
                 IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
-                if (dict != null) {
-                    List<object> ids = (List<object>)dict["uids"];
-                    callback(new CallbackData(ids));
+                if (dict != null && dict.ContainsKey("uids")) {
+                    callback(new CallbackData(dict["uids"]));
                     return;
                 }
 
@@ -1208,7 +1857,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (27)
+         * rtmGate (7d)
          *
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
@@ -1229,9 +1878,8 @@ namespace com.rtm {
 
                 IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
-                if (dict != null) {
-                    List<object> ids = (List<object>)dict["gids"];
-                    callback(new CallbackData(ids));
+                if (dict != null && dict.ContainsKey("gids")) {
+                    callback(new CallbackData(dict["gids"]));
                     return;
                 }
 
@@ -1241,7 +1889,93 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (28)
+         * rtmGate (7e)
+         *
+         * @param {long}                    gid
+         * @param {string}                  oinfo
+         * @param {string}                  pinfo
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void SetGroupInfo(long gid, string oinfo, string pinfo, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "gid", gid
+                }
+            };
+
+            if (!string.IsNullOrEmpty(oinfo)) {
+                payload.Add("oinfo", oinfo);
+            }
+
+            if (!string.IsNullOrEmpty(pinfo)) {
+                payload.Add("pinfo", pinfo);
+            }
+
+            this.SendQuest("setgroupinfo", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (7f)
+         *
+         * @param {long}                        gid
+         * @param {int}                         timeout
+         * @param {CallbackDelegate}            callback
+         *
+         * @callback
+         * @param {CallbackData}                cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(oinfo:string,pinfo:string)}  payload
+         * @param {Exception}                   exception
+         * </CallbackData>
+         */
+        public void GetGroupInfo(long gid, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "gid", gid
+                }
+            };
+            this.SendQuest("getgroupinfo", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (7g)
+         *
+         * @param {long}                        gid
+         * @param {int}                         timeout
+         * @param {CallbackDelegate}            callback
+         *
+         * @callback
+         * @param {CallbackData}                cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(oinfo:string)}   payload
+         * @param {Exception}                   exception
+         * </CallbackData>
+         */
+        public void GetGroupOpenInfo(long gid, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "gid", gid
+                }
+            };
+            this.SendQuest("getgroupopeninfo", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (8a)
          *
          * @param {long}                    rid
          * @param {int}                     timeout
@@ -1257,7 +1991,8 @@ namespace com.rtm {
          */
         public void EnterRoom(long rid, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "rid", rid
+                {
+                    "rid", rid
                 }
             };
             this.SendQuest("enterroom", payload, callback, timeout);
@@ -1265,7 +2000,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (29)
+         * rtmGate (8b)
          *
          * @param {long}                    rid
          * @param {int}                     timeout
@@ -1281,7 +2016,8 @@ namespace com.rtm {
          */
         public void LeaveRoom(long rid, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "rid", rid
+                {
+                    "rid", rid
                 }
             };
             this.SendQuest("leaveroom", payload, callback, timeout);
@@ -1289,7 +2025,7 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (30)
+         * rtmGate (8c)
          *
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
@@ -1310,9 +2046,8 @@ namespace com.rtm {
 
                 IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
-                if (dict != null) {
-                    List<object> ids = (List<object>)dict["rooms"];
-                    callback(new CallbackData(ids));
+                if (dict != null && dict.ContainsKey("rooms")) {
+                    callback(new CallbackData(dict["rooms"]));
                     return;
                 }
 
@@ -1322,49 +2057,11 @@ namespace com.rtm {
 
         /**
          *
-         * rtmGate (31)
+         * rtmGate (8d)
          *
-         * @param {List(long)}              uids
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {List(long)}              payload
-         * @param {Exception}               exception
-         * </CallbackData>
-         */
-        public void GetOnlineUsers(List<long> uids, int timeout, CallbackDelegate callback) {
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "uids", uids
-                }
-            };
-            this.SendQuest("getonlineusers", payload, (cbd) => {
-                if (callback == null) {
-                    return;
-                }
-
-                IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
-
-                if (dict != null) {
-                    List<object> ids = (List<object>)dict["uids"];
-                    callback(new CallbackData(ids));
-                    return;
-                }
-
-                callback(cbd);
-            }, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (32)
-         *
-         * @param {long}                    mid
-         * @param {long}                    xid
-         * @param {byte}                    type
+         * @param {long}                    rid
+         * @param {string}                  oinfo
+         * @param {string}                  pinfo
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -1376,42 +2073,77 @@ namespace com.rtm {
          * @param {Exception}               exception
          * </CallbackData>
          */
-        public void DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback) {
+        public void SetRoomInfo(long rid, string oinfo, string pinfo, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "mid", mid },
-                { "xid", xid },
-                { "type", type }
-            };
-            this.SendQuest("delmsg", payload, callback, timeout);
-        }
-
-        /**
-         *
-         * rtmGate (33)
-         *
-         * @param {string}                  ce
-         * @param {int}                     timeout
-         * @param {CallbackDelegate}        callback
-         *
-         * @callback
-         * @param {CallbackData}            cbd
-         *
-         * <CallbackData>
-         * @param {IDictionary}             payload
-         * @param {Exception}               exception
-         * </CallbackData>
-         */
-        public void Kickout(string ce, int timeout, CallbackDelegate callback) {
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "ce", ce
+                {
+                    "rid", rid
                 }
             };
-            this.SendQuest("kickout", payload, callback, timeout);
+
+            if (!string.IsNullOrEmpty(oinfo)) {
+                payload.Add("oinfo", oinfo);
+            }
+
+            if (!string.IsNullOrEmpty(pinfo)) {
+                payload.Add("pinfo", pinfo);
+            }
+
+            this.SendQuest("setroominfo", payload, callback, timeout);
         }
 
         /**
          *
-         * rtmGate (34)
+         * rtmGate (8e)
+         *
+         * @param {long}                        rid
+         * @param {int}                         timeout
+         * @param {CallbackDelegate}            callback
+         *
+         * @callback
+         * @param {CallbackData}                cbd
+         *
+         * <CallbackData>
+         * @param {Exception}                   exception
+         * @param {IDictionary(oinfo:string,pinfo:string)}  payload
+         * </CallbackData>
+         */
+        public void GetRoomInfo(long rid, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "rid", rid
+                }
+            };
+            this.SendQuest("getroominfo", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (8f)
+         *
+         * @param {long}                        rid
+         * @param {int}                         timeout
+         * @param {CallbackDelegate}            callback
+         *
+         * @callback
+         * @param {CallbackData}                cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(oinfo:string)}   payload
+         * @param {Exception}                   exception
+         * </CallbackData>
+         */
+        public void GetRoomOpenInfo(long rid, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "rid", rid
+                }
+            };
+            this.SendQuest("getroomopeninfo", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (9a)
          *
          * @param {string}                  key
          * @param {int}                     timeout
@@ -1425,17 +2157,18 @@ namespace com.rtm {
          * @param {IDictionary(val:string)} payload
          * </CallbackData>
          */
-        public void DBGet(string key, int timeout, CallbackDelegate callback) {
+        public void DataGet(string key, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "key", key
+                {
+                    "key", key
                 }
             };
-            this.SendQuest("dbget", payload, callback, timeout);
+            this.SendQuest("dataget", payload, callback, timeout);
         }
 
         /**
          *
-         * rtmGate (35)
+         * rtmGate (9b)
          *
          * @param {string}                  key
          * @param {string}                  value
@@ -1450,12 +2183,37 @@ namespace com.rtm {
          * @param {Exception}               exception
          * </CallbackData>
          */
-        public void DBSet(string key, string value, int timeout, CallbackDelegate callback) {
+        public void DataSet(string key, string value, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "key", key },
                 { "val", value }
             };
-            this.SendQuest("dbset", payload, callback, timeout);
+            this.SendQuest("dataset", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (9c)
+         *
+         * @param {string}                  key
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void DataDelete(string key, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "key", key
+                }
+            };
+            this.SendQuest("datadel", payload, callback, timeout);
         }
 
         /**
@@ -1563,130 +2321,20 @@ namespace com.rtm {
             this.FileSendProcess(ops, mid, timeout, callback);
         }
 
-        /**
-         *
-         * rtmGate (1)
-         *
-         */
-        private void Auth(int timeout) {
-            RTMClient self = this;
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "pid", this._pid },
-                { "uid", this._uid },
-                { "token", this._token },
-                { "version", this._version },
-                { "attrs", this._attrs }
-            };
-            this.SendQuest("auth", payload, (cbd) => {
-                Exception exception = cbd.GetException();
-
-                if (exception != null) {
-                    lock (self_locker) {
-                        if (self._baseClient != null) {
-                            self._baseClient.Close(exception);
-                        }
-                    }
-
-                    return;
-                }
-
-                object obj = cbd.GetPayload();
-
-                if (obj != null) {
-                    IDictionary<string, object> dict = (IDictionary<string, object>)obj;
-                    bool ok = Convert.ToBoolean(dict["ok"]);
-
-                    if (ok) {
-                        lock (delayconn_locker) {
-                            self._reconnCount = 0;
-                        }
-
-                        string endpoint = null;
-
-                        lock (self_locker) {
-                            if (self._processor != null) {
-                                self._processor.InitPingTimestamp();
-                            }
-
-                            endpoint = self._endpoint;
-                        }
-
-                        self.GetEvent().FireEvent(new EventData("login", endpoint));
-                        return;
-                    }
-
-                    if (dict.ContainsKey("gate")) {
-                        string gate = Convert.ToString(dict["gate"]);
-
-                        if (!string.IsNullOrEmpty(gate)) {
-                            lock (self_locker) {
-                                self._switchGate = gate;
-
-                                if (self._baseClient != null) {
-                                    self._baseClient.Close();
-                                }
-                            }
-
-                            return;
-                        }
-                    }
-
-                    if (!ok) {
-                        lock (self_locker) {
-                            self._isClose = true;
-                        }
-
-                        self.GetEvent().FireEvent(new EventData("login", new Exception("token error!")));
-                        return;
-                    }
-                }
-
-                lock (self_locker) {
-                    if (self._baseClient != null) {
-                        self._baseClient.Close(new Exception("auth error!"));
-                    }
-                }
-            }, timeout);
-        }
-
-        private void ConnectRTMGate(int timeout) {
-            RTMClient self = this;
-
-            if (this._baseClient == null) {
-                this._baseClient = new BaseClient(this._endpoint, timeout);
-                this._baseClient.Client_Connect = (evd) => {
-                    self.Auth(timeout);
-                };
-                this._baseClient.Client_Close = (evd) => {
-                    bool retry = false;
-
-                    lock (self_locker) {
-                        if (self._baseClient != null) {
-                            self._baseClient = null;
-                        }
-
-                        self._endpoint = self._switchGate;
-                        self._switchGate = null;
-                        retry = !self._isClose && self._reconnect;
-                    }
-
-                    self.GetEvent().FireEvent(new EventData("close", retry));
-                    self.Reconnect();
-                };
-                this._baseClient.GetProcessor().SetProcessor(this._processor);
-                this._baseClient.Connect();
-            }
-        }
-
         private void FileSendProcess(Hashtable ops, long mid, int timeout, CallbackDelegate callback) {
+            if (ops == null) {
+                return;
+            }
+
+            if (!ops.Contains("mtype") || !ops.Contains("cmd") || !ops.Contains("file")) {
+                return;
+            }
+
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "cmd", ops["cmd"]
+                {
+                    "cmd", ops["cmd"]
                 }
             };
-
-            if (ops.Contains("tos")) {
-                payload.Add("tos", ops["tos"]);
-            }
 
             if (ops.Contains("to")) {
                 payload.Add("to", ops["to"]);
@@ -1700,8 +2348,16 @@ namespace com.rtm {
                 payload.Add("gid", ops["gid"]);
             }
 
+            this.Filetoken(payload, this.FileSendProcess_Callback(ops, mid, timeout, callback), timeout);
+        }
+
+        private void Filetoken(IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
+            this.SendQuest("filetoken", payload, callback, timeout);
+        }
+
+        private CallbackDelegate FileSendProcess_Callback(Hashtable ops, long mid, int timeout, CallbackDelegate callback) {
             RTMClient self = this;
-            this.Filetoken(payload, (cbd) => {
+            return (cbd) => {
                 if (cbd.GetException() != null) {
                     if (callback != null) {
                         callback(cbd);
@@ -1712,49 +2368,53 @@ namespace com.rtm {
 
                 object obj = cbd.GetPayload();
 
-                if (obj != null) {
-                    IDictionary<string, object> dict = (IDictionary<string, object>)obj;
-                    string token = Convert.ToString(dict["token"]);
-                    string endpoint = Convert.ToString(dict["endpoint"]);
+                if (obj == null) {
+                    return;
+                }
 
-                    if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(endpoint)) {
-                        self.GetEvent().FireEvent(new EventData("error", new Exception("file token error!")));
-                        return;
+                string token = null;
+                string endpoint = null;
+                IDictionary<string, object> dict = (IDictionary<string, object>)obj;
+
+                if (dict != null) {
+                    if (dict.ContainsKey("token")) {
+                        token = Convert.ToString(dict["token"]);
                     }
 
-                    FileClient fileClient = new FileClient(endpoint, timeout);
-                    dict = new Dictionary<string, object>() {
-                        { "pid", self._pid },
-                        { "mtype", ops["mtype"] },
-                        { "mid", mid != 0 ? mid : MidGenerator.Gen() },
-                        { "from", self._uid }
-                    };
-
-                    if (ops.Contains("tos")) {
-                        dict.Add("tos", ops["tos"]);
-                    }
-
-                    if (ops.Contains("to")) {
-                        dict.Add("to", ops["to"]);
-                    }
-
-                    if (ops.Contains("rid")) {
-                        dict.Add("rid", ops["rid"]);
-                    }
-
-                    if (ops.Contains("gid")) {
-                        dict.Add("gid", ops["gid"]);
-                    }
-
-                    lock (self_locker) {
-                        fileClient.Send(self._sender, Convert.ToString(ops["cmd"]), (byte[])ops["file"], token, dict, timeout, callback);
+                    if (dict.ContainsKey("endpoint")) {
+                        endpoint = Convert.ToString(dict["endpoint"]);
                     }
                 }
-            }, timeout);
-        }
 
-        private void Filetoken(IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
-            this.SendQuest("filetoken", payload, callback, timeout);
+                if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(endpoint)) {
+                    self.GetEvent().FireEvent(new EventData("error", new Exception("file token error!")));
+                    return;
+                }
+
+                FileClient fileClient = new FileClient(endpoint, timeout);
+                dict = new Dictionary<string, object>() {
+                    { "pid", self._pid },
+                    { "mtype", ops["mtype"] },
+                    { "mid", mid != 0 ? mid : MidGenerator.Gen() },
+                    { "from", self._uid }
+                };
+
+                if (ops.Contains("to")) {
+                    dict.Add("to", ops["to"]);
+                }
+
+                if (ops.Contains("rid")) {
+                    dict.Add("rid", ops["rid"]);
+                }
+
+                if (ops.Contains("gid")) {
+                    dict.Add("gid", ops["gid"]);
+                }
+
+                lock (self_locker) {
+                    fileClient.Send(self._sender, Convert.ToString(ops["cmd"]), (byte[])ops["file"], token, dict, timeout, callback);
+                }
+            };
         }
 
         private int _reconnCount = 0;
@@ -1866,7 +2526,8 @@ namespace com.rtm {
                 }
 
                 IDictionary<string, string> attrs = new Dictionary<string, string>() {
-                    { "sign", sign
+                    {
+                        "sign", sign
                     }
                 };
                 payload.Add("token", token);
