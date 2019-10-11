@@ -210,6 +210,7 @@ namespace com.rtm {
             }
 
             if (mtype == 30) {
+                data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvChat;
             }
 
@@ -252,6 +253,7 @@ namespace com.rtm {
             }
 
             if (mtype == 30) {
+                data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvGroupChat;
             }
 
@@ -294,6 +296,7 @@ namespace com.rtm {
             }
 
             if (mtype == 30) {
+                data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvRoomChat;
             }
 
@@ -335,6 +338,7 @@ namespace com.rtm {
             }
 
             if (mtype == 30) {
+                data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvBroadcastChat;
             }
 

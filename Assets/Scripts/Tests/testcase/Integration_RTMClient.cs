@@ -14,7 +14,7 @@ public class Integration_RTMClient {
     private string _dispatch = "52.83.245.22:13325";
     private int _pid = 11000001;
     private long _uid = 777779;
-    private string _token = "8CEC40758491B4920EAAE92B61131C9A";
+    private string _token = "FE6B6F60810E3CE8E7696A37120FED83";
 
     [SetUp]
     public void SetUp() {

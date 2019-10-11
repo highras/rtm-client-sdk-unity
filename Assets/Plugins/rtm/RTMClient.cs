@@ -804,12 +804,12 @@ namespace com.rtm {
 
                 IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
-                if (dict != null) {
+                if (dict != null && dict.ContainsKey("msgs")) {
                     List<object> ol = (List<object>)dict["msgs"];
                     List<IDictionary<string, object>> nl = new List<IDictionary<string, object>>();
 
                     foreach (List<object> items in ol) {
-                        nl.Add(new Dictionary<string, object>() {
+                        IDictionary<string, object> GroupMsg = new Dictionary<string, object>() {
                             { "id", items[0] },
                             { "from", items[1] },
                             { "mtype", items[2] },
@@ -818,7 +818,14 @@ namespace com.rtm {
                             { "msg", items[5] },
                             { "attrs", items[6] },
                             { "mtime", items[7] }
-                        });
+                        };
+                        byte mtype = Convert.ToByte(GroupMsg["mtype"]);
+
+                        if (mtype == 30) {
+                            GroupMsg.Remove("mtype");
+                        }
+
+                        nl.Add(GroupMsg);
                     }
 
                     dict["msgs"] = nl;
@@ -891,12 +898,12 @@ namespace com.rtm {
 
                 IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
-                if (dict != null) {
+                if (dict != null && dict.ContainsKey("msgs")) {
                     List<object> ol = (List<object>)dict["msgs"];
                     List<IDictionary<string, object>> nl = new List<IDictionary<string, object>>();
 
                     foreach (List<object> items in ol) {
-                        nl.Add(new Dictionary<string, object>() {
+                        IDictionary<string, object> RoomMsg = new Dictionary<string, object>() {
                             { "id", items[0] },
                             { "from", items[1] },
                             { "mtype", items[2] },
@@ -905,7 +912,14 @@ namespace com.rtm {
                             { "msg", items[5] },
                             { "attrs", items[6] },
                             { "mtime", items[7] }
-                        });
+                        };
+                        byte mtype = Convert.ToByte(RoomMsg["mtype"]);
+
+                        if (mtype == 30) {
+                            RoomMsg.Remove("mtype");
+                        }
+
+                        nl.Add(RoomMsg);
                     }
 
                     dict["msgs"] = nl;
@@ -976,12 +990,12 @@ namespace com.rtm {
 
                 IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
-                if (dict != null) {
+                if (dict != null && dict.ContainsKey("msgs")) {
                     List<object> ol = (List<object>)dict["msgs"];
                     List<IDictionary<string, object>> nl = new List<IDictionary<string, object>>();
 
                     foreach (List<object> items in ol) {
-                        nl.Add(new Dictionary<string, object>() {
+                        IDictionary<string, object> BroadcastMsg = new Dictionary<string, object>() {
                             { "id", items[0] },
                             { "from", items[1] },
                             { "mtype", items[2] },
@@ -990,7 +1004,14 @@ namespace com.rtm {
                             { "msg", items[5] },
                             { "attrs", items[6] },
                             { "mtime", items[7] }
-                        });
+                        };
+                        byte mtype = Convert.ToByte(BroadcastMsg["mtype"]);
+
+                        if (mtype == 30) {
+                            BroadcastMsg.Remove("mtype");
+                        }
+
+                        nl.Add(BroadcastMsg);
                     }
 
                     dict["msgs"] = nl;
@@ -1063,12 +1084,12 @@ namespace com.rtm {
 
                 IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
 
-                if (dict != null) {
+                if (dict != null && dict.ContainsKey("msgs")) {
                     List<object> ol = (List<object>)dict["msgs"];
                     List<IDictionary<string, object>> nl = new List<IDictionary<string, object>>();
 
                     foreach (List<object> items in ol) {
-                        nl.Add(new Dictionary<string, object>() {
+                        IDictionary<string, object> P2PMsg = new Dictionary<string, object>() {
                             { "id", items[0] },
                             { "direction", items[1] },
                             { "mtype", items[2] },
@@ -1077,7 +1098,14 @@ namespace com.rtm {
                             { "msg", items[5] },
                             { "attrs", items[6] },
                             { "mtime", items[7] }
-                        });
+                        };
+                        byte mtype = Convert.ToByte(P2PMsg["mtype"]);
+
+                        if (mtype == 30) {
+                            P2PMsg.Remove("mtype");
+                        }
+
+                        nl.Add(P2PMsg);
                     }
 
                     dict["msgs"] = nl;

@@ -35,7 +35,7 @@ public class SingleClientSend : Main.ITestCase {
             "52.83.245.22:13325",
             11000001,
             777779,
-            "1A111B55D7C0769277B69C84DC856A65",
+            "FE6B6F60810E3CE8E7696A37120FED83",
             null,
             RTMConfig.TRANS_LANGUAGE.en,
             new Dictionary<string, string>(),
