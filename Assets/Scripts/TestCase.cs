@@ -450,7 +450,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (3m)
         //---------------------------------Translate--------------------------------------
-        this._client.Translate("你好,习近平!", RTMConfig.TRANS_LANGUAGE.zh_cn, RTMConfig.TRANS_LANGUAGE.en, "chat", "censor", timeout, (cbd) => {
+        this._client.Translate("点数优惠", RTMConfig.TRANS_LANGUAGE.zh_cn, RTMConfig.TRANS_LANGUAGE.en, "chat", "censor", timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
@@ -462,7 +462,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (3n)
         //---------------------------------Profanity--------------------------------------
-        this._client.Profanity("你好,习近平!", "stop", timeout, (cbd) => {
+        this._client.Profanity("点数优惠", "stop", timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {

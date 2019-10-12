@@ -1163,7 +1163,7 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendChat(long to, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            this.SendMessage(to, 30, msg, attrs, mid, timeout, callback);
+            this.SendMessage(to, (byte) 30, msg, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1187,7 +1187,7 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendGroupChat(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            this.SendGroupMessage(gid, 30, msg, attrs, mid, timeout, callback);
+            this.SendGroupMessage(gid, (byte) 30, msg, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1211,7 +1211,7 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendRoomChat(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            this.SendRoomMessage(rid, 30, msg, attrs, mid, timeout, callback);
+            this.SendRoomMessage(rid, (byte) 30, msg, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1247,7 +1247,7 @@ namespace com.rtm {
          * </GroupMsg>
          */
         public void GetGroupChat(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetGroupMessage(gid, desc, num, begin, end, lastid, new byte[] { 30 }, timeout, callback);
+            this.GetGroupMessage(gid, desc, num, begin, end, lastid, new byte[] { (byte) 30 }, timeout, callback);
         }
 
         /**
@@ -1283,7 +1283,7 @@ namespace com.rtm {
          * </RoomMsg>
          */
         public void GetRoomChat(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetRoomMessage(rid, desc, num, begin, end, lastid, new byte[] { 30 }, timeout, callback);
+            this.GetRoomMessage(rid, desc, num, begin, end, lastid, new byte[] { (byte) 30 }, timeout, callback);
         }
 
         /**
@@ -1318,7 +1318,7 @@ namespace com.rtm {
          * </BroadcastMsg>
          */
         public void GetBroadcastChat(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetBroadcastMessage(desc, num, begin, end, lastid, new byte[] { 30 }, timeout, callback);
+            this.GetBroadcastMessage(desc, num, begin, end, lastid, new byte[] { (byte) 30 }, timeout, callback);
         }
 
         /**
@@ -1355,7 +1355,7 @@ namespace com.rtm {
          * </P2PMsg>
          */
         public void GetP2PChat(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetP2PMessage(ouid, desc, num, begin, end, lastid, new byte[] { 30 }, timeout, callback);
+            this.GetP2PMessage(ouid, desc, num, begin, end, lastid, new byte[] { (byte) 30 }, timeout, callback);
         }
 
         /**
