@@ -751,7 +751,7 @@ namespace com.rtm {
          * @param {long}                    begin
          * @param {long}                    end
          * @param {long}                    lastid
-         * @param {byte[]}                  mtypes
+         * @param {List<Byte>}              mtypes
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -774,7 +774,7 @@ namespace com.rtm {
          * @param {long}                    mtime
          * </GroupMsg>
          */
-        public void GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback) {
+        public void GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "gid", gid },
                 { "desc", desc },
@@ -793,7 +793,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            if (mtypes != null && mtypes.Length > 0) {
+            if (mtypes != null && mtypes.Count > 0) {
                 payload.Add("mtypes", mtypes);
             }
 
@@ -845,7 +845,7 @@ namespace com.rtm {
          * @param {long}                    begin
          * @param {long}                    end
          * @param {long}                    lastid
-         * @param {byte[]}                  mtypes
+         * @param {List<Byte>}              mtypes
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -868,7 +868,7 @@ namespace com.rtm {
          * @param {long}                    mtime
          * </RoomMsg>
          */
-        public void GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback) {
+        public void GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "rid", rid },
                 { "desc", desc },
@@ -887,7 +887,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            if (mtypes != null && mtypes.Length > 0) {
+            if (mtypes != null && mtypes.Count > 0) {
                 payload.Add("mtypes", mtypes);
             }
 
@@ -938,7 +938,7 @@ namespace com.rtm {
          * @param {long}                    begin
          * @param {long}                    end
          * @param {long}                    lastid
-         * @param {byte[]}                  mtypes
+         * @param {List<Byte>}              mtypes
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -961,7 +961,7 @@ namespace com.rtm {
          * @param {long}                    mtime
          * </BroadcastMsg>
          */
-        public void GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback) {
+        public void GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "desc", desc },
                 { "num", num }
@@ -979,7 +979,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            if (mtypes != null && mtypes.Length > 0) {
+            if (mtypes != null && mtypes.Count > 0) {
                 payload.Add("mtypes", mtypes);
             }
 
@@ -1031,7 +1031,7 @@ namespace com.rtm {
          * @param {long}                    begin
          * @param {long}                    end
          * @param {long}                    lastid
-         * @param {byte[]}                  mtypes
+         * @param {List<Byte>}              mtypes
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -1054,7 +1054,7 @@ namespace com.rtm {
          * @param {long}                    mtime
          * </P2PMsg>
          */
-        public void GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback) {
+        public void GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "ouid", ouid },
                 { "desc", desc },
@@ -1073,7 +1073,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            if (mtypes != null && mtypes.Length > 0) {
+            if (mtypes != null && mtypes.Count > 0) {
                 payload.Add("mtypes", mtypes);
             }
 
@@ -1247,7 +1247,7 @@ namespace com.rtm {
          * </GroupMsg>
          */
         public void GetGroupChat(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetGroupMessage(gid, desc, num, begin, end, lastid, new byte[] { (byte) 30 }, timeout, callback);
+            this.GetGroupMessage(gid, desc, num, begin, end, lastid, new List<Byte> { (byte) 30 }, timeout, callback);
         }
 
         /**
@@ -1283,7 +1283,7 @@ namespace com.rtm {
          * </RoomMsg>
          */
         public void GetRoomChat(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetRoomMessage(rid, desc, num, begin, end, lastid, new byte[] { (byte) 30 }, timeout, callback);
+            this.GetRoomMessage(rid, desc, num, begin, end, lastid, new List<Byte> { (byte) 30 }, timeout, callback);
         }
 
         /**
@@ -1318,7 +1318,7 @@ namespace com.rtm {
          * </BroadcastMsg>
          */
         public void GetBroadcastChat(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetBroadcastMessage(desc, num, begin, end, lastid, new byte[] { (byte) 30 }, timeout, callback);
+            this.GetBroadcastMessage(desc, num, begin, end, lastid, new List<Byte> { (byte) 30 }, timeout, callback);
         }
 
         /**
@@ -1355,7 +1355,7 @@ namespace com.rtm {
          * </P2PMsg>
          */
         public void GetP2PChat(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetP2PMessage(ouid, desc, num, begin, end, lastid, new byte[] { (byte) 30 }, timeout, callback);
+            this.GetP2PMessage(ouid, desc, num, begin, end, lastid, new List<Byte> { (byte) 30 }, timeout, callback);
         }
 
         /**

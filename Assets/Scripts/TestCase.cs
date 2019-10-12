@@ -246,7 +246,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (2d)
         //---------------------------------GetGroupMessage--------------------------------------
-        this._client.GetGroupMessage(gid, true, 10, 0, 0, 0, new byte[] {8}, timeout, (cbd) => {
+        this._client.GetGroupMessage(gid, true, 10, 0, 0, 0, new List<Byte> {8}, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
@@ -258,7 +258,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (2e)
         //---------------------------------GetRoomMessage--------------------------------------
-        this._client.GetRoomMessage(rid, true, 10, 0, 0, 0, new byte[] {8}, timeout, (cbd) => {
+        this._client.GetRoomMessage(rid, true, 10, 0, 0, 0, new List<Byte> {8}, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
@@ -270,7 +270,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (2f)
         //---------------------------------GetBroadcastMessage--------------------------------------
-        this._client.GetBroadcastMessage(true, 10, 0, 0, 0, new byte[] {8}, timeout, (cbd) => {
+        this._client.GetBroadcastMessage(true, 10, 0, 0, 0, new List<Byte> {8}, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
@@ -282,7 +282,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (2g)
         //---------------------------------GetP2PMessage--------------------------------------
-        this._client.GetP2PMessage(to, true, 10, 0, 0, 0, new byte[] {8}, timeout, (cbd) => {
+        this._client.GetP2PMessage(to, true, 10, 0, 0, 0, new List<Byte> {8}, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {

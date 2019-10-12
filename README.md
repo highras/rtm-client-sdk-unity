@@ -358,14 +358,14 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback)`: 获取Group历史消息
+* `GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取Group历史消息
     * `gid`: **(long)** Group id
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
     * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
-    * `mtypes`: **(byte[])** 获取历史消息的消息类型集合
+    * `mtypes`: **(List(Byte))** 获取历史消息的消息类型集合
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -380,14 +380,14 @@ client.Login(null);
                 * `GroupMsg.attrs` **(string)**
                 * `GroupMsg.mtime` **(long)**
 
-* `GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback)`: 获取Room历史消息
+* `GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取Room历史消息
     * `rid`: **(long)** Room id
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
     * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
-    * `mtypes`: **(byte[])** 获取历史消息的消息类型集合
+    * `mtypes`: **(List(Byte))** 获取历史消息的消息类型集合
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -402,13 +402,13 @@ client.Login(null);
                 * `RoomMsg.attrs` **(string)**
                 * `RoomMsg.mtime` **(long)**
 
-* `GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback)`: 获取广播历史消息
+* `GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取广播历史消息
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
     * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
-    * `mtypes`: **(byte[])** 获取历史消息的消息类型集合
+    * `mtypes`: **(List(Byte))** 获取历史消息的消息类型集合
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -423,14 +423,14 @@ client.Login(null);
                 * `BroadcastMsg.attrs` **(string)**
                 * `BroadcastMsg.mtime` **(long)**
 
-* `GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, byte[] mtypes, int timeout, CallbackDelegate callback)`: 获取P2P历史消息
+* `GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取P2P历史消息
     * `ouid`: **(long)** 获取和两个用户之间的历史消息
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
     * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
-    * `mtypes`: **(byte[])** 获取历史消息的消息类型集合
+    * `mtypes`: **(List(Byte))** 获取历史消息的消息类型集合
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -455,7 +455,7 @@ client.Login(null);
             * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
-* `SendChat(long to, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送消息, `mtype=30`
+* `SendChat(long to, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送消息, `mtype=(byte) 30`
     * `to`: **(long)** 接收方uid
     * `msg`: **(string)** 消息内容
     * `attrs`: **(string)** 消息附加信息, 没有可传`""`
@@ -467,7 +467,7 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendGroupChat(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group消息, `mtype=30`
+* `SendGroupChat(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group消息, `mtype=(byte) 30`
     * `gid`: **(long)** group id
     * `msg`: **(string)** 消息内容
     * `attrs`: **(string)** 消息附加信息, 可传`""`
@@ -479,7 +479,7 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendRoomChat(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room消息, `mtype=30`
+* `SendRoomChat(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room消息, `mtype=(byte) 30`
     * `rid`: **(long)** room id
     * `msg`: **(string)** 消息内容
     * `attrs`: **(string)** 消息附加信息, 可传`""`
@@ -491,7 +491,7 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `GetGroupChat(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取Group历史消息, `mtypes=new byte[] { 30 }`
+* `GetGroupChat(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取Group历史消息, `mtypes=new List<Byte> { (byte) 30 }`
     * `gid`: **(long)** Group id
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
@@ -511,7 +511,7 @@ client.Login(null);
                 * `GroupMsg.attrs` **(string)**
                 * `GroupMsg.mtime` **(long)**
 
-* `GetRoomChat(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取Room历史消息, `mtypes=new byte[] { 30 }`
+* `GetRoomChat(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取Room历史消息, `mtypes=new List<Byte> { (byte) 30 }`
     * `rid`: **(long)** Room id
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
@@ -531,7 +531,7 @@ client.Login(null);
                 * `RoomMsg.attrs` **(string)**
                 * `RoomMsg.mtime` **(long)**
 
-* `GetBroadcastChat(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取广播历史消息, `mtypes=new byte[] { 30 }`
+* `GetBroadcastChat(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取广播历史消息, `mtypes=new List<Byte> { (byte) 30 }`
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
@@ -550,7 +550,7 @@ client.Login(null);
                 * `BroadcastMsg.attrs` **(string)**
                 * `BroadcastMsg.mtime` **(long)**
 
-* `GetP2PChat(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取P2P历史消息, `mtypes=new byte[] { 30 }`
+* `GetP2PChat(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取P2P历史消息, `mtypes=new List<Byte> { (byte) 30 }`
     * `ouid`: **(long)** 获取和两个用户之间的历史消息
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
@@ -804,17 +804,17 @@ client.Login(null);
             * `payload`: **(IDictionary(oinfo:string))**
             * `exception`: **(Exception)**
 
-* `DataGet(string key, int timeout, CallbackDelegate callback)`: 获取存储的数据信息, `key:最长128字节, val:最长1024*1024*2字节`
-    * `key`: **(string)** 存储数据对应键值, 最长`128 字节`
+* `DataGet(string key, int timeout, CallbackDelegate callback)`: 获取存储的数据信息
+    * `key`: **(string)** 存储数据对应键值, 最长`128字节`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
             * `payload`: **(IDictionary(val:string))**
 
-* `DataSet(string key, string value, int timeout, CallbackDelegate callback)`: 设置存储的数据信息, `key:最长128字节, val:最长1024*1024*2字节`
+* `DataSet(string key, string value, int timeout, CallbackDelegate callback)`: 设置存储的数据信息
     * `key`: **(string)** 存储数据对应键值, 最长`128 字节`
-    * `value`: **(string)** 存储数据实际内容, 最长`1024 * 1024 * 2 字节`
+    * `value`: **(string)** 存储数据实际内容, 最长`1024 * 1024 * 2字节`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -822,7 +822,7 @@ client.Login(null);
             * `exception`: **(Exception)**
 
 * `DataDelete(string key, int timeout, CallbackDelegate callback)`: 删除存储的数据信息
-    * `key`: **(string)** 存储数据对应键值, 最长`128 字节`
+    * `key`: **(string)** 存储数据对应键值, 最长`128字节`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**

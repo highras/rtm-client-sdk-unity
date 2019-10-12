@@ -26,7 +26,7 @@ public class Main : MonoBehaviour {
         //SingleClientPush
         // this._testCase = new SingleClientPush();
         //TestCase
-        this._testCase = new TestCase(777779, "FE6B6F60810E3CE8E7696A37120FED83");
+        this._testCase = new TestCase(777779, "CAA0561CE39FAADE9EFAD9184C12A5F9");
         this._testCase.StartTest(fileBytes);
     }
 
