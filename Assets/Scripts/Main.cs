@@ -23,10 +23,12 @@ public class Main : MonoBehaviour {
         // fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
         //SingleClientSend
         // this._testCase = new SingleClientSend();
+        //SingleClientConcurrency
+        this._testCase = new SingleClientConcurrency();
         //SingleClientPush
         // this._testCase = new SingleClientPush();
         //TestCase
-        this._testCase = new TestCase(777779, "CAA0561CE39FAADE9EFAD9184C12A5F9");
+        // this._testCase = new TestCase(777779, "5F2C13B910CDB4B12C96A12FF0978C76");
         this._testCase.StartTest(fileBytes);
     }
 

@@ -284,6 +284,23 @@ namespace com.rtm {
             }
         }
 
+        private void DispatchClient_Which_OnCallback(CallbackData cbd) {
+            string ep = null;
+            IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
+
+            if (dict != null && dict.ContainsKey("endpoint")) {
+                ep = Convert.ToString(dict["endpoint"]);
+            }
+
+            lock (self_locker) {
+                if (this._dispatchClient != null) {
+                    this._dispatchClient.Close(cbd.GetException());
+                }
+            }
+
+            this.Login(ep);
+        }
+
         private void ConnBaseClient() {
             if (this._baseClient == null) {
                 this._baseClient = new BaseClient(this._endpoint, this._timeout);
@@ -318,23 +335,6 @@ namespace com.rtm {
             this.Reconnect();
         }
 
-        private void DispatchClient_Which_OnCallback(CallbackData cbd) {
-            string ep = null;
-            IDictionary<string, object> dict = (IDictionary<string, object>)cbd.GetPayload();
-
-            if (dict != null && dict.ContainsKey("endpoint")) {
-                ep = Convert.ToString(dict["endpoint"]);
-            }
-
-            lock (self_locker) {
-                if (this._dispatchClient != null) {
-                    this._dispatchClient.Close(cbd.GetException());
-                }
-            }
-
-            this.Login(ep);
-        }
-
         /**
          *
          * rtmGate (1a)
@@ -362,12 +362,7 @@ namespace com.rtm {
             Exception exception = cbd.GetException();
 
             if (exception != null) {
-                lock (self_locker) {
-                    if (this._baseClient != null) {
-                        this._baseClient.Close(exception);
-                    }
-                }
-
+                this.GetEvent().FireEvent(new EventData("error", exception));
                 return;
             }
 
@@ -439,14 +434,19 @@ namespace com.rtm {
             lock (self_locker) {
                 this._isClose = true;
                 client = this._baseClient;
+
+                if (this._dispatchClient != null) {
+                    this._dispatchClient.Close();
+                }
             }
 
-            this.SendQuest("bye", new Dictionary<string, object>(), (cbd) => {
+            FPManager.Instance.DelayTask(200, (state) => {
                 if (client != null) {
                     client.Close();
                 }
-            }, 500);
+            }, null);
 
+            this.SendQuest("bye", new Dictionary<string, object>(), null, 0);
             lock (self_locker) {
                 this._baseClient = null;
             }

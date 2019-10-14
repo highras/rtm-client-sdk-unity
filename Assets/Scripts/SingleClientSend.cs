@@ -35,7 +35,7 @@ public class SingleClientSend : Main.ITestCase {
             "52.83.245.22:13325",
             11000001,
             777779,
-            "CAA0561CE39FAADE9EFAD9184C12A5F9",
+            "5F2C13B910CDB4B12C96A12FF0978C76",
             null,
             RTMConfig.TRANS_LANGUAGE.en,
             new Dictionary<string, string>(),
@@ -59,6 +59,10 @@ public class SingleClientSend : Main.ITestCase {
         });
         this._client.GetEvent().AddListener("error", (evd) => {
             Debug.Log(evd.GetException());
+        });
+        RTMProcessor processor = this._client.GetProcessor();
+        processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
+            Debug.Log("[recvMessage]: " + Json.SerializeToString(data));
         });
         this._client.Login(null);
     }

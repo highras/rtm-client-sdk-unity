@@ -58,7 +58,7 @@ namespace com.fpnn {
         public void AddSecond(EventDelegate callback) {
             lock (timer_locker) {
                 if (this._secondCalls.Count >= 50) {
-                    ErrorRecorderHolder.recordError(new Exception("Seond Calls Limit!"));
+                    ErrorRecorderHolder.recordError(new Exception("Second Calls Limit!"));
                     return;
                 }
 
