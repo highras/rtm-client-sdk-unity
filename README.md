@@ -570,7 +570,7 @@ client.Login(null);
                 * `P2PMsg.attrs` **(string)**
                 * `P2PMsg.mtime` **(long)**
 
-* `GetUnreadMessage(int timeout, CallbackDelegate callback)`: 检测未读消息数目, (p2p:返回有未读消息的uid集合, group:返回有未读消息的gid集合)
+* `GetUnreadMessage(int timeout, CallbackDelegate callback)`: 检测是否有未读消息, (p2p:返回有未读消息的uid集合, group:返回有未读消息的gid集合)
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
