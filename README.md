@@ -457,7 +457,7 @@ client.Login(null);
 
 * `SendChat(long to, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送消息, `mtype=(byte) 30`
     * `to`: **(long)** 接收方uid
-    * `msg`: **(string)** 消息内容
+    * `msg`: **(string)** 消息内容，附加修饰信息不要放这里，方便后继的操作，比如翻译，敏感词过滤等等
     * `attrs`: **(string)** 消息附加信息, 没有可传`""`
     * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
@@ -469,7 +469,7 @@ client.Login(null);
 
 * `SendGroupChat(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group消息, `mtype=(byte) 30`
     * `gid`: **(long)** group id
-    * `msg`: **(string)** 消息内容
+    * `msg`: **(string)** 消息内容，附加修饰信息不要放这里，方便后继的操作，比如翻译，敏感词过滤等等
     * `attrs`: **(string)** 消息附加信息, 可传`""`
     * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
@@ -481,7 +481,7 @@ client.Login(null);
 
 * `SendRoomChat(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room消息, `mtype=(byte) 30`
     * `rid`: **(long)** room id
-    * `msg`: **(string)** 消息内容
+    * `msg`: **(string)** 消息内容，附加修饰信息不要放这里，方便后继的操作，比如翻译，敏感词过滤等等
     * `attrs`: **(string)** 消息附加信息, 可传`""`
     * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
