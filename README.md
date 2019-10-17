@@ -54,7 +54,7 @@ client.GetEvent().AddListener("login", (evd) => {
     //RTMGate地址
     Debug.Log("Authed! gate: " + evd.GetPayload());
 
-    // 发送业务消息
+    // 发送业务消息（发送聊天消息请使用SendChat）
     client.SendMessage(778899, (byte) 8, "hello !", "", 0, 5 * 1000, (cbd) => {
         object obj = cbd.GetPayload();
         if (obj != null) {
