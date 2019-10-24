@@ -54,7 +54,7 @@ client.GetEvent().AddListener("login", (evd) => {
     //RTMGate地址
     Debug.Log("Authed! gate: " + evd.GetPayload());
 
-    // 发送消息
+    // 发送业务消息（发送聊天消息请使用SendChat）
     client.SendMessage(778899, (byte) 8, "hello !", "", 0, 5 * 1000, (cbd) => {
         object obj = cbd.GetPayload();
         if (obj != null) {
@@ -117,41 +117,41 @@ client.Login(null);
     * `ping`: RTMGate主动ping
         * `data`: **(IDictionary(string, object))**
 
-    * `pushmsg`: RTMGate主动推送P2P消息
+    * `pushmsg`: RTMGate主动推送P2P业务消息
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
-            * `data.mtype`: **(byte)** 消息类型
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-            * `data.msg`: **(string)** 消息内容
+            * `data.mtype`: **(byte)** 业务消息类型
+            * `data.mid`: **(long)** 业务消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 业务消息内容
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
 
-    * `pushgroupmsg`: RTMGate主动推送Group消息
+    * `pushgroupmsg`: RTMGate主动推送Group业务消息
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
             * `data.gid`: **(long)** Group id
-            * `data.mtype`: **(byte)** 消息类型
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-            * `data.msg`: **(string)** 消息内容
+            * `data.mtype`: **(byte)** 业务消息类型
+            * `data.mid`: **(long)** 业务消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 业务消息内容
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
 
-    * `pushroommsg`: RTMGate主动推送Room消息
+    * `pushroommsg`: RTMGate主动推送Room业务消息
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
             * `data.rid`: **(long)** Room id
-            * `data.mtype`: **(byte)** 消息类型
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-            * `data.msg`: **(string)** 消息内容
+            * `data.mtype`: **(byte)** 业务消息类型
+            * `data.mid`: **(long)** 业务消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 业务消息内容
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
 
-    * `pushbroadcastmsg`: RTMGate主动推送广播消息
+    * `pushbroadcastmsg`: RTMGate主动推送广播业务消息
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
-            * `data.mtype`: **(byte)** 消息类型
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
-            * `data.msg`: **(string)** 消息内容
+            * `data.mtype`: **(byte)** 业务消息类型
+            * `data.mid`: **(long)** 业务消息 id, 当前链接会话内唯一
+            * `data.msg`: **(string)** 业务消息内容
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
 
@@ -159,7 +159,7 @@ client.Login(null);
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
             * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.mid`: **(long)** 业务文件消息 id, 当前链接会话内唯一
             * `data.msg`: **(string)** 文件获取地址(url)
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
@@ -169,7 +169,7 @@ client.Login(null);
             * `data.from`: **(long)** 发送者 id
             * `data.gid`: **(long)** Group id
             * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.mid`: **(long)** 业务文件消息 id, 当前链接会话内唯一
             * `data.msg`: **(string)** 文件获取地址(url)
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
@@ -179,7 +179,7 @@ client.Login(null);
             * `data.from`: **(long)** 发送者 id
             * `data.rid`: **(long)** Room id
             * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.mid`: **(long)** 业务文件消息 id, 当前链接会话内唯一
             * `data.msg`: **(string)** 文件获取地址(url)
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
@@ -188,60 +188,60 @@ client.Login(null);
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
             * `data.mtype`: **(byte)** 文件类型, 请参考 `RTMConfig.FILE_TYPE` 成员
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.mid`: **(long)** 业务文件消息 id, 当前链接会话内唯一
             * `data.msg`: **(string)** 文件获取地址(url)
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
 
-    * `pushchat`: RTMGate主动推送P2P消息
+    * `pushchat`: RTMGate主动推送P2P聊天消息
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.mid`: **(long)** 聊天消息 id, 当前链接会话内唯一
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
-            * `data.msg`: **(JsonString)** 消息内容
-                * `source`: **(string)** 原始消息语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
+            * `data.msg`: **(JsonString)** 聊天消息
+                * `source`: **(string)** 原始内容语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
                 * `target`: **(string)** 翻译后的语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
-                * `sourceText`: **(string)** 原始消息
-                * `targetText`: **(string)** 翻译后的消息
+                * `sourceText`: **(string)** 原始聊天消息
+                * `targetText`: **(string)** 翻译后的聊天消息
 
-    * `pushgroupchat`: RTMGate主动推送Group消息
+    * `pushgroupchat`: RTMGate主动推送Group聊天消息
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
             * `data.gid`: **(long)** Group id
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.mid`: **(long)** 聊天消息 id, 当前链接会话内唯一
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
-            * `data.msg`: **(JsonString)** 消息内容
-                * `source`: **(string)** 原始消息语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
+            * `data.msg`: **(JsonString)** 聊天消息
+                * `source`: **(string)** 原始内容语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
                 * `target`: **(string)** 翻译后的语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
-                * `sourceText`: **(string)** 原始消息
-                * `targetText`: **(string)** 翻译后的消息
+                * `sourceText`: **(string)** 原始聊天消息
+                * `targetText`: **(string)** 翻译后的聊天消息
 
-    * `pushroomchat`: RTMGate主动推送Room消息
+    * `pushroomchat`: RTMGate主动推送Room聊天消息
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
             * `data.rid`: **(long)** Room id
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.mid`: **(long)** 聊天消息 id, 当前链接会话内唯一
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
-            * `data.msg`: **(JsonString)** 消息内容
-                * `source`: **(string)** 原始消息语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
+            * `data.msg`: **(JsonString)** 聊天消息
+                * `source`: **(string)** 原始内容语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
                 * `target`: **(string)** 翻译后的语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
-                * `sourceText`: **(string)** 原始消息
-                * `targetText`: **(string)** 翻译后的消息
+                * `sourceText`: **(string)** 原始聊天消息
+                * `targetText`: **(string)** 翻译后的聊天消息
 
-    * `pushbroadcastchat`: RTMGate主动推送广播消息
+    * `pushbroadcastchat`: RTMGate主动推送广播聊天消息
         * `data`: **(IDictionary(string, object))**
             * `data.from`: **(long)** 发送者 id
-            * `data.mid`: **(long)** 消息 id, 当前链接会话内唯一
+            * `data.mid`: **(long)** 聊天消息 id, 当前链接会话内唯一
             * `data.attrs`: **(string)** 发送时附加的自定义内容
             * `data.mtime`: **(long)**
-            * `data.msg`: **(JsonString)** 消息内容
-                * `source`: **(string)** 原始消息语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
+            * `data.msg`: **(JsonString)** 聊天消息
+                * `source`: **(string)** 原始内容语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
                 * `target`: **(string)** 翻译后的语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
-                * `sourceText`: **(string)** 原始消息
-                * `targetText`: **(string)** 翻译后的消息
+                * `sourceText`: **(string)** 原始聊天消息
+                * `targetText`: **(string)** 翻译后的聊天消息
 
 #### API ####
 * `RTMRegistration::Register()`: 在`Unity`主线程中注册RTM服务
@@ -319,12 +319,12 @@ client.Login(null);
             * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
-* `SendMessage(long to, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送消息
+* `SendMessage(long to, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送P2P业务消息
     * `to`: **(long)** 接收方uid
-    * `mtype`: **(byte)** 消息类型
-    * `msg`: **(string)** 消息内容
-    * `attrs`: **(string)** 消息附加信息, 没有可传`""`
-    * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `mtype`: **(byte)** 业务消息类型（请使用51-127，禁止使用50及以下的值）
+    * `msg`: **(string)** 业务消息内容
+    * `attrs`: **(string)** 业务消息附加信息, 没有可传`""`
+    * `mid`: **(long)** 业务消息 id, 用于过滤重复业务消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -332,12 +332,12 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendGroupMessage(long gid, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group消息
+* `SendGroupMessage(long gid, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group业务消息
     * `gid`: **(long)** group id
-    * `mtype`: **(byte)** 消息类型
-    * `msg`: **(string)** 消息内容
-    * `attrs`: **(string)** 消息附加信息, 可传`""`
-    * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `mtype`: **(byte)** 业务消息类型（请使用51-127，禁止使用50及以下的值）
+    * `msg`: **(string)** 业务消息内容
+    * `attrs`: **(string)** 业务消息附加信息, 可传`""`
+    * `mid`: **(long)** 业务消息 id, 用于过滤重复业务消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -345,12 +345,12 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendRoomMessage(long rid, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room消息
+* `SendRoomMessage(long rid, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room业务消息
     * `rid`: **(long)** room id
-    * `mtype`: **(byte)** 消息类型
-    * `msg`: **(string)** 消息内容
-    * `attrs`: **(string)** 消息附加信息, 可传`""`
-    * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `mtype`: **(byte)** 业务消息类型（请使用51-127，禁止使用50及以下的值）
+    * `msg`: **(string)** 业务消息内容
+    * `attrs`: **(string)** 业务消息附加信息, 可传`""`
+    * `mid`: **(long)** 业务消息 id, 用于过滤重复业务消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -358,14 +358,14 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取Group历史消息
+* `GetGroupMessage(long gid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取Group历史业务消息
     * `gid`: **(long)** Group id
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
-    * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
-    * `mtypes`: **(List(Byte))** 获取历史消息的消息类型集合
+    * `lastid`: **(long)** 最后一条业务消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `mtypes`: **(List(Byte))** 获取历史业务消息的类型集合
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -380,14 +380,14 @@ client.Login(null);
                 * `GroupMsg.attrs` **(string)**
                 * `GroupMsg.mtime` **(long)**
 
-* `GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取Room历史消息
+* `GetRoomMessage(long rid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取Room历史业务消息
     * `rid`: **(long)** Room id
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
-    * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
-    * `mtypes`: **(List(Byte))** 获取历史消息的消息类型集合
+    * `lastid`: **(long)** 最后一条业务消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `mtypes`: **(List(Byte))** 获取历史业务消息的类型集合
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -402,13 +402,13 @@ client.Login(null);
                 * `RoomMsg.attrs` **(string)**
                 * `RoomMsg.mtime` **(long)**
 
-* `GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取广播历史消息
+* `GetBroadcastMessage(bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取广播历史业务消息
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
-    * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
-    * `mtypes`: **(List(Byte))** 获取历史消息的消息类型集合
+    * `lastid`: **(long)** 最后一条业务消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `mtypes`: **(List(Byte))** 获取历史业务消息的类型集合
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -423,14 +423,14 @@ client.Login(null);
                 * `BroadcastMsg.attrs` **(string)**
                 * `BroadcastMsg.mtime` **(long)**
 
-* `GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取P2P历史消息
-    * `ouid`: **(long)** 获取和两个用户之间的历史消息
+* `GetP2PMessage(long ouid, bool desc, int num, long begin, long end, long lastid, List<Byte> mtypes, int timeout, CallbackDelegate callback)`: 获取P2P历史业务消息
+    * `ouid`: **(long)** 获取和两个用户之间的历史业务消息
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
-    * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
-    * `mtypes`: **(List(Byte))** 获取历史消息的消息类型集合
+    * `lastid`: **(long)** 最后一条业务消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `mtypes`: **(List(Byte))** 获取历史业务消息的类型集合
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -445,9 +445,9 @@ client.Login(null);
                 * `P2PMsg.attrs` **(string)**
                 * `P2PMsg.mtime` **(long)**
 
-* `DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback)`: 删除消息
-    * `mid`: **(long)** 消息 id
-    * `xid`: **(long)** 消息接收方 id (userId/RoomId/GroupId)
+* `DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback)`: 删除业务消息
+    * `mid`: **(long)** 业务消息 id
+    * `xid`: **(long)** 业务消息接收方 id (userId/RoomId/GroupId)
     * `type`: **(byte)** 接收方类型 (1:p2p, 2:group, 3:room)
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
@@ -455,11 +455,11 @@ client.Login(null);
             * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
-* `SendChat(long to, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送消息, `mtype=(byte) 30`
+* `SendChat(long to, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送聊天消息, `mtype=(byte) 30`
     * `to`: **(long)** 接收方uid
-    * `msg`: **(string)** 消息内容
-    * `attrs`: **(string)** 消息附加信息, 没有可传`""`
-    * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `msg`: **(string)** 聊天消息，附加修饰信息不要放这里，方便后继的操作，比如翻译，敏感词过滤等等
+    * `attrs`: **(string)** 聊天附加信息, 没有可传`""`
+    * `mid`: **(long)** 聊天消息 id, 用于过滤重复聊天消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -467,11 +467,11 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendGroupChat(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group消息, `mtype=(byte) 30`
+* `SendGroupChat(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group聊天消息, `mtype=(byte) 30`
     * `gid`: **(long)** group id
-    * `msg`: **(string)** 消息内容
-    * `attrs`: **(string)** 消息附加信息, 可传`""`
-    * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `msg`: **(string)** 聊天消息，附加修饰信息不要放这里，方便后继的操作，比如翻译，敏感词过滤等等
+    * `attrs`: **(string)** 聊天附加信息, 可传`""`
+    * `mid`: **(long)** 聊天消息 id, 用于过滤重复聊天消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -479,11 +479,11 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendRoomChat(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room消息, `mtype=(byte) 30`
+* `SendRoomChat(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room聊天消息, `mtype=(byte) 30`
     * `rid`: **(long)** room id
-    * `msg`: **(string)** 消息内容
-    * `attrs`: **(string)** 消息附加信息, 可传`""`
-    * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `msg`: **(string)** 聊天消息，附加修饰信息不要放这里，方便后继的操作，比如翻译，敏感词过滤等等
+    * `attrs`: **(string)** 聊天附加信息, 可传`""`
+    * `mid`: **(long)** 聊天消息 id, 用于过滤重复聊天消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -491,13 +491,13 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `GetGroupChat(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取Group历史消息, `mtypes=new List<Byte> { (byte) 30 }`
+* `GetGroupChat(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取Group聊天消息历史, `mtypes=new List<Byte> { (byte) 30 }`
     * `gid`: **(long)** Group id
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
-    * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `lastid`: **(long)** 最后一条聊天消息的id, 第一次默认传`0`, 条件：`> or <`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -511,13 +511,13 @@ client.Login(null);
                 * `GroupMsg.attrs` **(string)**
                 * `GroupMsg.mtime` **(long)**
 
-* `GetRoomChat(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取Room历史消息, `mtypes=new List<Byte> { (byte) 30 }`
+* `GetRoomChat(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取Room聊天消息历史, `mtypes=new List<Byte> { (byte) 30 }`
     * `rid`: **(long)** Room id
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
-    * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `lastid`: **(long)** 最后一条聊天消息的id, 第一次默认传`0`, 条件：`> or <`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -531,12 +531,12 @@ client.Login(null);
                 * `RoomMsg.attrs` **(string)**
                 * `RoomMsg.mtime` **(long)**
 
-* `GetBroadcastChat(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取广播历史消息, `mtypes=new List<Byte> { (byte) 30 }`
+* `GetBroadcastChat(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取广播聊天消息历史, `mtypes=new List<Byte> { (byte) 30 }`
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
-    * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `lastid`: **(long)** 最后一条聊天消息的id, 第一次默认传`0`, 条件：`> or <`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -550,13 +550,13 @@ client.Login(null);
                 * `BroadcastMsg.attrs` **(string)**
                 * `BroadcastMsg.mtime` **(long)**
 
-* `GetP2PChat(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取P2P历史消息, `mtypes=new List<Byte> { (byte) 30 }`
-    * `ouid`: **(long)** 获取和两个用户之间的历史消息
+* `GetP2PChat(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback)`: 获取P2P聊天消息历史, `mtypes=new List<Byte> { (byte) 30 }`
+    * `ouid`: **(long)** 获取和两个用户之间的历史聊天消息
     * `desc`: **(bool)** `true`: 则从`end`的时间戳开始倒序翻页, `false`: 则从`begin`的时间戳顺序翻页
     * `num`: **(int)** 获取数量, **一次最多获取20条, 建议10条**
     * `begin`: **(long)** 开始时间戳, 毫秒, 默认`0`, 条件：`>=`
     * `end`: **(long)** 结束时间戳, 毫秒, 默认`0`, 条件：`<=`
-    * `lastid`: **(long)** 最后一条消息的id, 第一次默认传`0`, 条件：`> or <`
+    * `lastid`: **(long)** 最后一条聊天消息的id, 第一次默认传`0`, 条件：`> or <`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -570,30 +570,30 @@ client.Login(null);
                 * `P2PMsg.attrs` **(string)**
                 * `P2PMsg.mtime` **(long)**
 
-* `GetUnreadMessage(int timeout, CallbackDelegate callback)`: 检测未读消息数目, (p2p:返回有未读消息的uid集合, group:返回有未读消息的gid集合)
+* `GetUnreadMessage(int timeout, CallbackDelegate callback)`: 检测是否有未读聊天消息, (p2p:返回有未读聊天消息的uid集合, group:返回有未读聊天消息的gid集合)
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
             * `payload`: **(IDictionary(p2p:List(long),group:List(long)))**
 
-* `CleanUnreadMessage(int timeout, CallbackDelegate callback)`: 清除未读消息
+* `CleanUnreadMessage(int timeout, CallbackDelegate callback)`: 清除未读聊天消息
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
             * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
-* `GetSession(int timeout, CallbackDelegate callback)`: 获取所有会话, (p2p:返回存在会话的uid集合, group:返回存在会话的gid集合)
+* `GetSession(int timeout, CallbackDelegate callback)`: 获取所有会话, 会话仅包括聊天消息产生的会话(p2p:返回存在会话的uid集合, group:返回存在会话的gid集合)
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
             * `payload`: **(IDictionary(p2p:List(long),group:List(long)))**
 
-* `DeleteChat(long mid, long xid, byte type, int timeout, CallbackDelegate callback)`: 删除消息
-    * `mid`: **(long)** 消息 id
-    * `xid`: **(long)** 消息接收方 id (userId/RoomId/GroupId)
+* `DeleteChat(long mid, long xid, byte type, int timeout, CallbackDelegate callback)`: 删除聊天消息
+    * `mid`: **(long)** 聊天消息 id
+    * `xid`: **(long)** 聊天消息接收方 id (userId/RoomId/GroupId)
     * `type`: **(byte)** 接收方类型 (1:p2p, 2:group, 3:room)
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
@@ -609,11 +609,12 @@ client.Login(null);
             * `payload`: **(IDictionary)**
             * `exception`: **(Exception)**
 
-* `Translate(string originalMessage, string originalLanguage, string targetLanguage, string type, string profanity, int timeout, CallbackDelegate callback)`: 翻译消息, 返回{`source`:原始消息语言类型,`target`:翻译后的语言类型,`sourceText`:原始消息,`targetText`:翻译后的消息}
-    * `originalMessage`: **(string)** 待翻译的原始消息
-    * `originalLanguage`: **(string)** 待翻译的消息的语言类型, 可为`null`, 参考`RTMConfig.TRANS_LANGUAGE`成员
+* `Translate(string originalMessage, string originalLanguage, string targetLanguage, string type, string profanity, int timeout, CallbackDelegate callback)`: 翻译聊天消息, 返回{`source`:原始聊天消息语言类型,`target`:翻译后的语言类型,`sourceText`:原始聊天消息,`targetText`:翻译后的消息}
+    * `originalMessage`: **(string)** 待翻译的原始聊天消息
+    * `originalLanguage`: **(string)** 待翻译的聊天消息的语言类型, 可为`null`, 参考`RTMConfig.TRANS_LANGUAGE`成员
     * `targetLanguage`: **(string)** 本次翻译的目标语言类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
-    * `type`: **(string)** 可选值为`chat`或`mail`, 默认:`chat`
+    * `type`: **(string)** 可选值为`
+    `或`mail`, 默认:`chat`
     * `profanity`: **(string)** 敏感语过滤, 设置为以下三项之一: `off` `stop` `censor`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
@@ -830,10 +831,10 @@ client.Login(null);
             * `exception`: **(Exception)**
 
 * `SendFile(byte mtype, long to, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback)`: 发送文件
-    * `mtype`: **(byte)** 消息类型
+    * `mtype`: **(byte)** 业务文件消息类型
     * `to`: **(long)** 接收者 id
     * `fileBytes`: **(byte[])** 要发送的文件
-    * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `mid`: **(long)** 业务文件消息 id, 用于过滤重复业务文件消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -842,10 +843,10 @@ client.Login(null);
             * `mid`: **(long)**
 
 * `SendGroupFile(byte mtype, long gid, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback)`: 发送文件
-    * `mtype`: **(byte)** 消息类型
+    * `mtype`: **(byte)** 业务文件消息类型
     * `gid`: **(long)** Group id
     * `fileBytes`: **(byte[])** 要发送的文件
-    * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `mid`: **(long)** 业务文件消息 id, 用于过滤重复业务文件消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -854,10 +855,10 @@ client.Login(null);
             * `mid`: **(long)**
 
 * `SendRoomFile(byte mtype, long rid, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback)`: 发送文件
-    * `mtype`: **(byte)** 消息类型
+    * `mtype`: **(byte)** 业务文件消息类型
     * `rid`: **(long)** Room id
     * `fileBytes`: **(byte[])** 要发送的文件
-    * `mid`: **(long)** 消息 id, 用于过滤重复消息, 非重发时为`0`
+    * `mid`: **(long)** 业务文件消息 id, 用于过滤重复业务文件消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
