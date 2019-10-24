@@ -1,7 +1,9 @@
 using System;
+using System.Text;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace com.fpnn {
 
@@ -226,7 +228,7 @@ namespace com.fpnn {
             });
         }
 
-        public void ExecTask(Action<object> taskAction, object state) {
+        public void AsyncTask(Action<object> taskAction, object state) {
             this.AddService(() => {
                 if (taskAction != null) {
                     taskAction(state);
@@ -236,7 +238,7 @@ namespace com.fpnn {
 
         public void DelayTask(int milliSecond, Action<object> taskAction, object state) {
             if (milliSecond <= 0) {
-                this.ExecTask(taskAction, state);
+                this.AsyncTask(taskAction, state);
                 return;
             }
 
@@ -335,7 +337,7 @@ namespace com.fpnn {
                     TimerTask task = this._timerTaskQueue[0];
 
                     if (task != null) {
-                        this.ExecTask(task.callback, task.state);
+                        this.AsyncTask(task.callback, task.state);
                     }
 
                     this._timerTaskQueue.RemoveAt(0);
@@ -360,7 +362,6 @@ namespace com.fpnn {
             }
         }
 
-
         public Int64 GetMilliTimestamp() {
             TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
             return Convert.ToInt64(ts.TotalMilliseconds);
@@ -369,6 +370,29 @@ namespace com.fpnn {
         public int GetTimestamp() {
             TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
             return Convert.ToInt32(ts.TotalSeconds);
+        }
+
+        public string GetMD5(string str, bool upper) {
+            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(str);
+            return GetMD5(inputBytes, upper);
+        }
+
+        public string GetMD5(byte[] bytes, bool upper) {
+            MD5 md5 = System.Security.Cryptography.MD5.Create();
+            byte[] hash = md5.ComputeHash(bytes);
+            string f = "x2";
+
+            if (upper) {
+                f = "X2";
+            }
+
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < hash.Length; i++) {
+                sb.Append(hash[i].ToString(f));
+            }
+
+            return sb.ToString();
         }
     }
 }

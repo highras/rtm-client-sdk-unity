@@ -11,66 +11,17 @@ using UnityEngine;
 
 namespace com.rtm {
 
-    public static class RTMRegistration {
-
-        static public void Register() {
-            FPManager.Instance.Init();
-        }
-    }
-
     public class RTMClient {
 
-        private static class MidGenerator {
-
-            static private long Count = 0;
-            static private StringBuilder sb = new StringBuilder(20);
-            static private object lock_obj = new object();
-
-            static public long Gen() {
-                lock (lock_obj) {
-                    if (++Count > 999) {
-                        Count = 1;
-                    }
-
-                    long c = Count;
-                    //.Net >= 4.0  sb.Clear();
-                    sb.Length = 0;
-                    sb.Append(FPManager.Instance.GetMilliTimestamp());
-
-                    if (c < 100) {
-                        sb.Append("0");
-                    }
-
-                    if (c < 10) {
-                        sb.Append("0");
-                    }
-
-                    sb.Append(c);
-                    return Convert.ToInt64(sb.ToString());
-                }
-            }
-        }
-
-        private class DelayConnLocker {
-
-            public int Status = 0;
-        }
-
-        private FPEvent _event = new FPEvent();
-
-        public FPEvent GetEvent() {
-            return this._event;
-        }
-
-        private string _dispatch;
         private int _pid;
         private long _uid;
         private string _token;
         private string _version;
-        private IDictionary<string, string> _attrs;
-        private bool _reconnect;
+        private string _dispatch;
+
+        private bool _debug;
         private int _timeout;
-        private bool _debug = true;
+        private bool _reconnect;
 
         private bool _isClose;
         private string _endpoint;
@@ -82,6 +33,8 @@ namespace com.rtm {
 
         private BaseClient _baseClient;
         private DispatchClient _dispatchClient;
+
+        private IDictionary<string, string> _attrs;
 
         /**
          * @param {string}                      dispatch
@@ -117,7 +70,6 @@ namespace com.rtm {
         }
 
         private void InitProcessor() {
-            RTMClient self = this;
             this._sender = new RTMSender();
             this._processor = new RTMProcessor();
             this._processor.AddPushService(RTMConfig.KICKOUT, OnKickout);
@@ -154,6 +106,12 @@ namespace com.rtm {
             }
 
             this.DelayConnect(timestamp);
+        }
+
+        private FPEvent _event = new FPEvent();
+
+        public FPEvent GetEvent() {
+            return this._event;
         }
 
         public RTMProcessor GetProcessor() {
@@ -445,8 +403,8 @@ namespace com.rtm {
                     client.Close();
                 }
             }, null);
-
             this.SendQuest("bye", new Dictionary<string, object>(), null, 0);
+
             lock (self_locker) {
                 this._baseClient = null;
             }
@@ -2541,8 +2499,8 @@ namespace com.rtm {
             }
 
             public void Send(RTMSender sender, string method, byte[] fileBytes, string token, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
-                string fileMd5 = base.CalcMd5(fileBytes, false);
-                string sign = base.CalcMd5(fileMd5 + ":" + token, false);
+                string fileMd5 = FPManager.Instance.GetMD5(fileBytes, false);
+                string sign = FPManager.Instance.GetMD5(fileMd5 + ":" + token, false);
 
                 if (string.IsNullOrEmpty(sign)) {
                     ErrorRecorderHolder.recordError(new Exception("wrong sign!"));
@@ -2595,29 +2553,6 @@ namespace com.rtm {
                 base.Client_Error = (evd) => {
                     ErrorRecorderHolder.recordError(evd.GetException());
                 };
-            }
-
-            public string CalcMd5(string str, bool upper) {
-                byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(str);
-                return CalcMd5(inputBytes, upper);
-            }
-
-            public string CalcMd5(byte[] bytes, bool upper) {
-                MD5 md5 = System.Security.Cryptography.MD5.Create();
-                byte[] hash = md5.ComputeHash(bytes);
-                string f = "x2";
-
-                if (upper) {
-                    f = "X2";
-                }
-
-                StringBuilder sb = new StringBuilder();
-
-                for (int i = 0; i < hash.Length; i++) {
-                    sb.Append(hash[i].ToString(f));
-                }
-
-                return sb.ToString();
             }
 
             private void CheckFPCallback(CallbackData cbd) {
@@ -2678,6 +2613,47 @@ namespace com.rtm {
                     Debug.LogError(ex);
                 }
             }
+        }
+
+        private class DelayConnLocker {
+
+            public int Status = 0;
+        }
+        
+        private static class MidGenerator {
+
+            static private long count = 0;
+            static private StringBuilder sb = new StringBuilder(20);
+            static private object lock_obj = new object();
+
+            static public long Gen() {
+                lock (lock_obj) {
+                    if (++count > 999) {
+                        count = 1;
+                    }
+
+                    sb.Length = 0;
+                    sb.Append(FPManager.Instance.GetMilliTimestamp());
+
+                    if (count < 100) {
+                        sb.Append("0");
+                    }
+
+                    if (count < 10) {
+                        sb.Append("0");
+                    }
+
+                    sb.Append(count);
+                    return Convert.ToInt64(sb.ToString());
+                }
+            }
+        }
+    }
+
+    public static class RTMRegistration {
+
+        static public void Register() {
+            FPManager.Instance.Init();
         }
     }
 }

@@ -5,6 +5,15 @@ namespace com.fpnn {
     public class FPEncryptor {
 
         private FPPackage _pkg;
+
+        private string _curve;
+        private byte[] _peerPublicKey;
+        private bool _streamMode;
+        private bool _reinforce;
+
+        private byte[] _secretKey;
+        private byte[] _selfPublicKey;
+
         private bool _cryptoed;
 
         public FPEncryptor(FPPackage pkg) {
@@ -15,8 +24,29 @@ namespace com.fpnn {
             }
         }
 
+        public void SetCurve(string value) {
+            this._curve = value;
+        }
+
+        public void SetPeerPublicKey(byte[] value) {
+            this._peerPublicKey = value;
+        }
+
+        public void SetStreamMode(bool value) {
+            this._streamMode = value;
+        }
+
+        public void SetReinforce(bool value) {
+
+            this._reinforce = value;
+        }
+
         public void Clear() {
             this._cryptoed = false;
+        }
+
+        public bool Encryptor() {
+            return this.IsCrypto();
         }
 
         public bool IsCrypto() {

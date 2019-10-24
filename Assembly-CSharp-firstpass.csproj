@@ -140,6 +140,10 @@
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\Serializers\VersionSerializer.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\TypeSerializer.cs" />
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\TypeSerializerAttribute.cs" />
+     <Compile Include="Assets\Plugins\rtm\platform\RTMAdpcm.cs" />
+     <Compile Include="Assets\Plugins\rtm\platform\RTMAudioManager.cs" />
+     <Compile Include="Assets\Plugins\rtm\platform\RTMMicrophone.cs" />
+     <Compile Include="Assets\Plugins\rtm\platform\Singleton.cs" />
      <Compile Include="Assets\Plugins\rtm\RTMClient.cs" />
      <Compile Include="Assets\Plugins\rtm\RTMConfig.cs" />
      <Compile Include="Assets\Plugins\rtm\RTMProcessor.cs" />

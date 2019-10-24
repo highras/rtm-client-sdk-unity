@@ -24,12 +24,21 @@ public class Main : MonoBehaviour {
         //SingleClientSend
         // this._testCase = new SingleClientSend();
         //SingleClientConcurrency
-        this._testCase = new SingleClientConcurrency();
+        // this._testCase = new SingleClientConcurrency();
         //SingleClientPush
         // this._testCase = new SingleClientPush();
         //TestCase
         // this._testCase = new TestCase(777779, "5F2C13B910CDB4B12C96A12FF0978C76");
-        this._testCase.StartTest(fileBytes);
+        // this._testCase.StartTest(fileBytes);
+
+        //
+        RTMMicrophone.Instance.OnRecord = (clip) => {
+            byte[] data = RTMMicrophone.Instance.GetAdpcmData();
+            Debug.Log("adpcm bytearray len: " + data.Length);
+            AudioClip adpcmClip = RTMMicrophone.Instance.GetAudioClip(data);
+            RTMAudioManager.PlayAudioClip(adpcmClip, Vector3.zero);
+        };
+        RTMMicrophone.Instance.StartInput();
     }
 
     byte[] LoadFile(string filePath) {
