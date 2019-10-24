@@ -54,17 +54,15 @@ namespace com.fpnn {
                 connectionTimeout = 30 * 1000;
             }
 
-            FPClient self = this;
-            this._eventDelegate = (evd) => {
-                self.OnSecond(evd.GetTimestamp());
-            };
-            FPManager.Instance.AddSecond(this._eventDelegate);
-            this._sock = new FPSocket((stream) => {
-                self.OnData(stream);
-            }, host, port, connectionTimeout);
+            FPManager.Instance.AddSecond(OnSecondDelegate);
+            this._sock = new FPSocket(OnData, host, port, connectionTimeout);
             this._sock.Socket_Connect = this.OnConnect;
             this._sock.Socket_Close = this.OnClose;
             this._sock.Socket_Error = this.OnError;
+        }
+
+        private void OnSecondDelegate(EventData evd) {
+            this.OnSecond(evd.GetTimestamp());
         }
 
         public FPProcessor GetProcessor() {
@@ -113,12 +111,7 @@ namespace com.fpnn {
 
         private void SocketClose(Exception ex) {
             this._isClose = true;
-
-            if (this._eventDelegate != null) {
-                FPManager.Instance.RemoveSecond(this._eventDelegate);
-                this._eventDelegate = null;
-            }
-
+            FPManager.Instance.RemoveSecond(OnSecondDelegate);
             this._psr.Destroy();
             this._sock.Close(ex);
         }

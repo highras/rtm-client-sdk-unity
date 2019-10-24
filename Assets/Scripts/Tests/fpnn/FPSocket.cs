@@ -79,42 +79,43 @@ namespace com.fpnn {
                 conn_locker.timestamp = FPManager.Instance.GetMilliTimestamp();
             }
 
-            FPSocket self = this;
-            FPManager.Instance.ExecTask((state) => {
-                lock (conn_locker) {
-                    if (conn_locker.Status != 1) {
+            FPManager.Instance.AsyncTask(AsyncConnect, null);
+        }
+
+        private void AsyncConnect(object state) {
+            lock (conn_locker) {
+                if (conn_locker.Status != 1) {
+                    return;
+                }
+
+                conn_locker.Status = 2;
+            }
+
+            try {
+                lock (socket_locker) {
+                    if (this._socket != null) {
                         return;
                     }
 
-                    conn_locker.Status = 2;
-                }
+                    IPHostEntry hostEntry = Dns.GetHostEntry(this._host);
+                    IPAddress ipaddr = hostEntry.AddressList[0];
 
-                try {
-                    lock (socket_locker) {
-                        if (self._socket != null) {
-                            return;
-                        }
-
-                        IPHostEntry hostEntry = Dns.GetHostEntry(self._host);
-                        IPAddress ipaddr = hostEntry.AddressList[0];
-
-                        if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
-                            self._socket = new TcpClient(AddressFamily.InterNetwork);
-                        } else {
-                            self._isIPv6 = true;
-                            self._socket = new TcpClient(AddressFamily.InterNetworkV6);
-                        }
-
-                        self._socket.BeginConnect(ipaddr, self._port, new AsyncCallback(ConnectCallback), null);
-                    }
-                } catch (Exception ex) {
-                    lock (conn_locker) {
-                        conn_locker.Status = 0;
+                    if (ipaddr.AddressFamily != AddressFamily.InterNetworkV6) {
+                        this._socket = new TcpClient(AddressFamily.InterNetwork);
+                    } else {
+                        this._isIPv6 = true;
+                        this._socket = new TcpClient(AddressFamily.InterNetworkV6);
                     }
 
-                    self.Close(ex);
+                    this._socket.BeginConnect(ipaddr, this._port, new AsyncCallback(ConnectCallback), null);
                 }
-            }, null);
+            } catch (Exception ex) {
+                lock (conn_locker) {
+                    conn_locker.Status = 0;
+                }
+
+                this.Close(ex);
+            }
         }
 
         private void ConnectCallback(IAsyncResult ar) {
@@ -215,17 +216,18 @@ namespace com.fpnn {
                 }
 
                 if (firstClose) {
-                    FPSocket self = this;
-                    FPManager.Instance.DelayTask(200, (state) => {
-                        lock (socket_locker) {
-                            if (socket_locker.Status != 3) {
-                                self.SocketClose();
-                            }
-                        }
-                    }, null);
+                    FPManager.Instance.DelayTask(200, DelayClose, null);
                 }
             } catch (Exception e) {
                 ErrorRecorderHolder.recordError(e);
+            }
+        }
+
+        private void DelayClose(object state) {
+            lock (socket_locker) {
+                if (socket_locker.Status != 3) {
+                    this.SocketClose();
+                }
             }
         }
 
