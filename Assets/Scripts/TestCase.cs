@@ -49,7 +49,6 @@ public class TestCase : Main.ITestCase {
             // 11000001,
             // 777779,
             // "12861748F2D641907D181D1CDB6DF174",
-            null,
             RTMConfig.TRANS_LANGUAGE.en,
             new Dictionary<string, string>(),
             true,
@@ -316,6 +315,18 @@ public class TestCase : Main.ITestCase {
             }
         });
         this.ThreadSleep(sleep);
+        //rtmGate (3a'')
+        //---------------------------------SendCmd--------------------------------------
+        this._client.SendCmd(to, "friends_invite", "", 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SendCmd: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
+            } else {
+                Debug.Log("[ERR] SendCmd: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
         //rtmGate (3b)
         //---------------------------------SendGroupChat--------------------------------------
         this._client.SendGroupChat(gid, "hello !", "", 0, timeout, (cbd) => {
@@ -390,7 +401,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (3h)
         //---------------------------------GetUnreadMessage--------------------------------------
-        this._client.GetUnreadMessage(timeout, (cbd) => {
+        this._client.GetUnreadMessage(true, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
@@ -472,6 +483,10 @@ public class TestCase : Main.ITestCase {
             }
         });
         this.ThreadSleep(sleep);
+        //rtmGate (3o)
+        //---------------------------------Transcribe--------------------------------------
+        // this.ThreadSleep(sleep);
+        
         //rtmGate (4a)
         //---------------------------------FileToken--------------------------------------
         this._client.FileToken("sendfile", to, 0, 0, timeout, (cbd) => {

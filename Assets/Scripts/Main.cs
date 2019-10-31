@@ -15,6 +15,28 @@ public class Main : MonoBehaviour {
         void StopTest();
     }
 
+    public class TestMicrophone : RTMMicrophone.IMicrophone {
+
+        public string[] GetDevices() {
+            return Microphone.devices;
+        }
+        public int GetPosition(string device) {
+            return Microphone.GetPosition(device);
+        }
+        public AudioClip Start(string device, bool loop, int lengthSec, int frequency) {
+            return Microphone.Start(device, loop, lengthSec, frequency);
+        }
+        public void End(string device) {
+            Microphone.End(device);
+        }
+        public void OnRecord(AudioClip clip) {
+            byte[] data = RTMMicrophone.Instance.GetAdpcmData();
+            Debug.Log("adpcm bytearray len: " + data.Length);
+            AudioClip adpcmClip = RTMMicrophone.Instance.GetAudioClip(data);
+            RTMAudioManager.PlayAudioClip(adpcmClip, Vector3.zero);
+        }
+    }
+
     private ITestCase _testCase;
 
     void Start() {
@@ -22,23 +44,19 @@ public class Main : MonoBehaviour {
         byte[] fileBytes = null;
         // fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
         //SingleClientSend
-        // this._testCase = new SingleClientSend();
+        this._testCase = new SingleClientSend();
         //SingleClientConcurrency
         // this._testCase = new SingleClientConcurrency();
         //SingleClientPush
         // this._testCase = new SingleClientPush();
         //TestCase
         // this._testCase = new TestCase(777779, "5F2C13B910CDB4B12C96A12FF0978C76");
-        // this._testCase.StartTest(fileBytes);
+        if (this._testCase != null) {
+            this._testCase.StartTest(fileBytes);
+        }
 
-        //
-        RTMMicrophone.Instance.OnRecord = (clip) => {
-            byte[] data = RTMMicrophone.Instance.GetAdpcmData();
-            Debug.Log("adpcm bytearray len: " + data.Length);
-            AudioClip adpcmClip = RTMMicrophone.Instance.GetAudioClip(data);
-            RTMAudioManager.PlayAudioClip(adpcmClip, Vector3.zero);
-        };
-        RTMMicrophone.Instance.StartInput();
+        // RTMMicrophone.Instance.InitMic(null, new TestMicrophone());
+        // RTMMicrophone.Instance.StartInput();
     }
 
     byte[] LoadFile(string filePath) {

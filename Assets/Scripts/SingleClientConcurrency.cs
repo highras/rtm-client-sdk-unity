@@ -46,8 +46,7 @@ public class SingleClientConcurrency : Main.ITestCase {
             "52.83.245.22:13325",
             11000001,
             777779,
-            "A6441119D511249963CBAE809AB8469C",
-            null,
+            "A4BF1F8755F86E96F65F07240AB5F6F9",
             RTMConfig.TRANS_LANGUAGE.en,
             new Dictionary<string, string>(),
             true,
@@ -130,7 +129,7 @@ public class SingleClientConcurrency : Main.ITestCase {
                     }
 
                     action = this._random.Next(1, 5);
-                    sleep = this._random.Next(15, 21) * 100;
+                    sleep = this._random.Next(6, 11) * 100;
                 }
 
                 switch (action) {

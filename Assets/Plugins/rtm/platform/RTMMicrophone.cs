@@ -16,25 +16,16 @@ namespace com.rtm {
             VolumePeak
         }
 
-        private static bool isInit;
-        private static object lock_obj = new object();
-        public static bool HasInit() {
-            lock (lock_obj) {
-                return RTMMicrophone.isInit;
-            }
+        public interface IMicrophone {
+            string[] GetDevices();
+            int GetPosition(string device);
+            AudioClip Start(string device, bool loop, int lengthSec, int frequency);
+            void End(string device);
+            void OnRecord(AudioClip clip);
         }
 
-        public Action<AudioClip> OnRecord;
-
-        private VolumeType _volumeType = VolumeType.VolumePeak;
-        public void SetVolumeType(VolumeType value) {
-            lock (self_locker) {
-                this._volumeType = value;
-            }
-        }
-
-        private const int RECORD_TIME = 20;
-        private const int SAMPLE_RATE = 8000;
+        private const int RECORD_TIME = 10;
+        private const int SAMPLE_RATE = 16000;
         private const int SAMPLE_WINDOW = 128;
 
         private const float SENSIBILITY = 100.0f;
@@ -48,21 +39,21 @@ namespace com.rtm {
 
         private int _position;
         private AudioClip _clipRecord;
+        private IMicrophone _micPhone;
 
         private RTMAdpcm _adpcm = new RTMAdpcm();
         private object self_locker = new object();
 
+        private VolumeType _volumeType = VolumeType.VolumePeak;
+        public void SetVolumeType(VolumeType value) {
+            lock (self_locker) {
+                this._volumeType = value;
+            }
+        }
+
         void OnEnable() {
             this._isPause = false;
             this._isFocus = false;
-
-            lock (lock_obj) {
-                if (RTMMicrophone.isInit) {
-                    return;
-                }
-
-                InitMic(null);
-            }
         }
 
         void OnDisable() {
@@ -120,8 +111,12 @@ namespace com.rtm {
         }
 
         private float VolumeRMS() {
+            if (this._micPhone == null) {
+                return 0;
+            }
+
             float[] data = new float[SAMPLE_WINDOW];
-            int pos = Microphone.GetPosition(this._device) - (SAMPLE_WINDOW + 1);
+            int pos = this._micPhone.GetPosition(this._device) - (SAMPLE_WINDOW + 1);
 
             if (pos < 0) {
                 return 0;
@@ -138,9 +133,13 @@ namespace com.rtm {
         }
 
         private float LevelMax() {
+            if (this._micPhone == null) {
+                return 0;
+            }
+
             float levelMax = 0;
             float[] data = new float[SAMPLE_WINDOW];
-            int pos = Microphone.GetPosition(this._device) - (SAMPLE_WINDOW + 1);
+            int pos = this._micPhone.GetPosition(this._device) - (SAMPLE_WINDOW + 1);
 
             if (pos < 0) {
                 return 0;
@@ -159,47 +158,66 @@ namespace com.rtm {
             return levelMax;
         }
 
-        public void InitMic(string device) {
+        public void InitMic(string device, IMicrophone micPhone) {
+            if (micPhone != null) {
+                this._micPhone = micPhone;
+            }
+
+            if (device == null) {
+                device = this._micPhone.GetDevices()[0];
+            }
+
             CancelInput();
 
             lock (self_locker) {
-                if (device == null) {
-                    device = Microphone.devices[0];
-                }
-
                 this._device = device;
             }
         }
 
         public void StartInput() {
+            if (this._micPhone == null) {
+                return;
+            }
+
             lock (self_locker) {
                 if (this._isRecording) {
                     return;
                 }
 
                 this._isRecording = true;
-                this._clipRecord = Microphone.Start(this._device, false, RECORD_TIME, SAMPLE_RATE);
-                StartCoroutine(TimeDown());
+                this._clipRecord = this._micPhone.Start(this._device, false, RECORD_TIME, SAMPLE_RATE);
             }
+
+            StartCoroutine(TimeDown());
         }
 
         public void CancelInput() {
+            if (this._micPhone == null) {
+                return;
+            }
+
+            bool timeDown = false;
+
             lock (self_locker) {
                 if (this._isRecording) {
+                    timeDown = true;
                     this._isRecording = false;
-                    this._position = Microphone.GetPosition(this._device);
-                    Microphone.End(this._device);
-                    StopCoroutine(TimeDown());
+                    this._position = this._micPhone.GetPosition(this._device);
+                    this._micPhone.End(this._device);
                 }
+            }
+
+            if (timeDown) {
+                StopCoroutine(TimeDown());
             }
         }
 
         public void StopInput() {
             CancelInput();
 
-            if (OnRecord != null) {
-                AudioClip clip = GetAudioClip();
-                OnRecord(clip);
+            if (this._micPhone != null) {
+                AudioClip clip = this.GetAudioClip();
+                this._micPhone.OnRecord(clip);
             }
         }
 

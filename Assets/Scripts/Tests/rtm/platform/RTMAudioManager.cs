@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace com.rtm {
 
     public class RTMAudioManager {
+
         private static List<AudioClip> clipPool = new List<AudioClip>();
 
         public static AudioClip GetOrCreateAudioClip(int lenSamples, int channels, int frequency, bool threeD) {

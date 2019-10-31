@@ -125,7 +125,7 @@ namespace com.fpnn {
                 lock (socket_locker) {
                     this._socket.EndConnect(ar);
                     this._stream = this._socket.GetStream();
-                    isClose = socket_locker.Status != 0;
+                    isClose = (socket_locker.Status != 0);
                 }
 
                 lock (conn_locker) {
@@ -133,7 +133,7 @@ namespace com.fpnn {
                 }
 
                 if (isClose) {
-                    this.Close(null);
+                    this.DelayClose(null);
                     return;
                 }
 

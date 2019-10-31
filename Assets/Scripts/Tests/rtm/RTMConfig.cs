@@ -13,10 +13,17 @@ namespace com.rtm {
 
         public class FILE_TYPE {
 
-            public static byte image = 40;        //图片
-            public static byte audio = 41;        //语音
-            public static byte video = 42;        //视频
-            public static byte file = 50;         //泛指文件，服务器会修改此值（如果服务器可以判断出具体类型的话，仅在mtype=50的情况下）
+            public static byte image = 40;          //图片
+            public static byte audio = 41;          //语音
+            public static byte video = 42;          //视频
+            public static byte file = 50;           //泛指文件，服务器会修改此值（如果服务器可以判断出具体类型的话，仅在mtype=50的情况下）
+        }
+
+        public class CHAT_TYPE {
+
+            public static byte text = 30;           //文本
+            public static byte audio = 31;          //语音
+            public static byte cmd = 32;            //命令
         }
 
         public static string KICKOUT = "kickout";
@@ -40,6 +47,13 @@ namespace com.rtm {
             public static string recvGroupChat = "pushgroupchat";
             public static string recvRoomChat = "pushroomchat";
             public static string recvBroadcastChat = "pushbroadcastchat";
+
+            public static string recvAudio = "pushaudio";
+            public static string recvGroupAudio = "pushgroupaudio";
+            public static string recvRoomAudio = "pushroomaudio";
+            public static string recvBroadcastAudio = "pushbroadcastaudio";
+
+            public static string recvCmd = "pushcmd";
         }
 
         public class SERVER_EVENT {

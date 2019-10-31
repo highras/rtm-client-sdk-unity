@@ -41,20 +41,39 @@ namespace com.rtm {
          * @param {int}                         pid
          * @param {long}                        uid
          * @param {string}                      token
-         * @param {string}                      version
          * @param {string}                      lang
          * @param {IDictionary(string,string)}  attrs
          * @param {bool}                        reconnect
          * @param {int}                         timeout
          * @param {bool}                        debug
          */
-        public RTMClient(string dispatch, int pid, long uid, string token, string version, string lang, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug) {
+        public RTMClient(string dispatch, int pid, long uid, string token, string lang, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug) {
+            if (string.IsNullOrEmpty(dispatch)) {
+                Debug.LogWarning("[RUM] The 'dispatch' Is Null Or Empty!");
+                return;
+            }
+
+            if (pid <= 0) {
+                Debug.LogWarning("[RUM] The 'pid' Is Zero Or Negative!");
+                return;
+            }
+
+            if (uid <= 0) {
+                Debug.LogWarning("[RUM] The 'uid' Is Zero Or Negative!");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(token)) {
+                Debug.LogWarning("[RUM] The 'token' Is Null Or Empty!");
+                return;
+            }
+
             Debug.Log("[RTM] rtm_sdk@" + RTMConfig.VERSION + ", fpnn_sdk@" + FPConfig.VERSION);
             this._dispatch = dispatch;
             this._pid = pid;
             this._uid = uid;
             this._token = token;
-            this._version = version;
+            this._version = String.Format("unity_{0}", RTMConfig.VERSION);
             this._targetLanguage = lang;
             this._reconnect = reconnect;
             this._timeout = timeout;
@@ -228,8 +247,7 @@ namespace com.rtm {
                 { "pid", this._pid },
                 { "uid", this._uid },
                 { "what", "rtmGated" },
-                { "addrType", "ipv4" },
-                { "version", this._version }
+                { "addrType", "ipv4" }
             };
 
             lock (self_locker) {
@@ -308,7 +326,7 @@ namespace com.rtm {
             };
 
             lock (self_locker) {
-                if (!string.IsNullOrEmpty(this._targetLanguage)) {
+                if (this._targetLanguage != null) {
                     payload.Add("lang", this._targetLanguage);
                 }
             }
@@ -726,7 +744,6 @@ namespace com.rtm {
          * @param {long}                    from
          * @param {byte}                    mtype
          * @param {long}                    mid
-         * @param {bool}                    deleted
          * @param {string}                  msg
          * @param {string}                  attrs
          * @param {long}                    mtime
@@ -772,15 +789,15 @@ namespace com.rtm {
                             { "from", items[1] },
                             { "mtype", items[2] },
                             { "mid", items[3] },
-                            { "deleted", items[4] },
-                            { "msg", items[5] },
-                            { "attrs", items[6] },
-                            { "mtime", items[7] }
+                            { "msg", items[4] },
+                            { "attrs", items[5] },
+                            { "mtime", items[6] }
                         };
                         byte mtype = Convert.ToByte(GroupMsg["mtype"]);
 
-                        if (mtype == 30) {
-                            GroupMsg.Remove("mtype");
+                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                            byte[] bytes = Convert.FromBase64String(Convert.ToString(GroupMsg["msg"]));
+                            GroupMsg["msg"] = bytes;
                         }
 
                         nl.Add(GroupMsg);
@@ -820,7 +837,6 @@ namespace com.rtm {
          * @param {long}                    from
          * @param {byte}                    mtype
          * @param {long}                    mid
-         * @param {bool}                    deleted
          * @param {string}                  msg
          * @param {string}                  attrs
          * @param {long}                    mtime
@@ -866,15 +882,15 @@ namespace com.rtm {
                             { "from", items[1] },
                             { "mtype", items[2] },
                             { "mid", items[3] },
-                            { "deleted", items[4] },
-                            { "msg", items[5] },
-                            { "attrs", items[6] },
-                            { "mtime", items[7] }
+                            { "msg", items[4] },
+                            { "attrs", items[5] },
+                            { "mtime", items[6] }
                         };
                         byte mtype = Convert.ToByte(RoomMsg["mtype"]);
 
-                        if (mtype == 30) {
-                            RoomMsg.Remove("mtype");
+                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                            byte[] bytes = Convert.FromBase64String(Convert.ToString(RoomMsg["msg"]));
+                            RoomMsg["msg"] = bytes;
                         }
 
                         nl.Add(RoomMsg);
@@ -913,7 +929,6 @@ namespace com.rtm {
          * @param {long}                    from
          * @param {byte}                    mtype
          * @param {long}                    mid
-         * @param {bool}                    deleted
          * @param {string}                  msg
          * @param {string}                  attrs
          * @param {long}                    mtime
@@ -958,15 +973,15 @@ namespace com.rtm {
                             { "from", items[1] },
                             { "mtype", items[2] },
                             { "mid", items[3] },
-                            { "deleted", items[4] },
-                            { "msg", items[5] },
-                            { "attrs", items[6] },
-                            { "mtime", items[7] }
+                            { "msg", items[4] },
+                            { "attrs", items[5] },
+                            { "mtime", items[6] }
                         };
                         byte mtype = Convert.ToByte(BroadcastMsg["mtype"]);
 
-                        if (mtype == 30) {
-                            BroadcastMsg.Remove("mtype");
+                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                            byte[] bytes = Convert.FromBase64String(Convert.ToString(BroadcastMsg["msg"]));
+                            BroadcastMsg["msg"] = bytes;
                         }
 
                         nl.Add(BroadcastMsg);
@@ -1006,7 +1021,6 @@ namespace com.rtm {
          * @param {byte}                    direction
          * @param {byte}                    mtype
          * @param {long}                    mid
-         * @param {bool}                    deleted
          * @param {string}                  msg
          * @param {string}                  attrs
          * @param {long}                    mtime
@@ -1052,15 +1066,15 @@ namespace com.rtm {
                             { "direction", items[1] },
                             { "mtype", items[2] },
                             { "mid", items[3] },
-                            { "deleted", items[4] },
-                            { "msg", items[5] },
-                            { "attrs", items[6] },
-                            { "mtime", items[7] }
+                            { "msg", items[4] },
+                            { "attrs", items[5] },
+                            { "mtime", items[6] }
                         };
                         byte mtype = Convert.ToByte(P2PMsg["mtype"]);
 
-                        if (mtype == 30) {
-                            P2PMsg.Remove("mtype");
+                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                            byte[] bytes = Convert.FromBase64String(Convert.ToString(P2PMsg["msg"]));
+                            P2PMsg["msg"] = bytes;
                         }
 
                         nl.Add(P2PMsg);
@@ -1121,7 +1135,61 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendChat(long to, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            this.SendMessage(to, (byte) 30, msg, attrs, mid, timeout, callback);
+            this.SendMessage(to, RTMConfig.CHAT_TYPE.text, msg, attrs, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3a')
+         *
+         * @param {long}                    to
+         * @param {byte[]}                  audio 
+         * @param {string}                  attrs
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(mtime:long)} payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendAudio(long to, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            string msg = "";
+
+            if (audio != null) {
+                msg = Convert.ToBase64String(audio);
+            }
+
+            this.SendMessage(to, RTMConfig.CHAT_TYPE.audio, msg, attrs, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3a'')
+         *
+         * @param {long}                    to
+         * @param {string}                  msg 
+         * @param {string}                  attrs
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(mtime:long)} payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendCmd(long to, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            this.SendMessage(to, RTMConfig.CHAT_TYPE.cmd, msg, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1145,7 +1213,37 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendGroupChat(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            this.SendGroupMessage(gid, (byte) 30, msg, attrs, mid, timeout, callback);
+            this.SendGroupMessage(gid, RTMConfig.CHAT_TYPE.text, msg, attrs, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3b')
+         *
+         * @param {long}                    gid
+         * @param {byte[]}                  audio
+         * @param {string}                  attrs
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(mtime:long)} payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendGroupAudio(long gid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            string msg = "";
+
+            if (audio != null) {
+                msg = Convert.ToBase64String(audio);
+            }
+
+            this.SendGroupMessage(gid, RTMConfig.CHAT_TYPE.audio, msg, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1169,7 +1267,37 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendRoomChat(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            this.SendRoomMessage(rid, (byte) 30, msg, attrs, mid, timeout, callback);
+            this.SendRoomMessage(rid, RTMConfig.CHAT_TYPE.text, msg, attrs, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3c')
+         *
+         * @param {long}                    rid
+         * @param {byte[]}                  audio
+         * @param {string}                  attrs
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(mtime:long)} payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendRoomAudio(long rid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            string msg = "";
+
+            if (audio != null) {
+                msg = Convert.ToBase64String(audio);
+            }
+
+            this.SendRoomMessage(rid, RTMConfig.CHAT_TYPE.audio, msg, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1198,14 +1326,14 @@ namespace com.rtm {
          * @param {long}                    from
          * @param {byte}                    mtype
          * @param {long}                    mid
-         * @param {bool}                    deleted
-         * @param {string}                  msg
+         * @param {string/byte[]}           msg
          * @param {string}                  attrs
          * @param {long}                    mtime
          * </GroupMsg>
          */
         public void GetGroupChat(long gid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetGroupMessage(gid, desc, num, begin, end, lastid, new List<Byte> { (byte) 30 }, timeout, callback);
+            List<Byte> mtypes = new List<Byte> { RTMConfig.CHAT_TYPE.text, RTMConfig.CHAT_TYPE.audio, RTMConfig.CHAT_TYPE.cmd };
+            this.GetGroupMessage(gid, desc, num, begin, end, lastid, mtypes, timeout, callback);
         }
 
         /**
@@ -1234,14 +1362,14 @@ namespace com.rtm {
          * @param {long}                    from
          * @param {byte}                    mtype
          * @param {long}                    mid
-         * @param {bool}                    deleted
-         * @param {string}                  msg
+         * @param {string/byte[]}           msg
          * @param {string}                  attrs
          * @param {long}                    mtime
          * </RoomMsg>
          */
         public void GetRoomChat(long rid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetRoomMessage(rid, desc, num, begin, end, lastid, new List<Byte> { (byte) 30 }, timeout, callback);
+            List<Byte> mtypes = new List<Byte> { RTMConfig.CHAT_TYPE.text, RTMConfig.CHAT_TYPE.audio, RTMConfig.CHAT_TYPE.cmd };
+            this.GetRoomMessage(rid, desc, num, begin, end, lastid, mtypes, timeout, callback);
         }
 
         /**
@@ -1269,14 +1397,14 @@ namespace com.rtm {
          * @param {long}                    from
          * @param {byte}                    mtype
          * @param {long}                    mid
-         * @param {bool}                    deleted
-         * @param {string}                  msg
+         * @param {string/byte[]}           msg
          * @param {string}                  attrs
          * @param {long}                    mtime
          * </BroadcastMsg>
          */
         public void GetBroadcastChat(bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetBroadcastMessage(desc, num, begin, end, lastid, new List<Byte> { (byte) 30 }, timeout, callback);
+            List<Byte> mtypes = new List<Byte> { RTMConfig.CHAT_TYPE.text, RTMConfig.CHAT_TYPE.audio, RTMConfig.CHAT_TYPE.cmd };
+            this.GetBroadcastMessage(desc, num, begin, end, lastid, mtypes, timeout, callback);
         }
 
         /**
@@ -1306,20 +1434,21 @@ namespace com.rtm {
          * @param {byte}                    direction
          * @param {byte}                    mtype
          * @param {long}                    mid
-         * @param {bool}                    deleted
-         * @param {string}                  msg
+         * @param {string/byte[]}           msg
          * @param {string}                  attrs
          * @param {long}                    mtime
          * </P2PMsg>
          */
         public void GetP2PChat(long ouid, bool desc, int num, long begin, long end, long lastid, int timeout, CallbackDelegate callback) {
-            this.GetP2PMessage(ouid, desc, num, begin, end, lastid, new List<Byte> { (byte) 30 }, timeout, callback);
+            List<Byte> mtypes = new List<Byte> { RTMConfig.CHAT_TYPE.text, RTMConfig.CHAT_TYPE.audio, RTMConfig.CHAT_TYPE.cmd };
+            this.GetP2PMessage(ouid, desc, num, begin, end, lastid, mtypes, timeout, callback);
         }
 
         /**
          *
          * rtmGate (3h)
          *
+         * @param {bool}                    clear 
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -1331,8 +1460,14 @@ namespace com.rtm {
          * @param {IDictionary(p2p:List(long),group:List(long))} payload
          * </CallbackData>
          */
-        public void GetUnreadMessage(int timeout, CallbackDelegate callback) {
-            this.SendQuest("getunreadmsg", new Dictionary<string, object>(), callback, timeout);
+        public void GetUnreadMessage(bool clear, int timeout, CallbackDelegate callback) {
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "clear", clear
+                }
+            };
+
+            this.SendQuest("getunreadmsg", payload, callback, timeout);
         }
 
         /**
@@ -1457,15 +1592,15 @@ namespace com.rtm {
                 { "dst", targetLanguage }
             };
 
-            if (!string.IsNullOrEmpty(originalLanguage)) {
+            if (originalLanguage != null) {
                 payload.Add("src", originalLanguage);
             }
 
-            if (!string.IsNullOrEmpty(type)) {
+            if (type != null) {
                 payload.Add("type", type);
             }
 
-            if (!string.IsNullOrEmpty(profanity)) {
+            if (profanity != null) {
                 payload.Add("profanity", profanity);
             }
 
@@ -1496,11 +1631,48 @@ namespace com.rtm {
                 }
             };
 
-            if (!string.IsNullOrEmpty(action)) {
+            if (action != null) {
                 payload.Add("action", action);
             }
 
             this.SendQuest("profanity", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (3o)
+         *
+         * @param {byte[]}                      audio
+         * @param {string}                      action
+         * @param {int}                         timeout
+         * @param {CallbackDelegate}            callback
+         *
+         * @callback
+         * @param {CallbackData}                cbd
+         *
+         * <CallbackData>
+         * @param {Exception}                   exception
+         * @param {IDictionary(text:string)}    payload
+         * </CallbackData>
+         */
+        public void Transcribe(byte[] audio, string action, int timeout, CallbackDelegate callback) {
+            string msg = "";
+
+            if (audio != null) {
+                msg = Convert.ToBase64String(audio);
+            }
+
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                {
+                    "audio", msg
+                }
+            };
+
+            if (action != null) {
+                payload.Add("action", action);
+            }
+
+            this.SendQuest("transcribe", payload, callback, timeout);
         }
 
         /**
@@ -1602,11 +1774,11 @@ namespace com.rtm {
         public void SetUserInfo(string oinfo, string pinfo, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>();
 
-            if (!string.IsNullOrEmpty(oinfo)) {
+            if (oinfo != null) {
                 payload.Add("oinfo", oinfo);
             }
 
-            if (!string.IsNullOrEmpty(pinfo)) {
+            if (pinfo != null) {
                 payload.Add("pinfo", pinfo);
             }
 
@@ -1898,11 +2070,11 @@ namespace com.rtm {
                 }
             };
 
-            if (!string.IsNullOrEmpty(oinfo)) {
+            if (oinfo != null) {
                 payload.Add("oinfo", oinfo);
             }
 
-            if (!string.IsNullOrEmpty(pinfo)) {
+            if (pinfo != null) {
                 payload.Add("pinfo", pinfo);
             }
 
@@ -2066,11 +2238,11 @@ namespace com.rtm {
                 }
             };
 
-            if (!string.IsNullOrEmpty(oinfo)) {
+            if (oinfo != null) {
                 payload.Add("oinfo", oinfo);
             }
 
-            if (!string.IsNullOrEmpty(pinfo)) {
+            if (pinfo != null) {
                 payload.Add("pinfo", pinfo);
             }
 
@@ -2610,7 +2782,7 @@ namespace com.rtm {
 
             public override void recordError(Exception ex) {
                 if (this._debug) {
-                    Debug.LogError(ex);
+                    Debug.LogWarning(ex);
                 }
             }
         }
@@ -2619,7 +2791,7 @@ namespace com.rtm {
 
             public int Status = 0;
         }
-        
+
         private static class MidGenerator {
 
             static private long count = 0;

@@ -23,7 +23,7 @@ public class Unit_RTMClient {
 
 
     /**
-     *  RTMClient(string dispatch, int pid, long uid, string token, string version, string lang, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug)
+     *  RTMClient(string dispatch, int pid, long uid, string token, string lang, IDictionary<string, string> attrs, bool reconnect, int timeout, bool debug)
      */
     [Test]
     public void Client_Debug() {
@@ -33,7 +33,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -52,7 +51,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -69,7 +67,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -88,7 +85,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -105,7 +101,6 @@ public class Unit_RTMClient {
             0,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -124,7 +119,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -141,7 +135,6 @@ public class Unit_RTMClient {
             this._pid,
             0,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -160,7 +153,6 @@ public class Unit_RTMClient {
             -1,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -176,7 +168,6 @@ public class Unit_RTMClient {
             this._dispatch,
             this._pid,
             this._uid,
-            null,
             null,
             null,
             new Dictionary<string, string>(),
@@ -196,43 +187,6 @@ public class Unit_RTMClient {
             this._uid,
             "",
             null,
-            null,
-            new Dictionary<string, string>(),
-            true,
-            20 * 1000,
-            true
-        );
-        Assert.AreEqual(0, count);
-    }
-
-    [Test]
-    public void Client_NullVersion() {
-        int count = 0;
-        RTMClient client = new RTMClient(
-            this._dispatch,
-            this._pid,
-            this._uid,
-            this._token,
-            null,
-            null,
-            new Dictionary<string, string>(),
-            true,
-            20 * 1000,
-            true
-        );
-        Assert.AreEqual(0, count);
-    }
-
-    [Test]
-    public void Client_EmptyVersion() {
-        int count = 0;
-        RTMClient client = new RTMClient(
-            this._dispatch,
-            this._pid,
-            this._uid,
-            this._token,
-            "",
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -249,7 +203,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             "",
             new Dictionary<string, string>(),
             true,
@@ -267,7 +220,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null, 
             null,
             new Dictionary<string, string>(),
             true,
@@ -287,7 +239,6 @@ public class Unit_RTMClient {
             this._token,
             null,
             null,
-            null,
             true,
             20 * 1000,
             true
@@ -303,7 +254,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -322,7 +272,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             false,
             20 * 1000,
@@ -340,7 +289,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             0,
@@ -357,7 +305,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -378,7 +325,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -401,7 +347,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -423,7 +368,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -441,7 +385,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -461,7 +404,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -479,7 +421,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -499,7 +440,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -518,7 +458,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -536,7 +475,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -560,7 +498,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -583,7 +520,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -603,7 +539,6 @@ public class Unit_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -622,7 +557,6 @@ public class Unit_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,

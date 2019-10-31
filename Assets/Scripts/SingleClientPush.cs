@@ -28,7 +28,6 @@ public class SingleClientPush : Main.ITestCase {
             11000002,
             777779,
             "266B02147F447DD931C48B747F5ED9E7",
-            null,
             RTMConfig.TRANS_LANGUAGE.en,
             new Dictionary<string, string>(),
             true,

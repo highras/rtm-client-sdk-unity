@@ -21,8 +21,6 @@ namespace com.rtm {
             public int Status = 0;
         }
 
-        private Hashtable _midMap = new Hashtable();
-
         private object action_locker = new object();
         private IDictionary<string, Action<IDictionary<string, object>>> _actionDict = new Dictionary<string, Action<IDictionary<string, object>>>();
 
@@ -34,8 +32,8 @@ namespace com.rtm {
 
         public void Destroy() {
             this.ClearPingTimestamp();
-            this._midMap.Clear();
             this._actionDict.Clear();
+            this._duplicateMap.Clear();
         }
 
         public void Service(FPData data, AnswerDelegate answer) {
@@ -99,6 +97,7 @@ namespace com.rtm {
             if (string.IsNullOrEmpty(name)) {
                 return false;
             }
+
             return true;
         }
 
@@ -209,9 +208,21 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
-            if (mtype == 30) {
+            if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvChat;
+            }
+
+            if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                data.Remove("mtype");
+                name = RTMConfig.SERVER_PUSH.recvAudio;
+                byte[] bytes = Convert.FromBase64String(Convert.ToString(data["msg"]));
+                data["msg"] = bytes;
+            }
+
+            if (mtype == RTMConfig.CHAT_TYPE.cmd) {
+                data.Remove("mtype");
+                name = RTMConfig.SERVER_PUSH.recvCmd;
             }
 
             if (mtype >= 40 && mtype <= 50) {
@@ -252,9 +263,16 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
-            if (mtype == 30) {
+            if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvGroupChat;
+            }
+
+            if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                data.Remove("mtype");
+                name = RTMConfig.SERVER_PUSH.recvGroupAudio;
+                byte[] bytes = Convert.FromBase64String(Convert.ToString(data["msg"]));
+                data["msg"] = bytes;
             }
 
             if (mtype >= 40 && mtype <= 50) {
@@ -295,9 +313,16 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
-            if (mtype == 30) {
+            if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvRoomChat;
+            }
+
+            if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                data.Remove("mtype");
+                name = RTMConfig.SERVER_PUSH.recvRoomAudio;
+                byte[] bytes = Convert.FromBase64String(Convert.ToString(data["msg"]));
+                data["msg"] = bytes;
             }
 
             if (mtype >= 40 && mtype <= 50) {
@@ -337,9 +362,16 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
-            if (mtype == 30) {
+            if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvBroadcastChat;
+            }
+
+            if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                data.Remove("mtype");
+                name = RTMConfig.SERVER_PUSH.recvBroadcastAudio;
+                byte[] bytes = Convert.FromBase64String(Convert.ToString(data["msg"]));
+                data["msg"] = bytes;
             }
 
             if (mtype >= 40 && mtype <= 50) {
@@ -396,8 +428,8 @@ namespace com.rtm {
          * serverPush(d)
          *
          * @param {long}            data.from
-         * @param {long}            data.mid
          * @param {byte}            data.mtype
+         * @param {long}            data.mid
          * @param {Url}             data.msg
          * @param {string}          data.attrs
          * @param {long}            data.mtime
@@ -426,6 +458,39 @@ namespace com.rtm {
 
         /**
          *
+         * serverPush(3a')
+         *
+         * @param {long}            data.from
+         * @param {long}            data.to
+         * @param {long}            data.mid
+         * @param {byte[]}          data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushaudio(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(3a'')
+         *
+         * @param {long}            data.from
+         * @param {long}            data.to
+         * @param {long}            data.mid
+         * @param {string}          data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         *
+         * <JsonString>
+         * @param {string}          source
+         * @param {string}          target
+         * @param {string}          sourceText
+         * @param {string}          targetText
+         * </JsonString>
+         */
+        public void pushcmd(IDictionary<string, object> data) {}
+
+        /**
+         *
          * serverPush(3b)
          *
          * @param {long}            data.from
@@ -443,6 +508,19 @@ namespace com.rtm {
          * </JsonString>
          */
         public void pushgroupchat(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(3b')
+         *
+         * @param {long}            data.from
+         * @param {long}            data.gid
+         * @param {long}            data.mid
+         * @param {byte[]}          data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushgroupaudio(IDictionary<string, object> data) {}
 
         /**
          *
@@ -466,6 +544,19 @@ namespace com.rtm {
 
         /**
          *
+         * serverPush(3c')
+         *
+         * @param {long}            data.from
+         * @param {long}            data.rid
+         * @param {long}            data.mid
+         * @param {byte[]}          data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushroomaudio(IDictionary<string, object> data) {}
+
+        /**
+         *
          * serverPush(3d)
          *
          * @param {long}            data.from
@@ -482,6 +573,18 @@ namespace com.rtm {
          * </JsonString>
          */
         public void pushbroadcastchat(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(3d')
+         *
+         * @param {long}            data.from
+         * @param {long}            data.mid
+         * @param {byte[]}          data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushbroadcastaudio(IDictionary<string, object> data) {}
 
         private long _lastPingTimestamp;
         private PingLocker ping_locker = new PingLocker();
@@ -510,6 +613,8 @@ namespace com.rtm {
             this.CheckExpire(timestamp);
         }
 
+        private IDictionary<string, long> _duplicateMap = new Dictionary<string, long>();
+
         private bool CheckMid(int type, long mid, long uid, long rgid) {
             StringBuilder sb = new StringBuilder(50);
             sb.Append(Convert.ToString(type));
@@ -525,41 +630,36 @@ namespace com.rtm {
 
             string key = sb.ToString();
 
-            lock (this._midMap) {
+            lock (this._duplicateMap) {
                 long timestamp = FPManager.Instance.GetMilliTimestamp();
 
-                if (this._midMap.ContainsKey(key)) {
-                    long expire = (long)Convert.ToInt64(this._midMap[key]);
+                if (this._duplicateMap.ContainsKey(key)) {
+                    long expire = this._duplicateMap[key];
 
                     if (expire > timestamp) {
                         return false;
                     }
 
-                    this._midMap.Remove(key);
+                    this._duplicateMap.Remove(key);
                 }
 
-                this._midMap.Add(key, RTMConfig.MID_TTL + timestamp);
+                this._duplicateMap.Add(key, RTMConfig.MID_TTL + timestamp);
                 return true;
             }
         }
 
         private void CheckExpire(long timestamp) {
-            lock (this._midMap) {
-                List<string> keys = new List<string>();
+            lock (this._duplicateMap) {
+                List<string> keys = new List<string>(this._duplicateMap.Keys);
 
-                foreach (DictionaryEntry entry in this._midMap) {
-                    string key = (string)entry.Key;
-                    long expire = (long)entry.Value;
+                foreach (string key in keys) {
+                    long expire = this._duplicateMap[key];
 
                     if (expire > timestamp) {
                         continue;
                     }
 
-                    keys.Add(key);
-                }
-
-                foreach (string rkey in keys) {
-                    this._midMap.Remove(rkey);
+                    this._duplicateMap.Remove(key);
                 }
             }
         }

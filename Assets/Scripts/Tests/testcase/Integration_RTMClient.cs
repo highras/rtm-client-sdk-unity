@@ -14,7 +14,7 @@ public class Integration_RTMClient {
     private string _dispatch = "52.83.245.22:13325";
     private int _pid = 11000001;
     private long _uid = 777779;
-    private string _token = "CAA0561CE39FAADE9EFAD9184C12A5F9";
+    private string _token = "A21617E46173009FA8EC3F0CD0D4A1F6";
 
     [SetUp]
     public void SetUp() {
@@ -31,7 +31,6 @@ public class Integration_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -50,7 +49,6 @@ public class Integration_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -71,7 +69,6 @@ public class Integration_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -104,7 +101,6 @@ public class Integration_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -134,7 +130,6 @@ public class Integration_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
@@ -169,7 +164,6 @@ public class Integration_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -203,7 +197,6 @@ public class Integration_RTMClient {
             this._uid,
             this._token,
             null,
-            null,
             new Dictionary<string, string>(),
             true,
             20 * 1000,
@@ -234,7 +227,6 @@ public class Integration_RTMClient {
             this._pid,
             this._uid,
             this._token,
-            null,
             null,
             new Dictionary<string, string>(),
             true,
