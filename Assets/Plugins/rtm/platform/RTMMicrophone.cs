@@ -107,7 +107,7 @@ namespace com.rtm {
                 yield return new WaitForSeconds(1);
             }
 
-            StopInput();
+            FinishInput();
         }
 
         private float VolumeRMS() {
@@ -212,7 +212,7 @@ namespace com.rtm {
             }
         }
 
-        public void StopInput() {
+        public void FinishInput() {
             CancelInput();
 
             if (this._micPhone != null) {

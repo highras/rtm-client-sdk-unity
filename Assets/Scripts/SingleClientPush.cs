@@ -89,6 +89,8 @@ public class SingleClientPush : Main.ITestCase {
         this._client.Login(null);
     }
 
+    public void Update() {}
+
     public void StopTest() {
         if (this._client != null) {
             this._client.Destroy();

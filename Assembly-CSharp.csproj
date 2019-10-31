@@ -59,6 +59,7 @@
      <Compile Include="Assets\Scripts\SingleClientConcurrency.cs" />
      <Compile Include="Assets\Scripts\SingleClientPush.cs" />
      <Compile Include="Assets\Scripts\SingleClientSend.cs" />
+     <Compile Include="Assets\Scripts\SingleMicphone.cs" />
      <Compile Include="Assets\Scripts\TestCase.cs" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>/Users/di.zhao/Documents/repo/Bitbucket/infra-fpnn-rtm-client-sdk/Unity/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>

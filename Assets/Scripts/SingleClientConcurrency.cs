@@ -73,6 +73,8 @@ public class SingleClientConcurrency : Main.ITestCase {
         this.StartThread();
     }
 
+    public void Update() {}
+
     public void StopTest() {
         this.StopThread();
 
