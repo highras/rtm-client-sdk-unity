@@ -48,11 +48,11 @@ RTMMicrophone.Instance.InitMic(null, new BaseMicrophone());
 
 * `SetVolumeType(VolumeType value)`: 设置音量返回类型, 参考`RTMMicrophone.VolumeType`成员, 默认`VolumeType.VolumePeak`
 
-* `GetLoudness()`: 返回声音强度
+* `GetLoudness()`: **(float)** 返回声音强度
 
-* `GetAudioClip()`: 返回当次采集的音频片段`AudioClip`
+* `GetAudioClip()`: **(AudioClip)** 返回当次采集的音频片段
 
-* `GetAdpcmData()`: 返回当次采集的音频数据, 压缩格式[IMA-ADPCM](https://wiki.multimedia.cx/index.php/IMA_ADPCM)
+* `GetAdpcmData()`: **(byte[])** 返回当次采集的音频数据, 压缩格式[IMA-ADPCM](https://wiki.multimedia.cx/index.php/IMA_ADPCM)
 
-* `GetAudioClip(byte[] adpcmData)`: 返回压缩数据的音频片段`AudioClip`
-    * `adpcmData`: **(byte[])** 音频数据(压缩格式)
+* `GetAudioClip(byte[] adpcmData)`: **(AudioClip)** 返回压缩数据的音频片段
+    * `adpcmData`: **(byte[])** 音频数据(压缩)
