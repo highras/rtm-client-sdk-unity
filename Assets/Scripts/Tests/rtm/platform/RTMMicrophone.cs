@@ -103,10 +103,8 @@ namespace com.rtm {
                         yield return 0;
                     }
                 }
-
                 yield return new WaitForSeconds(1);
             }
-
             FinishInput();
         }
 
@@ -128,7 +126,6 @@ namespace com.rtm {
             for (int i = 0; i < SAMPLE_WINDOW; i++) {
                 sum += data[i] * data[i];
             }
-
             return Mathf.Sqrt(sum / SAMPLE_WINDOW);
         }
 
@@ -149,12 +146,10 @@ namespace com.rtm {
 
             for (int i = 0; i < SAMPLE_WINDOW; i++) {
                 float wavePeak = data[i] * data[i];
-
                 if (levelMax < wavePeak) {
                     levelMax = wavePeak;
                 }
             }
-
             return levelMax;
         }
 
@@ -183,11 +178,9 @@ namespace com.rtm {
                 if (this._isRecording) {
                     return;
                 }
-
                 this._isRecording = true;
                 this._clipRecord = this._micPhone.Start(this._device, false, RECORD_TIME, SAMPLE_RATE);
             }
-
             StartCoroutine(TimeDown());
         }
 
@@ -275,7 +268,6 @@ namespace com.rtm {
                 stream.Write(adpcmData, 0, adpcmData.Length);
                 bytes = stream.ToArray();
             }
-
             return bytes;
         }
 
