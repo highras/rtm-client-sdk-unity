@@ -37,10 +37,10 @@ using com.rtm;
 using UnityEngine;
 ...
 
-// UnityMainThread
+//UnityMainThread
 RTMRegistration.Register();
 
-// AnyThread
+//AnyThread
 RTMClient client = new RTMClient(
     "52.83.245.22:13325",
     1000012,
@@ -53,7 +53,7 @@ RTMClient client = new RTMClient(
     true
 );
 
-// 添加监听
+//添加事件监听
 client.GetEvent().AddListener("login", (evd) => {
     if (evd.GetException() != null) {
         Debug.Log("Auth Fail!");
@@ -63,7 +63,7 @@ client.GetEvent().AddListener("login", (evd) => {
     //RTMGate地址
     Debug.Log("Authed! gate: " + evd.GetPayload());
 
-    // 发送业务消息（发送聊天消息请使用SendChat）
+    //发送业务消息（发送聊天消息请使用SendChat）
     client.SendMessage(778899, (byte) 8, "hello !", "", 0, 5 * 1000, (cbd) => {
         object obj = cbd.GetPayload();
         if (obj != null) {
@@ -82,14 +82,14 @@ client.GetEvent().AddListener("error", (evd) => {
     Debug.Log("Error: " + evd.GetException().Message);
 });
 
-// push service
+//添加推送监听
 RTMProcessor processor = client.GetProcessor();
 
 processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
     Debug.Log("[PUSH] recv msg: " + Json.SerializeToString(data));
 });
 
-// 开启连接
+//开启连接
 client.Login(null);
 
 // Destroy 
