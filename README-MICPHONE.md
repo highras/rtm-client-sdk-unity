@@ -52,7 +52,7 @@ RTMMicrophone.Instance.InitMic(null, new BaseMicrophone());
 
 * `GetAudioClip()`: 返回当次采集的音频片段`AudioClip`
 
-* `GetAdpcmData()`: 返回当次采集的音频数据, 压缩格式IMA-ADPCM(https://wiki.multimedia.cx/index.php/IMA_ADPCM)
+* `GetAdpcmData()`: 返回当次采集的音频数据, 压缩格式[IMA-ADPCM](https://wiki.multimedia.cx/index.php/IMA_ADPCM)
 
 * `GetAudioClip(byte[] adpcmData)`: 返回压缩数据的音频片段`AudioClip`
     * `adpcmData`: **(byte[])** 音频数据(压缩格式)
