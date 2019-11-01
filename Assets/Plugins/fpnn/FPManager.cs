@@ -253,11 +253,11 @@ namespace com.fpnn {
             this.StartServiceThread();
 
             lock (service_locker) {
-                if (this._serviceCache.Count < 3000) {
+                if (this._serviceCache.Count < 10000) {
                     this._serviceCache.Add(service);
                 }
 
-                if (this._serviceCache.Count == 2998) {
+                if (this._serviceCache.Count == 9998) {
                     ErrorRecorderHolder.recordError(new Exception("Service Calls Limit!"));
                 }
             }
@@ -282,7 +282,7 @@ namespace com.fpnn {
             this.StartTaskTimer();
 
             lock (task_locker) {
-                if (this._timerTaskQueue.Count < 3000) {
+                if (this._timerTaskQueue.Count < 10000) {
                     int index = this._timerTaskQueue.Count;
 
                     for (int i = 0; i < this._timerTaskQueue.Count; i++) {
@@ -294,7 +294,7 @@ namespace com.fpnn {
 
                     this._timerTaskQueue.Insert(index, task);
 
-                    if (this._timerTaskQueue.Count == 2998) {
+                    if (this._timerTaskQueue.Count == 9998) {
                         ErrorRecorderHolder.recordError(new Exception("TimerTask Calls Limit!"));
                     }
 

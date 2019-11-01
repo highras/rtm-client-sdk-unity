@@ -192,11 +192,11 @@ namespace com.fpnn {
             this.StartServiceThread();
 
             lock (service_locker) {
-                if (this._serviceCache.Count < 3000) {
+                if (this._serviceCache.Count < 10000) {
                     this._serviceCache.Add(service);
                 }
 
-                if (this._serviceCache.Count == 2998) {
+                if (this._serviceCache.Count == 9998) {
                     ErrorRecorderHolder.recordError(new Exception("Push Calls Limit!"));
                 }
             }

@@ -201,17 +201,16 @@ namespace com.fpnn {
                             this.OnError(ex);
                         }
 
-                        if (this.IsConnecting()) {
-                            return;
-                        }
-
                         try {
                             this._sendEvent.Set();
                         } catch (Exception e) {
                             ErrorRecorderHolder.recordError(e);
                         }
-                    }
 
+                        if (this.IsConnecting()) {
+                            return;
+                        }
+                    }
                     this.TryClose();
                 }
 

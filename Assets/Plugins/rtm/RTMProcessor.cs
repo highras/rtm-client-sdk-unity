@@ -275,6 +275,11 @@ namespace com.rtm {
                 data["msg"] = bytes;
             }
 
+            if (mtype == RTMConfig.CHAT_TYPE.cmd) {
+                data.Remove("mtype");
+                name = RTMConfig.SERVER_PUSH.recvGroupCmd;
+            }
+
             if (mtype >= 40 && mtype <= 50) {
                 name = RTMConfig.SERVER_PUSH.recvGroupFile;
             }
@@ -325,6 +330,11 @@ namespace com.rtm {
                 data["msg"] = bytes;
             }
 
+            if (mtype == RTMConfig.CHAT_TYPE.cmd) {
+                data.Remove("mtype");
+                name = RTMConfig.SERVER_PUSH.recvRoomCmd;
+            }
+
             if (mtype >= 40 && mtype <= 50) {
                 name = RTMConfig.SERVER_PUSH.recvRoomFile;
             }
@@ -372,6 +382,11 @@ namespace com.rtm {
                 name = RTMConfig.SERVER_PUSH.recvBroadcastAudio;
                 byte[] bytes = Convert.FromBase64String(Convert.ToString(data["msg"]));
                 data["msg"] = bytes;
+            }
+
+            if (mtype == RTMConfig.CHAT_TYPE.cmd) {
+                data.Remove("mtype");
+                name = RTMConfig.SERVER_PUSH.recvBroadcastCmd;
             }
 
             if (mtype >= 40 && mtype <= 50) {
@@ -479,13 +494,6 @@ namespace com.rtm {
          * @param {string}          data.msg
          * @param {string}          data.attrs
          * @param {long}            data.mtime
-         *
-         * <JsonString>
-         * @param {string}          source
-         * @param {string}          target
-         * @param {string}          sourceText
-         * @param {string}          targetText
-         * </JsonString>
          */
         public void pushcmd(IDictionary<string, object> data) {}
 
@@ -524,6 +532,19 @@ namespace com.rtm {
 
         /**
          *
+         * serverPush(3b'')
+         *
+         * @param {long}            data.from
+         * @param {long}            data.gid
+         * @param {long}            data.mid
+         * @param {string}          data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushgroupcmd(IDictionary<string, object> data) {}
+
+        /**
+         *
          * serverPush(3c)
          *
          * @param {long}            data.from
@@ -557,6 +578,19 @@ namespace com.rtm {
 
         /**
          *
+         * serverPush(3c'')
+         *
+         * @param {long}            data.from
+         * @param {long}            data.rid
+         * @param {long}            data.mid
+         * @param {string}          data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushroomcmd(IDictionary<string, object> data) {}
+
+        /**
+         *
          * serverPush(3d)
          *
          * @param {long}            data.from
@@ -585,6 +619,18 @@ namespace com.rtm {
          * @param {long}            data.mtime
          */
         public void pushbroadcastaudio(IDictionary<string, object> data) {}
+
+        /**
+         *
+         * serverPush(3d'')
+         *
+         * @param {long}            data.from
+         * @param {long}            data.mid
+         * @param {string}          data.msg
+         * @param {string}          data.attrs
+         * @param {long}            data.mtime
+         */
+        public void pushbroadcastcmd(IDictionary<string, object> data) {}
 
         private long _lastPingTimestamp;
         private PingLocker ping_locker = new PingLocker();

@@ -410,14 +410,10 @@ namespace com.rtm {
             lock (self_locker) {
                 this._isClose = true;
                 client = this._baseClient;
-
-                if (this._dispatchClient != null) {
-                    this._dispatchClient.Close();
-                }
             }
 
             FPManager.Instance.DelayTask(200, (state) => {
-                if (client != null) {
+                if (client != null && client.IsOpen()) {
                     client.Close();
                 }
             }, null);
@@ -1248,6 +1244,30 @@ namespace com.rtm {
 
         /**
          *
+         * rtmGate (3b'')
+         *
+         * @param {long}                    gid
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(mtime:long)} payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendGroupCmd(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            this.SendGroupMessage(gid, RTMConfig.CHAT_TYPE.cmd, msg, attrs, mid, timeout, callback);
+        }
+
+        /**
+         *
          * rtmGate (3c)
          *
          * @param {long}                    rid
@@ -1298,6 +1318,30 @@ namespace com.rtm {
             }
 
             this.SendRoomMessage(rid, RTMConfig.CHAT_TYPE.audio, msg, attrs, mid, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3c'')
+         *
+         * @param {long}                    rid
+         * @param {string}                  msg
+         * @param {string}                  attrs
+         * @param {long}                    mid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary(mtime:long)} payload
+         * @param {Exception}               exception
+         * @param {long}                    mid
+         * </CallbackData>
+         */
+        public void SendRoomCmd(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            this.SendRoomMessage(rid, RTMConfig.CHAT_TYPE.cmd, msg, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1467,7 +1511,7 @@ namespace com.rtm {
                 }
             };
 
-            this.SendQuest("getunreadmsg", payload, callback, timeout);
+            this.SendQuest("getunread", payload, callback, timeout);
         }
 
         /**
@@ -1486,7 +1530,7 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void CleanUnreadMessage(int timeout, CallbackDelegate callback) {
-            this.SendQuest("cleanunreadmsg", new Dictionary<string, object>(), callback, timeout);
+            this.SendQuest("cleanunread", new Dictionary<string, object>(), callback, timeout);
         }
 
         /**

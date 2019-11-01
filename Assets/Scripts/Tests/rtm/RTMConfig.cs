@@ -54,6 +54,9 @@ namespace com.rtm {
             public static string recvBroadcastAudio = "pushbroadcastaudio";
 
             public static string recvCmd = "pushcmd";
+            public static string recvGroupCmd = "pushgroupcmd";
+            public static string recvRoomCmd = "pushroomcmd";
+            public static string recvBroadcastCmd = "pushbroadcastcmd";
         }
 
         public class SERVER_EVENT {

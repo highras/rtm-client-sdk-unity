@@ -276,6 +276,18 @@
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
+* `SendGroupCmd(long gid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group聊天命令, 消息类型`RTMConfig.CHAT_TYPE.cmd`
+    * `gid`: **(long)** group id
+    * `msg`: **(string)** 聊天命令
+    * `attrs`: **(string)** 命令附加信息, 没有可传`""`
+    * `mid`: **(long)** 命令消息 id, 用于过滤重复聊天消息, 非重发时为`0`
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary(mtime:long))**
+            * `exception`: **(Exception)**
+            * `mid`: **(long)**
+
 * `SendRoomChat(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room聊天消息, 消息类型`RTMConfig.CHAT_TYPE.text`
     * `rid`: **(long)** room id
     * `msg`: **(string)** 聊天消息，附加修饰信息不要放这里，方便后继的操作，比如翻译，敏感词过滤等等
@@ -293,6 +305,18 @@
     * `audio`: **(byte[])** 语音数据
     * `attrs`: **(string)** 附加信息, 可传`""`
     * `mid`: **(long)** 语音消息 id, 用于过滤重复聊天语音, 非重发时为`0`
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary(mtime:long))**
+            * `exception`: **(Exception)**
+            * `mid`: **(long)**
+
+* `SendRoomCmd(long rid, string msg, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room聊天命令, 消息类型`RTMConfig.CHAT_TYPE.cmd`
+    * `rid`: **(long)** room id
+    * `msg`: **(string)** 聊天命令
+    * `attrs`: **(string)** 命令附加信息, 没有可传`""`
+    * `mid`: **(long)** 命令消息 id, 用于过滤重复聊天消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**

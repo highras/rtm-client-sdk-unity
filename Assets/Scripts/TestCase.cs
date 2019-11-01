@@ -341,6 +341,18 @@ public class TestCase : Main.ITestCase {
             }
         });
         this.ThreadSleep(sleep);
+        //rtmGate (3b'')
+        //---------------------------------SendGroupCmd--------------------------------------
+        this._client.SendGroupCmd(gid, "group_friends_invite", "", 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SendGroupCmd: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
+            } else {
+                Debug.Log("[ERR] SendGroupCmd: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
         //rtmGate (3c)
         //---------------------------------SendRoomChat--------------------------------------
         this._client.SendRoomChat(rid, "hello !", "", 0, timeout, (cbd) => {
@@ -350,6 +362,18 @@ public class TestCase : Main.ITestCase {
                 Debug.Log("[DATA] SendRoomChat: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
             } else {
                 Debug.Log("[ERR] SendRoomChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3c'')
+        //---------------------------------SendRoomCmd--------------------------------------
+        this._client.SendRoomCmd(rid, "room_friends_invite", "", 0, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] SendRoomCmd: " + Json.SerializeToString(obj) + ", mid: " + cbd.GetMid());
+            } else {
+                Debug.Log("[ERR] SendRoomCmd: " + cbd.GetException().Message);
             }
         });
         this.ThreadSleep(sleep);

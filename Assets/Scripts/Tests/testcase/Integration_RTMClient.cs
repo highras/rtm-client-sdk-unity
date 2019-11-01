@@ -243,6 +243,8 @@ public class Integration_RTMClient {
         yield return new WaitForSeconds(1.0f);
         client.Login(null);
         yield return new WaitForSeconds(2.0f);
+        client.Destroy();
+        yield return new WaitForSeconds(1.0f);
         Assert.AreEqual(0, loginCount);
         Assert.AreEqual(1, closeCount);
     }

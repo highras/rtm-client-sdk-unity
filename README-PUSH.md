@@ -198,3 +198,31 @@
         * `data.mid`: **(long)** 命令消息 id, 当前链接会话内唯一
         * `data.attrs`: **(string)** 发送时附加的自定义内容
         * `data.mtime`: **(long)**
+
+* `pushgroupcmd`: RTMGate主动推送Group聊天命令
+    * `data`: **(IDictionary(string, object))**
+        * `data.from`: **(long)** 发送者 id
+        * `data.gid`: **(long)** Group id
+        * `data.msg`: **(string)** 命令内容
+        * `data.mid`: **(long)** 命令消息 id, 当前链接会话内唯一
+        * `data.attrs`: **(string)** 发送时附加的自定义内容
+        * `data.mtime`: **(long)**
+
+* `pushroomcmd`: RTMGate主动推送Room聊天命令
+    * `data`: **(IDictionary(string, object))**
+        * `data.from`: **(long)** 发送者 id
+        * `data.rid`: **(long)** Room id语音数据
+        * `data.msg`: **(string)** 命令内容
+        * `data.mid`: **(long)** 命令消息 id, 当前链接会话内唯一
+        * `data.attrs`: **(string)** 发送时附加的自定义内容
+        * `data.mtime`: **(long)**
+
+* `pushbroadcastcmd`: RTMGate主动推送广播聊天命令
+    * `data`: **(IDictionary(string, object))**
+        * `data.from`: **(long)** 发送者 id
+        * `data.msg`: **(string)** 命令内容
+        * `data.mid`: **(long)** 命令消息 id, 当前链接会话内唯一
+        * `data.attrs`: **(string)** 发送时附加的自定义内容
+        * `data.mtime`: **(long)**
+
+
