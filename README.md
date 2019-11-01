@@ -59,9 +59,7 @@ client.GetEvent().AddListener("login", (evd) => {
         Debug.Log("Auth Fail!");
         return;
     }
-
-    //RTMGate地址
-    Debug.Log("Authed! gate: " + evd.GetPayload());
+    Debug.Log("Authed! RTM Gate Endpoint: " + evd.GetPayload());
 
     //发送业务消息（发送聊天消息请使用SendChat）
     client.SendMessage(778899, (byte) 8, "hello !", "", 0, 5 * 1000, (cbd) => {
@@ -73,26 +71,23 @@ client.GetEvent().AddListener("login", (evd) => {
         }
     });
 });
-
 client.GetEvent().AddListener("close", (evd) => {
-    Debug.Log("Closed! retry: " + evd.HasRetry());
+    Debug.Log("Closed! Retry: " + evd.HasRetry());
 });
-
 client.GetEvent().AddListener("error", (evd) => {
     Debug.Log("Error: " + evd.GetException().Message);
 });
 
 //添加推送监听
 RTMProcessor processor = client.GetProcessor();
-
 processor.AddPushService(RTMConfig.SERVER_PUSH.recvMessage, (data) => {
-    Debug.Log("[PUSH] recv msg: " + Json.SerializeToString(data));
+    Debug.Log("[PUSH] Recv Msg: " + Json.SerializeToString(data));
 });
 
 //开启连接
 client.Login(null);
 
-// Destroy 
+//Destroy 
 // client.Destroy();
 // client = null;
 ```
