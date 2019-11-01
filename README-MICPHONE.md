@@ -46,7 +46,8 @@ RTMMicrophone.Instance.InitMic(null, new BaseMicrophone());
 
 * `FinishInput()`: 提前完成采集音频数据
 
-* `SetVolumeType(VolumeType value)`: 设置音量返回类型, 参考`RTMMicrophone.VolumeType`成员, 默认`VolumeType.VolumePeak`
+* `SetVolumeType(VolumeType value)`: 设置音量返回类型, 默认`VolumeType.VolumePeak`
+    * `value`: **(VolumeType)** 音量类型, 参考`RTMMicrophone.VolumeType`成员
 
 * `GetLoudness()`: **(float)** 返回声音强度
 
