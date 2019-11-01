@@ -24,7 +24,7 @@ namespace com.rtm {
             void OnRecord(AudioClip clip);
         }
 
-        private const int RECORD_TIME = 10;
+        private const int RECORD_TIME = 15;
         private const int SAMPLE_RATE = 16000;
         private const int SAMPLE_WINDOW = 128;
 

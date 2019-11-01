@@ -46,7 +46,7 @@ public class SingleClientConcurrency : Main.ITestCase {
             "52.83.245.22:13325",
             11000001,
             777779,
-            "A4BF1F8755F86E96F65F07240AB5F6F9",
+            "57B8DF3F16CE731C889090048BD75B90",
             RTMConfig.TRANS_LANGUAGE.en,
             new Dictionary<string, string>(),
             true,

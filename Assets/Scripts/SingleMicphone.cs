@@ -17,10 +17,10 @@ public class SingleMicphone : Main.ITestCase {
 
     public class BaseMicrophone : RTMMicrophone.IMicrophone {
 
-        private RTMClient _client;
+        private RTMClient sendClient;
 
         public BaseMicrophone() {
-            this._client = new RTMClient(
+            sendClient = new RTMClient(
                 "52.83.245.22:13325",
                 11000001,
                 778899,
@@ -31,22 +31,22 @@ public class SingleMicphone : Main.ITestCase {
                 20 * 1000,
                 true
             );
-            this._client.GetEvent().AddListener("login", (evd) => {
+            sendClient.GetEvent().AddListener("login", (evd) => {
                 if (evd.GetException() == null) {
                     Debug.Log("778899 login!");
                 } else {
                     Debug.Log(evd.GetException());
                 }
             });
-            this._client.GetEvent().AddListener("error", (evd) => {
+            sendClient.GetEvent().AddListener("error", (evd) => {
                 Debug.Log(evd.GetException());
             });
-            this._client.Login(null);
+            sendClient.Login(null);
         }
 
         public void Destroy() {
-            if (this._client != null) {
-                this._client.Destroy();
+            if (sendClient != null) {
+                sendClient.Destroy();
             }
         }
 
@@ -66,8 +66,8 @@ public class SingleMicphone : Main.ITestCase {
             byte[] data = RTMMicrophone.Instance.GetAdpcmData();
             Debug.Log("end record, adpcm bytearray len: " + data.Length);
 
-            if (this._client != null) {
-                this._client.SendAudio(777779, data, "", 0, 20 * 1000, (cbd) => {
+            if (sendClient != null) {
+                sendClient.SendAudio(777779, data, "", 0, 20 * 1000, (cbd) => {
                     if (cbd.GetException() != null) {
                         Debug.Log(cbd.GetException());
                     } else {
@@ -78,7 +78,7 @@ public class SingleMicphone : Main.ITestCase {
         }
     }
 
-    private RTMClient _client;
+    private RTMClient receiveClient;
     private BaseMicrophone _micphone;
     private byte[] _audioBytes;
     private object self_locker = new object();
@@ -89,7 +89,7 @@ public class SingleMicphone : Main.ITestCase {
     public SingleMicphone() {}
 
     public void StartTest(byte[] fileBytes) {
-        this._client = new RTMClient(
+        receiveClient = new RTMClient(
             "52.83.245.22:13325",
             11000001,
             777779,
@@ -100,18 +100,19 @@ public class SingleMicphone : Main.ITestCase {
             20 * 1000,
             true
         );
+        
         SingleMicphone self = this;
-        this._client.GetEvent().AddListener("login", (evd) => {
+        receiveClient.GetEvent().AddListener("login", (evd) => {
             if (evd.GetException() == null) {
                 Debug.Log("777779 login!");
             } else {
                 Debug.Log(evd.GetException());
             }
         });
-        this._client.GetEvent().AddListener("error", (evd) => {
+        receiveClient.GetEvent().AddListener("error", (evd) => {
             Debug.Log(evd.GetException());
         });
-        RTMProcessor processor = this._client.GetProcessor();
+        RTMProcessor processor = receiveClient.GetProcessor();
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvAudio, (data) => {
             Debug.Log("777779 receive audio!");
 
@@ -119,7 +120,7 @@ public class SingleMicphone : Main.ITestCase {
                 self._audioBytes = (byte[])data["msg"];
             }
         });
-        this._client.Login(null);
+        receiveClient.Login(null);
         this._micphone = new BaseMicrophone();
         RTMMicrophone.Instance.InitMic(null, this._micphone);
         Debug.Log("microphone start input!");
@@ -145,8 +146,8 @@ public class SingleMicphone : Main.ITestCase {
     public void StopTest() {
         RTMMicrophone.Instance.CancelInput();
 
-        if (this._client != null) {
-            this._client.Destroy();
+        if (receiveClient != null) {
+            receiveClient.Destroy();
         }
 
         if (this._micphone != null) {
