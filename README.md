@@ -669,7 +669,7 @@ client.Login(null);
             * `exception`: **(Exception)**
             * `payload`: **(IDictionary(num:int,lastid:long,begin:long,end:long,msgs:List(P2PMsg)))**
                 * `P2PMsg.id` **(long)**
-                * `P2PMsg.direction` **(byte)**
+                * `P2PMsg.direction` **(byte)** 1, sent, 我发出去的消息，2，recv，我收到的消息
                 * `P2PMsg.mtype` **(byte)**
                 * `P2PMsg.mid` **(long)**
                 * `P2PMsg.msg` **(string/byte[])**
