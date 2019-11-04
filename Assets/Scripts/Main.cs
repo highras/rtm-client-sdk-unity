@@ -25,7 +25,7 @@ public class Main : MonoBehaviour {
         // fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
 
         //SingleClientSend
-        this._testCase = new SingleClientSend();
+        // this._testCase = new SingleClientSend();
 
         //SingleClientConcurrency
         // this._testCase = new SingleClientConcurrency();
@@ -34,7 +34,7 @@ public class Main : MonoBehaviour {
         // this._testCase = new SingleClientPush();
 
         //TestCase
-        // this._testCase = new TestCase(777779, "DB09F491F46DC6D999B985C6CDFBA2B8");
+        this._testCase = new TestCase(777779, "C61F0215AC7B9FA999159E55D4CB127F");
 
         //SingleMicphone
         // this._testCase = new SingleMicphone();

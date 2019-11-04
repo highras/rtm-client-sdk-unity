@@ -204,10 +204,27 @@
                 * `P2PMsg.attrs` **(string)**
                 * `P2PMsg.mtime` **(long)**
 
-* `DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback)`: 删除业务消息
+* `DeleteMessage(long mid, long to, int timeout, CallbackDelegate callback)`: 删除P2P业务消息
     * `mid`: **(long)** 业务消息 id
-    * `xid`: **(long)** 业务消息接收方 id (userId/RoomId/GroupId)
-    * `type`: **(byte)** 接收方类型 (1:p2p, 2:group, 3:room)
+    * `to`: **(long)** 业务消息接收方User id
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary)**
+            * `exception`: **(Exception)**
+
+* `DeleteGroupMessage(long mid, long gid, int timeout, CallbackDelegate callback)`: 删除Gourp业务消息
+    * `mid`: **(long)** 业务消息 id
+    * `gid`: **(long)** 业务消息接收方Group id
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary)**
+            * `exception`: **(Exception)**
+
+* `DeleteRoomMessage(long mid, long rid, int timeout, CallbackDelegate callback)`: 删除Room业务消息
+    * `mid`: **(long)** 业务消息 id
+    * `rid`: **(long)** 业务消息接收方Room id
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -425,10 +442,27 @@
             * `exception`: **(Exception)**
             * `payload`: **(IDictionary(p2p:List(long),group:List(long)))**
 
-* `DeleteChat(long mid, long xid, byte type, int timeout, CallbackDelegate callback)`: 删除聊天消息
+* `DeleteChat(long mid, long to, int timeout, CallbackDelegate callback)`: 删除P2P聊天消息
     * `mid`: **(long)** 聊天消息 id
-    * `xid`: **(long)** 聊天消息接收方 id (userId/RoomId/GroupId)
-    * `type`: **(byte)** 接收方类型 (1:p2p, 2:group, 3:room)
+    * `xid`: **(long)** 聊天消息接收方User id
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary)**
+            * `exception`: **(Exception)**
+
+* `DeleteGroupChat(long mid, long gid, int timeout, CallbackDelegate callback)`: 删除Group聊天消息
+    * `mid`: **(long)** 聊天消息 id
+    * `gid`: **(long)** 聊天消息接收方Group id
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary)**
+            * `exception`: **(Exception)**
+
+* `DeleteRoomChat(long mid, long rid, int timeout, CallbackDelegate callback)`: 删除Room聊天消息
+    * `mid`: **(long)** 聊天消息 id
+    * `rid`: **(long)** 聊天消息接收方Room id
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**

@@ -366,6 +366,15 @@ namespace com.fpnn {
 
         private void WriteSocket(NetworkStream stream, byte[] buffer, Action<NetworkStream> calllback) {
             lock (socket_locker) {
+                if (this._socket == null) {
+                    return;
+                }
+
+                if (!this._socket.Connected) {
+                    this.Close(null);
+                    return;
+                }
+
                 if (socket_locker.Status == 0) {
                     try {
                         this._sendEvent.Reset();
@@ -373,7 +382,6 @@ namespace com.fpnn {
                         ErrorRecorderHolder.recordError(ex);
                     }
                 }
-
                 socket_locker.Count++;
             }
 
@@ -405,6 +413,14 @@ namespace com.fpnn {
 
         public void ReadSocket(NetworkStream stream, byte[] buffer, int rlen, Action<byte[], int> calllback) {
             lock (socket_locker) {
+                if (this._socket == null) {
+                    return;
+                }
+
+                if (!this._socket.Connected) {
+                    this.Close(null);
+                    return;
+                }
                 socket_locker.Count++;
             }
 

@@ -69,6 +69,11 @@ namespace com.rtm {
             }
 
             Debug.Log("[RTM] rtm_sdk@" + RTMConfig.VERSION + ", fpnn_sdk@" + FPConfig.VERSION);
+
+            if (debug) {
+                Json.DefaultEncoding = new UTF8Encoding(false, true);
+            } 
+
             this._dispatch = dispatch;
             this._pid = pid;
             this._uid = uid;
@@ -1159,8 +1164,7 @@ namespace com.rtm {
          * rtmGate (2h)
          *
          * @param {long}                    mid
-         * @param {long}                    xid
-         * @param {byte}                    type
+         * @param {long}                    to
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -1172,13 +1176,59 @@ namespace com.rtm {
          * @param {Exception}               exception
          * </CallbackData>
          */
-        public void DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback) {
+        public void DeleteMessage(long mid, long to, int timeout, CallbackDelegate callback) {
+            this.DeleteMessage(mid, to, (byte) 1, timeout, callback);
+        }
+
+        private void DeleteMessage(long mid, long xid, byte type, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "mid", mid },
                 { "xid", xid },
                 { "type", type }
             };
             this.SendQuest("delmsg", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (2h')
+         *
+         * @param {long}                    mid
+         * @param {long}                    gid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void DeleteGroupMessage(long mid, long gid, int timeout, CallbackDelegate callback) {
+            this.DeleteMessage(mid, gid, (byte) 2, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (2h'')
+         *
+         * @param {long}                    mid
+         * @param {long}                    rid
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void DeleteRoomMessage(long mid, long rid, int timeout, CallbackDelegate callback) {
+            this.DeleteMessage(mid, rid, (byte) 3, timeout, callback);
         }
 
         /**
@@ -1610,8 +1660,7 @@ namespace com.rtm {
          * rtmGate (3k)
          *
          * @param {long}                    mid
-         * @param {long}                    xid
-         * @param {byte}                    type
+         * @param {long}                    to 
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -1623,8 +1672,50 @@ namespace com.rtm {
          * @param {Exception}               exception
          * </CallbackData>
          */
-        public void DeleteChat(long mid, long xid, byte type, int timeout, CallbackDelegate callback) {
-            this.DeleteMessage(mid, xid, type, timeout, callback);
+        public void DeleteChat(long mid, long to, int timeout, CallbackDelegate callback) {
+            this.DeleteMessage(mid, to, (byte) 1, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3k')
+         *
+         * @param {long}                    mid
+         * @param {long}                    gid 
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void DeleteGroupChat(long mid, long gid, int timeout, CallbackDelegate callback) {
+            this.DeleteMessage(mid, gid, (byte) 2, timeout, callback);
+        }
+
+        /**
+         *
+         * rtmGate (3k'')
+         *
+         * @param {long}                    mid
+         * @param {long}                    rid 
+         * @param {int}                     timeout
+         * @param {CallbackDelegate}        callback
+         *
+         * @callback
+         * @param {CallbackData}            cbd
+         *
+         * <CallbackData>
+         * @param {IDictionary}             payload
+         * @param {Exception}               exception
+         * </CallbackData>
+         */
+        public void DeleteRoomChat(long mid, long rid, int timeout, CallbackDelegate callback) {
+            this.DeleteMessage(mid, rid, (byte) 3, timeout, callback);
         }
 
         /**

@@ -295,13 +295,37 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (2h)
         //---------------------------------DeleteMessage--------------------------------------
-        this._client.DeleteMessage(0, to, (byte)1, timeout, (cbd) => {
+        this._client.DeleteMessage(0, to, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
                 Debug.Log("[DATA] DeleteMessage: " + Json.SerializeToString(obj));
             } else {
                 Debug.Log("[ERR] DeleteMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2h')
+        //---------------------------------DeleteGroupMessage--------------------------------------
+        this._client.DeleteGroupMessage(0, gid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DeleteGroupMessage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DeleteGroupMessage: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (2h'')
+        //---------------------------------DeleteRoomMessage--------------------------------------
+        this._client.DeleteRoomMessage(0, rid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DeleteRoomMessage: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DeleteRoomMessage: " + cbd.GetException().Message);
             }
         });
         this.ThreadSleep(sleep);
@@ -463,13 +487,37 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (3k)
         //---------------------------------DeleteChat--------------------------------------
-        this._client.DeleteChat(0, to, (byte)1, timeout, (cbd) => {
+        this._client.DeleteChat(0, to, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
                 Debug.Log("[DATA] DeleteChat: " + Json.SerializeToString(obj));
             } else {
                 Debug.Log("[ERR] DeleteChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3k')
+        //---------------------------------DeleteGroupChat--------------------------------------
+        this._client.DeleteGroupChat(0, gid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DeleteGroupChat: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DeleteGroupChat: " + cbd.GetException().Message);
+            }
+        });
+        this.ThreadSleep(sleep);
+        //rtmGate (3k'')
+        //---------------------------------DeleteRoomChat--------------------------------------
+        this._client.DeleteRoomChat(0, rid, timeout, (cbd) => {
+            object obj = cbd.GetPayload();
+
+            if (obj != null) {
+                Debug.Log("[DATA] DeleteRoomChat: " + Json.SerializeToString(obj));
+            } else {
+                Debug.Log("[ERR] DeleteRoomChat: " + cbd.GetException().Message);
             }
         });
         this.ThreadSleep(sleep);
