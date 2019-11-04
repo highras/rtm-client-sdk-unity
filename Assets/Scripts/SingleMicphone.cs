@@ -12,8 +12,8 @@ using com.rtm;
 
 public class SingleMicphone : Main.ITestCase {
 
-    private const string TOKEN_778899 = "15B5159274C7019A70B7774645C6010F";
-    private const string TOKEN_777779 = "1482178C08308B9B0DA6CA5C876D561C";
+    private const string TOKEN_778899 = "243AF187B79CDF99227ADCDD07E131AB";
+    private const string TOKEN_777779 = "DB09F491F46DC6D999B985C6CDFBA2B8";
 
     public class BaseMicrophone : RTMMicrophone.IMicrophone {
 

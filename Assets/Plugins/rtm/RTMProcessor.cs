@@ -208,6 +208,13 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
+            if (mtype != RTMConfig.CHAT_TYPE.audio) {
+                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(byte[])) {
+                    string msg = Json.DefaultEncoding.GetString((byte[]) data["msg"]);
+                    data["msg"] = msg;
+                }
+            }
+
             if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvChat;
@@ -216,8 +223,6 @@ namespace com.rtm {
             if (mtype == RTMConfig.CHAT_TYPE.audio) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvAudio;
-                byte[] bytes = Convert.FromBase64String(Convert.ToString(data["msg"]));
-                data["msg"] = bytes;
             }
 
             if (mtype == RTMConfig.CHAT_TYPE.cmd) {
@@ -263,6 +268,13 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
+            if (mtype != RTMConfig.CHAT_TYPE.audio) {
+                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(byte[])) {
+                    string msg = Json.DefaultEncoding.GetString((byte[]) data["msg"]);
+                    data["msg"] = msg;
+                }
+            }
+
             if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvGroupChat;
@@ -271,8 +283,6 @@ namespace com.rtm {
             if (mtype == RTMConfig.CHAT_TYPE.audio) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvGroupAudio;
-                byte[] bytes = Convert.FromBase64String(Convert.ToString(data["msg"]));
-                data["msg"] = bytes;
             }
 
             if (mtype == RTMConfig.CHAT_TYPE.cmd) {
@@ -318,6 +328,13 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
+            if (mtype != RTMConfig.CHAT_TYPE.audio) {
+                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(byte[])) {
+                    string msg = Json.DefaultEncoding.GetString((byte[]) data["msg"]);
+                    data["msg"] = msg;
+                }
+            }
+
             if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvRoomChat;
@@ -326,8 +343,6 @@ namespace com.rtm {
             if (mtype == RTMConfig.CHAT_TYPE.audio) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvRoomAudio;
-                byte[] bytes = Convert.FromBase64String(Convert.ToString(data["msg"]));
-                data["msg"] = bytes;
             }
 
             if (mtype == RTMConfig.CHAT_TYPE.cmd) {
@@ -372,6 +387,13 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
+            if (mtype != RTMConfig.CHAT_TYPE.audio) {
+                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(byte[])) {
+                    string msg = Json.DefaultEncoding.GetString((byte[]) data["msg"]);
+                    data["msg"] = msg;
+                }
+            }
+
             if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvBroadcastChat;
@@ -380,8 +402,6 @@ namespace com.rtm {
             if (mtype == RTMConfig.CHAT_TYPE.audio) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvBroadcastAudio;
-                byte[] bytes = Convert.FromBase64String(Convert.ToString(data["msg"]));
-                data["msg"] = bytes;
             }
 
             if (mtype == RTMConfig.CHAT_TYPE.cmd) {

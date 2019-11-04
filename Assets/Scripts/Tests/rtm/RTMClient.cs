@@ -629,6 +629,27 @@ namespace com.rtm {
             }, timeout);
         }
 
+        private void SendMessage(long to, byte mtype, byte[] msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            if (mid == 0) {
+                mid = MidGenerator.Gen();
+            }
+
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "to", to },
+                { "mid", mid },
+                { "mtype", mtype },
+                { "msg", msg },
+                { "attrs", attrs }
+            };
+            this.SendQuest("sendmsg", payload, (cbd) => {
+                cbd.SetMid(mid);
+
+                if (callback != null) {
+                    callback(cbd);
+                }
+            }, timeout);
+        }
+
         /**
          *
          * rtmGate (2b)
@@ -671,6 +692,27 @@ namespace com.rtm {
             }, timeout);
         }
 
+        private void SendGroupMessage(long gid, byte mtype, byte[] msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            if (mid == 0) {
+                mid = MidGenerator.Gen();
+            }
+
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "gid", gid },
+                { "mid", mid },
+                { "mtype", mtype },
+                { "msg", msg },
+                { "attrs", attrs }
+            };
+            this.SendQuest("sendgroupmsg", payload, (cbd) => {
+                cbd.SetMid(mid);
+
+                if (callback != null) {
+                    callback(cbd);
+                }
+            }, timeout);
+        }
+
         /**
          *
          * rtmGate (2c)
@@ -693,6 +735,27 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendRoomMessage(long rid, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            if (mid == 0) {
+                mid = MidGenerator.Gen();
+            }
+
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "rid", rid },
+                { "mid", mid },
+                { "mtype", mtype },
+                { "msg", msg },
+                { "attrs", attrs }
+            };
+            this.SendQuest("sendroommsg", payload, (cbd) => {
+                cbd.SetMid(mid);
+
+                if (callback != null) {
+                    callback(cbd);
+                }
+            }, timeout);
+        }
+
+        private void SendRoomMessage(long rid, byte mtype, byte[] msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
             if (mid == 0) {
                 mid = MidGenerator.Gen();
             }
@@ -791,9 +854,11 @@ namespace com.rtm {
                         };
                         byte mtype = Convert.ToByte(GroupMsg["mtype"]);
 
-                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
-                            byte[] bytes = Convert.FromBase64String(Convert.ToString(GroupMsg["msg"]));
-                            GroupMsg["msg"] = bytes;
+                        if (mtype != RTMConfig.CHAT_TYPE.audio) {
+                            if (GroupMsg.ContainsKey("msg") && GroupMsg["msg"].GetType() == typeof(byte[])) {
+                                string msg = Json.DefaultEncoding.GetString((byte[]) GroupMsg["msg"]);
+                                GroupMsg["msg"] = msg; 
+                            }
                         }
 
                         nl.Add(GroupMsg);
@@ -884,9 +949,11 @@ namespace com.rtm {
                         };
                         byte mtype = Convert.ToByte(RoomMsg["mtype"]);
 
-                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
-                            byte[] bytes = Convert.FromBase64String(Convert.ToString(RoomMsg["msg"]));
-                            RoomMsg["msg"] = bytes;
+                        if (mtype != RTMConfig.CHAT_TYPE.audio) {
+                            if (RoomMsg.ContainsKey("msg") && RoomMsg["msg"].GetType() == typeof(byte[])) {
+                                string msg = Json.DefaultEncoding.GetString((byte[]) RoomMsg["msg"]);
+                                RoomMsg["msg"] = msg; 
+                            }
                         }
 
                         nl.Add(RoomMsg);
@@ -975,9 +1042,11 @@ namespace com.rtm {
                         };
                         byte mtype = Convert.ToByte(BroadcastMsg["mtype"]);
 
-                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
-                            byte[] bytes = Convert.FromBase64String(Convert.ToString(BroadcastMsg["msg"]));
-                            BroadcastMsg["msg"] = bytes;
+                        if (mtype != RTMConfig.CHAT_TYPE.audio) {
+                            if (BroadcastMsg.ContainsKey("msg") && BroadcastMsg["msg"].GetType() == typeof(byte[])) {
+                                string msg = Json.DefaultEncoding.GetString((byte[]) BroadcastMsg["msg"]);
+                                BroadcastMsg["msg"] = msg; 
+                            }
                         }
 
                         nl.Add(BroadcastMsg);
@@ -1068,9 +1137,11 @@ namespace com.rtm {
                         };
                         byte mtype = Convert.ToByte(P2PMsg["mtype"]);
 
-                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
-                            byte[] bytes = Convert.FromBase64String(Convert.ToString(P2PMsg["msg"]));
-                            P2PMsg["msg"] = bytes;
+                        if (mtype != RTMConfig.CHAT_TYPE.audio) {
+                            if (P2PMsg.ContainsKey("msg") && P2PMsg["msg"].GetType() == typeof(byte[])) {
+                                string msg = Json.DefaultEncoding.GetString((byte[]) P2PMsg["msg"]);
+                                P2PMsg["msg"] = msg; 
+                            }
                         }
 
                         nl.Add(P2PMsg);
@@ -1155,13 +1226,7 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendAudio(long to, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            string msg = "";
-
-            if (audio != null) {
-                msg = Convert.ToBase64String(audio);
-            }
-
-            this.SendMessage(to, RTMConfig.CHAT_TYPE.audio, msg, attrs, mid, timeout, callback);
+            this.SendMessage(to, RTMConfig.CHAT_TYPE.audio, audio, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1233,13 +1298,7 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendGroupAudio(long gid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            string msg = "";
-
-            if (audio != null) {
-                msg = Convert.ToBase64String(audio);
-            }
-
-            this.SendGroupMessage(gid, RTMConfig.CHAT_TYPE.audio, msg, attrs, mid, timeout, callback);
+            this.SendGroupMessage(gid, RTMConfig.CHAT_TYPE.audio, audio, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1311,13 +1370,7 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendRoomAudio(long rid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            string msg = "";
-
-            if (audio != null) {
-                msg = Convert.ToBase64String(audio);
-            }
-
-            this.SendRoomMessage(rid, RTMConfig.CHAT_TYPE.audio, msg, attrs, mid, timeout, callback);
+            this.SendRoomMessage(rid, RTMConfig.CHAT_TYPE.audio, audio, attrs, mid, timeout, callback);
         }
 
         /**
@@ -1700,15 +1753,9 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void Transcribe(byte[] audio, string action, int timeout, CallbackDelegate callback) {
-            string msg = "";
-
-            if (audio != null) {
-                msg = Convert.ToBase64String(audio);
-            }
-
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 {
-                    "audio", msg
+                    "audio", audio
                 }
             };
 
@@ -2869,6 +2916,7 @@ namespace com.rtm {
     public static class RTMRegistration {
 
         static public void Register() {
+            Json.DefaultEncoding = new UTF8Encoding(false, false);
             FPManager.Instance.Init();
         }
     }
