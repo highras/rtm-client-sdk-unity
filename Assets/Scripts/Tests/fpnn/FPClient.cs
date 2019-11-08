@@ -189,6 +189,8 @@ namespace com.fpnn {
         }
 
         private void OnClose(EventData evd) {
+            this.Close();
+            
             lock (self_locker) {
                 this._callback.RemoveCallback();
                 this._cry.Clear();

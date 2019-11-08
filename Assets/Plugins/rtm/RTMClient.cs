@@ -421,7 +421,7 @@ namespace com.rtm {
             }
 
             FPManager.Instance.DelayTask(200, (state) => {
-                if (client != null && client.IsOpen()) {
+                if (client != null) {
                     client.Close();
                 }
             }, null);
