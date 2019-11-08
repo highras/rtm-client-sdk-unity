@@ -851,7 +851,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //fileGate (1)
         //---------------------------------SendFile--------------------------------------
-        this._client.SendFile((byte)50, to, this._fileBytes, 0, timeout, (cbd) => {
+        this._client.SendFile((byte)50, to, this._fileBytes, null, null, 0, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
@@ -863,7 +863,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep * 5);
         //fileGate (3)
         //---------------------------------SendGroupFile--------------------------------------
-        this._client.SendGroupFile((byte)50, gid, this._fileBytes, 0, timeout, (cbd) => {
+        this._client.SendGroupFile((byte)50, gid, this._fileBytes, "", "", 0, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
@@ -875,7 +875,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep * 5);
         //fileGate (4)
         //---------------------------------SendRoomFile--------------------------------------
-        this._client.SendRoomFile((byte)50, rid, this._fileBytes, 0, timeout, (cbd) => {
+        this._client.SendRoomFile((byte)50, rid, this._fileBytes, "jpg", "pic", 0, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {

@@ -4,7 +4,7 @@
 killall Unity
 
 # go to project root. chmod 777
-echo [LiveData] Unity Exporting... {$(pwd)}
+echo [LiveData] Unity rtm Exporting... {$(pwd)}
 
 # unity path
 UNITY_PATH="/Applications/Unity/Hub/Editor/2019.2.2f1/Unity.app/Contents/MacOS/Unity"

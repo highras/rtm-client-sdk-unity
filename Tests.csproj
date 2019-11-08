@@ -140,6 +140,8 @@
      <Compile Include="Assets\Scripts\Tests\GameDevWare.Serialization\Serializers\VersionSerializer.cs" />
      <Compile Include="Assets\Scripts\Tests\GameDevWare.Serialization\TypeSerializer.cs" />
      <Compile Include="Assets\Scripts\Tests\GameDevWare.Serialization\TypeSerializerAttribute.cs" />
+     <Compile Include="Assets\Scripts\Tests\rtm\msgpack\MsgPackFix.cs" />
+     <Compile Include="Assets\Scripts\Tests\rtm\msgpack\MsgPackFixReader.cs" />
      <Compile Include="Assets\Scripts\Tests\rtm\platform\RTMAdpcm.cs" />
      <Compile Include="Assets\Scripts\Tests\rtm\platform\RTMAudioManager.cs" />
      <Compile Include="Assets\Scripts\Tests\rtm\platform\RTMMicrophone.cs" />

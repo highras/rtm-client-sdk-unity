@@ -17,8 +17,6 @@ namespace com.fpnn {
         private bool _isClose = false;
 
         private FPSocket _sock;
-        private EventDelegate _eventDelegate;
-
         private FPPackage _pkg;
         private FPEncryptor _cry;
         private FPProcessor _psr;
@@ -31,7 +29,6 @@ namespace com.fpnn {
             }
 
             string[] ipport = endpoint.Split(':');
-
             if (ipport.Length >= 2) {
                 this.Init(ipport[0], Convert.ToInt32(ipport[1]), connectionTimeout);
                 return;
@@ -80,6 +77,10 @@ namespace com.fpnn {
         private object self_locker = new object();
 
         public void Connect() {
+            if (this.HasConnect()) {
+                return;
+            }
+            
             lock (self_locker) {
                 if (this._isClose) {
                     return;
@@ -189,9 +190,12 @@ namespace com.fpnn {
 
         private void OnClose(EventData evd) {
             lock (self_locker) {
-                this._seq = 0;
                 this._callback.RemoveCallback();
                 this._cry.Clear();
+            }
+
+            lock (seq_locker) {
+                this._seq = 0;
             }
 
             try {
@@ -326,7 +330,6 @@ namespace com.fpnn {
         private void ExecCallback(FPData answer) {
             lock (self_locker) {
                 string key = this._pkg.GetKeyCallback(answer);
-
                 if (!String.IsNullOrEmpty(key)) {
                     this._callback.ExecCallback(key, answer);
                 }

@@ -12,8 +12,8 @@ using com.rtm;
 
 public class SingleMicphone : Main.ITestCase {
 
-    private const string TOKEN_778899 = "243AF187B79CDF99227ADCDD07E131AB";
-    private const string TOKEN_777779 = "DB09F491F46DC6D999B985C6CDFBA2B8";
+    private const string TOKEN_778899 = "8CCA337812B194AFC1F3E9F3B7659D8C";
+    private const string TOKEN_777779 = "FA77FB4FA1E19E3EA7A9500DC6D9649C";
 
     public class BaseMicrophone : RTMMicrophone.IMicrophone {
 
@@ -63,7 +63,7 @@ public class SingleMicphone : Main.ITestCase {
             Microphone.End(device);
         }
         public void OnRecord(AudioClip clip) {
-            byte[] data = RTMMicrophone.Instance.GetAdpcmData();
+            byte[] data = RTMAudioManager.EncodeAudioClip(clip);
             Debug.Log("end record, adpcm bytearray len: " + data.Length);
 
             if (sendClient != null) {
@@ -115,7 +115,6 @@ public class SingleMicphone : Main.ITestCase {
         RTMProcessor processor = receiveClient.GetProcessor();
         processor.AddPushService(RTMConfig.SERVER_PUSH.recvAudio, (data) => {
             Debug.Log("777779 receive audio!");
-
             lock (self_locker) {
                 self._audioBytes = (byte[])data["msg"];
             }
@@ -132,7 +131,7 @@ public class SingleMicphone : Main.ITestCase {
 
         lock (self_locker) {
             if (this._audioBytes != null) {
-                clip = RTMMicrophone.Instance.GetAudioClip(this._audioBytes);
+                clip = RTMAudioManager.DncodeAdpcmData(this._audioBytes);
                 this._audioBytes = null;
             }
         }

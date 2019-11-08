@@ -85,7 +85,7 @@ namespace com.fpnn {
 
         public void FireEvent(EventData evd) {
             if (evd == null) {
-                ErrorRecorderHolder.recordError(new Exception("EventData is null or empty"));
+                ErrorRecorderHolder.recordError(new Exception("EventData is null"));
                 return;
             }
 

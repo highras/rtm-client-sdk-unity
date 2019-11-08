@@ -119,7 +119,6 @@ namespace com.rtm {
                 if (callback != null) {
                     callback(new CallbackData(new Exception("data is null!")));
                 }
-
                 return;
             }
 

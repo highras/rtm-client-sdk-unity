@@ -22,18 +22,14 @@ namespace com.fpnn {
         }
 
         private class BaseProcessor: IProcessor {
-
             public void Service(FPData data, AnswerDelegate answer) {
                 // TODO
                 if (data.GetFlag() == 0) {}
-
                 if (data.GetFlag() == 1) {}
             }
-
             public bool HasPushService(string name) {
                 return false;
             }
-
             public void OnSecond(long timestamp) {}
         }
 
@@ -189,6 +185,9 @@ namespace com.fpnn {
                 }
             }
 
+            if (service == null) {
+                return;
+            }
             this.StartServiceThread();
 
             lock (service_locker) {

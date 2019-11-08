@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class ExportPackage {
 
-    private const string SDK_PLUGIN_PATH = "Assets/Plugins/rtm/";
+    private const string SDK_PLUGIN_PATH = "Assets/Scripts/Tests/rtm/";
     private const string BASE_PACKAGE_PATCH = "rtm-sdk-unity";
 
     private static string Plugin_Version = com.rtm.RTMConfig.VERSION;

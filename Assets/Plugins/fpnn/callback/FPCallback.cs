@@ -11,6 +11,7 @@ namespace com.fpnn {
 
         private Hashtable _cbMap = new Hashtable();
         private Hashtable _exMap = new Hashtable();
+        private object self_locker = new object();
 
         public void AddCallback(string key, CallbackDelegate callback, int timeout) {
             if (string.IsNullOrEmpty(key)) {
@@ -23,13 +24,11 @@ namespace com.fpnn {
                 return;
             }
 
-            lock (this._cbMap) {
+            lock (self_locker) {
                 if (!this._cbMap.Contains(key)) {
                     this._cbMap.Add(key, callback);
                 }
-            }
 
-            lock (this._exMap) {
                 if (!this._exMap.Contains(key)) {
                     int ts = timeout <= 0 ? FPConfig.SEND_TIMEOUT : timeout;
                     long expire = ts + FPManager.Instance.GetMilliTimestamp();
@@ -39,11 +38,8 @@ namespace com.fpnn {
         }
 
         public void RemoveCallback() {
-            lock (this._cbMap) {
+            lock (self_locker) {
                 this._cbMap.Clear();
-            }
-
-            lock (this._exMap) {
                 this._exMap.Clear();
             }
         }
@@ -56,14 +52,12 @@ namespace com.fpnn {
 
             CallbackDelegate callback = null;
 
-            lock (this._cbMap) {
+            lock (self_locker) {
                 if (this._cbMap.Contains(key)) {
                     callback = (CallbackDelegate)this._cbMap[key];
                     this._cbMap.Remove(key);
                 }
-            }
 
-            lock (this._exMap) {
                 if (this._exMap.Contains(key)) {
                     this._exMap.Remove(key);
                 }
@@ -82,14 +76,12 @@ namespace com.fpnn {
 
             CallbackDelegate callback = null;
 
-            lock (this._cbMap) {
+            lock (self_locker) {
                 if (this._cbMap.Contains(key)) {
                     callback = (CallbackDelegate)this._cbMap[key];
                     this._cbMap.Remove(key);
                 }
-            }
 
-            lock (this._exMap) {
                 if (this._exMap.Contains(key)) {
                     this._exMap.Remove(key);
                 }
@@ -103,7 +95,7 @@ namespace com.fpnn {
         public void OnSecond(long timestamp) {
             List<string> keys = new List<string>();
 
-            lock (this._exMap) {
+            lock (self_locker) {
                 foreach (DictionaryEntry entry in this._exMap) {
                     string key = (string)entry.Key;
                     long expire = (long)entry.Value;

@@ -71,7 +71,7 @@ namespace com.rtm {
             Debug.Log("[RTM] rtm_sdk@" + RTMConfig.VERSION + ", fpnn_sdk@" + FPConfig.VERSION);
 
             if (debug) {
-                Json.DefaultEncoding = new UTF8Encoding(false, true);
+                Json.DefaultEncoding = RTMRegistration.RTMEncoding;
             } 
 
             this._dispatch = dispatch;
@@ -173,8 +173,8 @@ namespace com.rtm {
         public void Destroy() {
             lock (delayconn_locker) {
                 delayconn_locker.Status = 0;
-                this._reconnCount = 0;
-                this._lastConnectTime = 0;
+                delayconn_locker.Count = 0;
+                delayconn_locker.Timestamp = 0;
             }
 
             lock (self_locker) {
@@ -232,6 +232,7 @@ namespace com.rtm {
         }
 
         private void DispatchClient_OnClose(EventData evd) {
+            bool retry = false;
             bool reconn = false;
 
             lock (self_locker) {
@@ -240,9 +241,11 @@ namespace com.rtm {
                 }
 
                 reconn = string.IsNullOrEmpty(this._endpoint);
+                retry = !this._isClose && this._reconnect;
             }
 
             if (reconn) {
+                this.GetEvent().FireEvent(new EventData("close", retry));
                 this.Reconnect();
             }
         }
@@ -343,7 +346,7 @@ namespace com.rtm {
             Exception exception = cbd.GetException();
 
             if (exception != null) {
-                this.GetEvent().FireEvent(new EventData("error", exception));
+                this.GetEvent().FireEvent(new EventData("login", exception));
                 return;
             }
 
@@ -357,7 +360,7 @@ namespace com.rtm {
 
                     if (ok) {
                         lock (delayconn_locker) {
-                            this._reconnCount = 0;
+                            delayconn_locker.Count = 0;
                         }
 
                         string ep = null;
@@ -614,27 +617,10 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendMessage(long to, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            if (mid == 0) {
-                mid = MidGenerator.Gen();
-            }
-
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "to", to },
-                { "mid", mid },
-                { "mtype", mtype },
-                { "msg", msg },
-                { "attrs", attrs }
-            };
-            this.SendQuest("sendmsg", payload, (cbd) => {
-                cbd.SetMid(mid);
-
-                if (callback != null) {
-                    callback(cbd);
-                }
-            }, timeout);
+            this.SendMessage(to, mtype, (object) msg, attrs, mid, timeout, callback);
         }
 
-        private void SendMessage(long to, byte mtype, byte[] msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+        private void SendMessage(long to, byte mtype, object msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
             if (mid == 0) {
                 mid = MidGenerator.Gen();
             }
@@ -677,27 +663,10 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendGroupMessage(long gid, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            if (mid == 0) {
-                mid = MidGenerator.Gen();
-            }
-
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "gid", gid },
-                { "mid", mid },
-                { "mtype", mtype },
-                { "msg", msg },
-                { "attrs", attrs }
-            };
-            this.SendQuest("sendgroupmsg", payload, (cbd) => {
-                cbd.SetMid(mid);
-
-                if (callback != null) {
-                    callback(cbd);
-                }
-            }, timeout);
+            this.SendGroupMessage(gid, mtype, (object) msg, attrs, mid, timeout, callback);
         }
 
-        private void SendGroupMessage(long gid, byte mtype, byte[] msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+        private void SendGroupMessage(long gid, byte mtype, object msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
             if (mid == 0) {
                 mid = MidGenerator.Gen();
             }
@@ -740,27 +709,10 @@ namespace com.rtm {
          * </CallbackData>
          */
         public void SendRoomMessage(long rid, byte mtype, string msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            if (mid == 0) {
-                mid = MidGenerator.Gen();
-            }
-
-            IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "rid", rid },
-                { "mid", mid },
-                { "mtype", mtype },
-                { "msg", msg },
-                { "attrs", attrs }
-            };
-            this.SendQuest("sendroommsg", payload, (cbd) => {
-                cbd.SetMid(mid);
-
-                if (callback != null) {
-                    callback(cbd);
-                }
-            }, timeout);
+            this.SendRoomMessage(rid, mtype, (object) msg, attrs, mid, timeout, callback);
         }
 
-        private void SendRoomMessage(long rid, byte mtype, byte[] msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
+        private void SendRoomMessage(long rid, byte mtype, object msg, string attrs, long mid, int timeout, CallbackDelegate callback) {
             if (mid == 0) {
                 mid = MidGenerator.Gen();
             }
@@ -832,7 +784,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            if (mtypes != null && mtypes.Count > 0) {
+            if (mtypes != null) {
                 payload.Add("mtypes", mtypes);
             }
 
@@ -859,10 +811,10 @@ namespace com.rtm {
                         };
                         byte mtype = Convert.ToByte(GroupMsg["mtype"]);
 
-                        if (mtype != RTMConfig.CHAT_TYPE.audio) {
-                            if (GroupMsg.ContainsKey("msg") && GroupMsg["msg"].GetType() == typeof(byte[])) {
-                                string msg = Json.DefaultEncoding.GetString((byte[]) GroupMsg["msg"]);
-                                GroupMsg["msg"] = msg; 
+                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                            if (GroupMsg.ContainsKey("msg") && GroupMsg["msg"].GetType() == typeof(String)) {
+                                byte[] msg = Json.DefaultEncoding.GetBytes(Convert.ToString(GroupMsg["msg"]));
+                                GroupMsg["msg"] = msg;
                             }
                         }
 
@@ -927,7 +879,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            if (mtypes != null && mtypes.Count > 0) {
+            if (mtypes != null) {
                 payload.Add("mtypes", mtypes);
             }
 
@@ -954,10 +906,10 @@ namespace com.rtm {
                         };
                         byte mtype = Convert.ToByte(RoomMsg["mtype"]);
 
-                        if (mtype != RTMConfig.CHAT_TYPE.audio) {
-                            if (RoomMsg.ContainsKey("msg") && RoomMsg["msg"].GetType() == typeof(byte[])) {
-                                string msg = Json.DefaultEncoding.GetString((byte[]) RoomMsg["msg"]);
-                                RoomMsg["msg"] = msg; 
+                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                            if (RoomMsg.ContainsKey("msg") && RoomMsg["msg"].GetType() == typeof(String)) {
+                                byte[] msg = Json.DefaultEncoding.GetBytes(Convert.ToString(RoomMsg["msg"]));
+                                RoomMsg["msg"] = msg;
                             }
                         }
 
@@ -1020,7 +972,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            if (mtypes != null && mtypes.Count > 0) {
+            if (mtypes != null) {
                 payload.Add("mtypes", mtypes);
             }
 
@@ -1047,10 +999,10 @@ namespace com.rtm {
                         };
                         byte mtype = Convert.ToByte(BroadcastMsg["mtype"]);
 
-                        if (mtype != RTMConfig.CHAT_TYPE.audio) {
-                            if (BroadcastMsg.ContainsKey("msg") && BroadcastMsg["msg"].GetType() == typeof(byte[])) {
-                                string msg = Json.DefaultEncoding.GetString((byte[]) BroadcastMsg["msg"]);
-                                BroadcastMsg["msg"] = msg; 
+                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                            if (BroadcastMsg.ContainsKey("msg") && BroadcastMsg["msg"].GetType() == typeof(String)) {
+                                byte[] msg = Json.DefaultEncoding.GetBytes(Convert.ToString(BroadcastMsg["msg"]));
+                                BroadcastMsg["msg"] = msg;
                             }
                         }
 
@@ -1115,7 +1067,7 @@ namespace com.rtm {
                 payload.Add("lastid", lastid);
             }
 
-            if (mtypes != null && mtypes.Count > 0) {
+            if (mtypes != null) {
                 payload.Add("mtypes", mtypes);
             }
 
@@ -1142,10 +1094,10 @@ namespace com.rtm {
                         };
                         byte mtype = Convert.ToByte(P2PMsg["mtype"]);
 
-                        if (mtype != RTMConfig.CHAT_TYPE.audio) {
-                            if (P2PMsg.ContainsKey("msg") && P2PMsg["msg"].GetType() == typeof(byte[])) {
-                                string msg = Json.DefaultEncoding.GetString((byte[]) P2PMsg["msg"]);
-                                P2PMsg["msg"] = msg; 
+                        if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                            if (P2PMsg.ContainsKey("msg") && P2PMsg["msg"].GetType() == typeof(String)) {
+                                byte[] msg = Json.DefaultEncoding.GetBytes(Convert.ToString(P2PMsg["msg"]));
+                                P2PMsg["msg"] = msg;
                             }
                         }
 
@@ -1831,6 +1783,7 @@ namespace com.rtm {
          * rtmGate (3o)
          *
          * @param {byte[]}                      audio
+         * @param {string}                      lang 
          * @param {string}                      action
          * @param {int}                         timeout
          * @param {CallbackDelegate}            callback
@@ -1840,14 +1793,13 @@ namespace com.rtm {
          *
          * <CallbackData>
          * @param {Exception}                   exception
-         * @param {IDictionary(text:string)}    payload
+         * @param {IDictionary(text:string,lang:string)}    payload
          * </CallbackData>
          */
-        public void Transcribe(byte[] audio, string action, int timeout, CallbackDelegate callback) {
+        public void Transcribe(byte[] audio, string lang, string action, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                {
-                    "audio", audio
-                }
+                { "audio", audio },
+                { "lang", lang }
             };
 
             if (action != null) {
@@ -2563,6 +2515,8 @@ namespace com.rtm {
          * @param {byte}                    mtype
          * @param {long}                    to
          * @param {byte[]}                  fileBytes
+         * @param {string}                  fileExt
+         * @param {string}                  fileName
          * @param {long}                    mid
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
@@ -2576,9 +2530,11 @@ namespace com.rtm {
          * @param {long}                    mid
          * </CallbackData>
          */
-        public void SendFile(byte mtype, long to, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback) {
+        public void SendFile(byte mtype, long to, byte[] fileBytes, string fileExt, string fileName, long mid, int timeout, CallbackDelegate callback) {
             if (fileBytes == null || fileBytes.Length <= 0) {
-                this.GetEvent().FireEvent(new EventData("error", new Exception("empty file bytes!")));
+                if (callback != null) {
+                    callback(new CallbackData(new Exception("empty file bytes!")));
+                }
                 return;
             }
 
@@ -2586,7 +2542,9 @@ namespace com.rtm {
                 { "cmd", "sendfile" },
                 { "to", to },
                 { "mtype", mtype },
-                { "file", fileBytes }
+                { "file", fileBytes },
+                { "ext", fileExt },
+                { "filename", fileName }
             };
             this.FileSendProcess(ops, mid, timeout, callback);
         }
@@ -2598,6 +2556,8 @@ namespace com.rtm {
          * @param {byte}                    mtype
          * @param {long}                    gid
          * @param {byte[]}                  fileBytes
+         * @param {string}                  fileExt
+         * @param {string}                  fileName
          * @param {long}                    mid
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
@@ -2611,9 +2571,11 @@ namespace com.rtm {
          * @param {long}                    mid
          * </CallbackData>
          */
-        public void SendGroupFile(byte mtype, long gid, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback) {
+        public void SendGroupFile(byte mtype, long gid, byte[] fileBytes, string fileExt, string fileName, long mid, int timeout, CallbackDelegate callback) {
             if (fileBytes == null || fileBytes.Length <= 0) {
-                this.GetEvent().FireEvent(new EventData("error", new Exception("empty file bytes!")));
+                if (callback != null) {
+                    callback(new CallbackData(new Exception("empty file bytes!")));
+                }
                 return;
             }
 
@@ -2621,7 +2583,9 @@ namespace com.rtm {
                 { "cmd", "sendgroupfile" },
                 { "gid", gid },
                 { "mtype", mtype },
-                { "file", fileBytes }
+                { "file", fileBytes },
+                { "ext", fileExt },
+                { "filename", fileName }
             };
             this.FileSendProcess(ops, mid, timeout, callback);
         }
@@ -2633,6 +2597,8 @@ namespace com.rtm {
          * @param {byte}                    mtype
          * @param {long}                    rid
          * @param {byte[]}                  fileBytes
+         * @param {string}                  fileExt
+         * @param {string}                  fileName
          * @param {long}                    mid
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
@@ -2646,9 +2612,11 @@ namespace com.rtm {
          * @param {long}                    mid
          * </CallbackData>
          */
-        public void SendRoomFile(byte mtype, long rid, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback) {
+        public void SendRoomFile(byte mtype, long rid, byte[] fileBytes, string fileExt, string fileName, long mid, int timeout, CallbackDelegate callback) {
             if (fileBytes == null || fileBytes.Length <= 0) {
-                this.GetEvent().FireEvent(new EventData("error", new Exception("empty file bytes!")));
+                if (callback != null) {
+                    callback(new CallbackData(new Exception("empty file bytes!")));
+                }
                 return;
             }
 
@@ -2656,7 +2624,9 @@ namespace com.rtm {
                 { "cmd", "sendroomfile" },
                 { "rid", rid },
                 { "mtype", mtype },
-                { "file", fileBytes }
+                { "file", fileBytes },
+                { "ext", fileExt },
+                { "filename", fileName }
             };
             this.FileSendProcess(ops, mid, timeout, callback);
         }
@@ -2702,13 +2672,15 @@ namespace com.rtm {
                     if (callback != null) {
                         callback(cbd);
                     }
-
                     return;
                 }
 
                 object obj = cbd.GetPayload();
 
                 if (obj == null) {
+                    if (callback != null) {
+                        callback(new CallbackData(new Exception("file token error")));
+                    }
                     return;
                 }
 
@@ -2716,18 +2688,22 @@ namespace com.rtm {
                 string endpoint = null;
                 IDictionary<string, object> dict = (IDictionary<string, object>)obj;
 
-                if (dict != null) {
-                    if (dict.ContainsKey("token")) {
-                        token = Convert.ToString(dict["token"]);
-                    }
-
-                    if (dict.ContainsKey("endpoint")) {
-                        endpoint = Convert.ToString(dict["endpoint"]);
-                    }
+                if (dict != null && dict.ContainsKey("token")) {
+                    token = Convert.ToString(dict["token"]);
                 }
-
-                if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(endpoint)) {
-                    self.GetEvent().FireEvent(new EventData("error", new Exception("file token error!")));
+                if (dict != null && dict.ContainsKey("endpoint")) {
+                    endpoint = Convert.ToString(dict["endpoint"]);
+                }
+                if (string.IsNullOrEmpty(token)) {
+                    if (callback != null) {
+                        callback(new CallbackData(new Exception("file token is null or empty")));
+                    }
+                    return;
+                }
+                if (string.IsNullOrEmpty(endpoint)) {
+                    if (callback != null) {
+                        callback(new CallbackData(new Exception("file endpoint is null or empty")));
+                    }
                     return;
                 }
 
@@ -2752,12 +2728,10 @@ namespace com.rtm {
                 }
 
                 lock (self_locker) {
-                    fileClient.Send(self._sender, Convert.ToString(ops["cmd"]), (byte[])ops["file"], token, dict, timeout, callback);
+                    fileClient.Send(self._sender, ops, token, dict, timeout, callback);
                 }
             };
         }
-
-        private int _reconnCount = 0;
 
         private void Reconnect() {
             if (!this._reconnect) {
@@ -2781,8 +2755,8 @@ namespace com.rtm {
             int count = 0;
 
             lock (delayconn_locker) {
-                this._reconnCount++;
-                count = this._reconnCount;
+                delayconn_locker.Count++;
+                count = delayconn_locker.Count;
             }
 
             if (count <= RTMConfig.RECONN_COUNT_ONCE) {
@@ -2792,11 +2766,10 @@ namespace com.rtm {
 
             lock (delayconn_locker) {
                 delayconn_locker.Status = 1;
-                this._lastConnectTime = FPManager.Instance.GetMilliTimestamp();
+                delayconn_locker.Timestamp = FPManager.Instance.GetMilliTimestamp();
             }
         }
 
-        private long _lastConnectTime = 0;
         private DelayConnLocker delayconn_locker = new DelayConnLocker();
 
         private void DelayConnect(long timestamp) {
@@ -2805,12 +2778,12 @@ namespace com.rtm {
                     return;
                 }
 
-                if (timestamp - this._lastConnectTime < RTMConfig.CONNCT_INTERVAL) {
+                if (timestamp - delayconn_locker.Timestamp < RTMConfig.CONNCT_INTERVAL) {
                     return;
                 }
 
                 delayconn_locker.Status = 0;
-                this._reconnCount = 0;
+                delayconn_locker.Count = 0;
             }
 
             string endpoint = null;
@@ -2852,12 +2825,28 @@ namespace com.rtm {
                 base.AddListener();
             }
 
-            public void Send(RTMSender sender, string method, byte[] fileBytes, string token, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
+            public void Send(RTMSender sender, Hashtable ops, string token, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
+                string method = null;
+                if (ops.Contains("cmd")) {
+                    method = Convert.ToString(ops["cmd"]);
+                }
+                if (string.IsNullOrEmpty(method)) {
+                    if (callback != null) {
+                        callback(new CallbackData(new Exception("wrong cmd!")));
+                    }
+                    return;
+                }
+
+                byte[] fileBytes = null;
+                if (ops.Contains("file")) {
+                    fileBytes = (byte[])ops["file"];
+                }
                 string fileMd5 = FPManager.Instance.GetMD5(fileBytes, false);
                 string sign = FPManager.Instance.GetMD5(fileMd5 + ":" + token, false);
-
                 if (string.IsNullOrEmpty(sign)) {
-                    ErrorRecorderHolder.recordError(new Exception("wrong sign!"));
+                    if (callback != null) {
+                        callback(new CallbackData(new Exception("wrong sign!")));
+                    }
                     return;
                 }
 
@@ -2865,11 +2854,27 @@ namespace com.rtm {
                     base.Connect();
                 }
 
+                string fileExt = null;
+                if (ops.Contains("ext")) {
+                    fileExt = Convert.ToString(ops["ext"]);
+                }
+                string fileName = null;
+                if (ops.Contains("filename")) {
+                    fileName = Convert.ToString(ops["filename"]);
+                }
+
                 IDictionary<string, string> attrs = new Dictionary<string, string>() {
                     {
                         "sign", sign
                     }
                 };
+                if (string.IsNullOrEmpty(fileExt)) {
+                    attrs.Add("ext", fileExt);
+                }
+                if (string.IsNullOrEmpty(fileName)) {
+                    attrs.Add("filename", fileName);
+                }
+
                 payload.Add("token", token);
                 payload.Add("file", fileBytes);
                 payload.Add("attrs", Json.SerializeToString(attrs));
@@ -2878,9 +2883,9 @@ namespace com.rtm {
                 data.SetFlag(0x1);
                 data.SetMtype(0x1);
                 data.SetMethod(method);
-                FileClient self = this;
 
                 if (sender != null) {
+                    FileClient self = this;
                     sender.AddQuest(this, data, payload, this.QuestCallback((cbd) => {
                         cbd.SetMid(mid);
                         self.Close();
@@ -2926,7 +2931,8 @@ namespace com.rtm {
                     if (data.GetFlag() == 1) {
                         try {
                             using (MemoryStream inputStream = new MemoryStream(data.MsgpackPayload())) {
-                                payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                                // payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                                payload = MsgPackFix.Deserialize<IDictionary<string, object>>(inputStream, RTMRegistration.RTMEncoding);
                             }
                         } catch (Exception ex) {
                             ErrorRecorderHolder.recordError(ex);
@@ -2970,17 +2976,18 @@ namespace com.rtm {
         }
 
         private class DelayConnLocker {
-
             public int Status = 0;
+            public int Count = 0;
+            public long Timestamp = 0;
         }
 
         private static class MidGenerator {
 
-            static private long count = 0;
-            static private StringBuilder sb = new StringBuilder(20);
-            static private object lock_obj = new object();
+            private static long count = 0;
+            private static StringBuilder sb = new StringBuilder(20);
+            private static object lock_obj = new object();
 
-            static public long Gen() {
+            public static long Gen() {
                 lock (lock_obj) {
                     if (++count > 999) {
                         count = 1;
@@ -3005,8 +3012,9 @@ namespace com.rtm {
     }
 
     public static class RTMRegistration {
+        public static Encoding RTMEncoding = new UTF8Encoding(false, true);
 
-        static public void Register() {
+        public static void Register() {
             Json.DefaultEncoding = new UTF8Encoding(false, false);
             FPManager.Instance.Init();
         }

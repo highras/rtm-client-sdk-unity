@@ -499,14 +499,15 @@
             * `exception`: **(Exception)**
             * `payload`: **(IDictionary(text:string))**
 
-* `Transcribe(byte[] audio, string action, int timeout, CallbackDelegate callback)`: 语音识别, 返回过滤后的字符串或者以错误形式返回, 需启用翻译服务
+* `Transcribe(byte[] audio, string lang, string action, int timeout, CallbackDelegate callback)`: 语音识别, 返回过滤后的字符串或者以错误形式返回, 需启用翻译服务, 设置超时时间不低于60s
     * `audio`: **(byte[])** 待识别语音数据
+    * `lang`: **(string)** 待识别语音的类型, 参考`RTMConfig.TRANS_LANGUAGE`成员
     * `action`: **(string)** 检查结果返回形式, `stop`: 以错误形式返回, `censor`: 用`*`替换敏感词
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
             * `exception`: **(Exception)**
-            * `payload`: **(IDictionary(text:string))**
+            * `payload`: **(IDictionary(text:string,lang:string))**
 
 > file token
 
@@ -721,10 +722,12 @@
 
 > file send
 
-* `SendFile(byte mtype, long to, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback)`: 发送文件
+* `SendFile(byte mtype, long to, byte[] fileBytes, string fileExt, string fileName, long mid, int timeout, CallbackDelegate callback)`: 发送文件
     * `mtype`: **(byte)** 业务文件消息类型
     * `to`: **(long)** 接收者 id
     * `fileBytes`: **(byte[])** 要发送的文件
+    * `fileExt`: **(string)** 文件扩展名
+    * `fileName`: **(string)** 文件名
     * `mid`: **(long)** 业务文件消息 id, 用于过滤重复业务文件消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
@@ -733,10 +736,12 @@
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendGroupFile(byte mtype, long gid, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback)`: 发送文件
+* `SendGroupFile(byte mtype, long gid, byte[] fileBytes, string fileExt, string fileName, long mid, int timeout, CallbackDelegate callback)`: 发送文件
     * `mtype`: **(byte)** 业务文件消息类型
     * `gid`: **(long)** Group id
     * `fileBytes`: **(byte[])** 要发送的文件
+    * `fileExt`: **(string)** 文件扩展名
+    * `fileName`: **(string)** 文件名
     * `mid`: **(long)** 业务文件消息 id, 用于过滤重复业务文件消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
@@ -745,10 +750,12 @@
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendRoomFile(byte mtype, long rid, byte[] fileBytes, long mid, int timeout, CallbackDelegate callback)`: 发送文件
+* `SendRoomFile(byte mtype, long rid, byte[] fileBytes, string fileExt, string fileName, long mid, int timeout, CallbackDelegate callback)`: 发送文件
     * `mtype`: **(byte)** 业务文件消息类型
     * `rid`: **(long)** Room id
     * `fileBytes`: **(byte[])** 要发送的文件
+    * `fileExt`: **(string)** 文件扩展名
+    * `fileName`: **(string)** 文件名
     * `mid`: **(long)** 业务文件消息 id, 用于过滤重复业务文件消息, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法

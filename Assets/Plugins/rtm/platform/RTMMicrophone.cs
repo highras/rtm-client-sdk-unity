@@ -24,9 +24,9 @@ namespace com.rtm {
             void OnRecord(AudioClip clip);
         }
 
-        private const int RECORD_TIME = 15;
-        private const int SAMPLE_RATE = 16000;
-        private const int SAMPLE_WINDOW = 128;
+        public static int RECORD_TIME = 15;
+        public static int SAMPLE_RATE = 16000;
+        public static int SAMPLE_WINDOW = 128;
 
         private const float SENSIBILITY = 100.0f;
 
@@ -41,7 +41,6 @@ namespace com.rtm {
         private AudioClip _clipRecord;
         private IMicrophone _micPhone;
 
-        private RTMAdpcm _adpcm = new RTMAdpcm();
         private object self_locker = new object();
 
         private VolumeType _volumeType = VolumeType.VolumePeak;
@@ -220,7 +219,7 @@ namespace com.rtm {
             }
         }
 
-        public AudioClip GetAudioClip() {
+        private AudioClip GetAudioClip() {
             lock (self_locker) {
                 if (this._clipRecord == null) {
                     return null;
@@ -229,66 +228,6 @@ namespace com.rtm {
                 short[] data = RTMAudioManager.AudioClipToShorts(this._clipRecord, 1.0f);
                 return RTMAudioManager.ShortsToAudioClip(data, this._clipRecord.channels, this._clipRecord.frequency, false, 1.0f);
             }
-        }
-
-        public byte[] GetAdpcmData() {
-            byte[] bytes;
-            short[] data;
-            int channels = 1;
-            int frequency = SAMPLE_RATE;
-
-            lock (self_locker) {
-                if (this._clipRecord == null) {
-                    return null;
-                }
-
-                channels = this._clipRecord.channels;
-                frequency = this._clipRecord.frequency;
-                data = RTMAudioManager.AudioClipToShorts(this._clipRecord, 1.0f);
-            }
-
-            if (data == null) {
-                return null;
-            }
-
-            byte[] adpcmData = this._adpcm.Encode(data);
-
-            if (adpcmData == null || adpcmData.Length == 0) {
-                return null;
-            }
-
-            using (MemoryStream stream = new MemoryStream()) {
-                //channels
-                bytes = BitConverter.GetBytes(channels);
-                stream.Write(bytes, 0, bytes.Length);
-                //frequency
-                bytes = BitConverter.GetBytes(frequency);
-                stream.Write(bytes, 0, bytes.Length);
-                //adpcmData
-                stream.Write(adpcmData, 0, adpcmData.Length);
-                bytes = stream.ToArray();
-            }
-            return bytes;
-        }
-
-        public AudioClip GetAudioClip(byte[] adpcmData) {
-            if (adpcmData == null || adpcmData.Length < 8) {
-                return null;
-            }
-
-            //channels
-            byte[] bytes = new byte[4];
-            Buffer.BlockCopy(adpcmData, 0, bytes, 0, bytes.Length);
-            int channels = (int)BitConverter.ToUInt32(bytes, 0);
-            //frequency
-            bytes = new byte[4];
-            Buffer.BlockCopy(adpcmData, 4, bytes, 0, bytes.Length);
-            int frequency = (int)BitConverter.ToUInt32(bytes, 0);
-            //adpcmData
-            bytes = new byte[adpcmData.Length - 8];
-            Buffer.BlockCopy(adpcmData, 8, bytes, 0, bytes.Length);
-            short[] data = this._adpcm.Decode(bytes);
-            return RTMAudioManager.ShortsToAudioClip(data, channels, frequency, false, 1.0f);
         }
     }
 }

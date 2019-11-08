@@ -52,8 +52,8 @@ namespace com.fpnn {
 
         public void CheckException(bool isAnswerException, IDictionary<string, object> data) {
             if (data == null && this._exception == null) {
-                this._payload = null;
                 this._exception = new Exception("data is null!");
+                this._payload = null;
             }
 
             if (this._exception == null && isAnswerException) {
@@ -62,8 +62,8 @@ namespace com.fpnn {
                     sb.Append(Convert.ToString(data["code"]));
                     sb.Append(" : ");
                     sb.Append(Convert.ToString(data["ex"]));
-                    this._payload = null;
                     this._exception = new Exception(sb.ToString());
+                    this._payload = null;
                 }
             }
 

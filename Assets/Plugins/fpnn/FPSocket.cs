@@ -172,8 +172,11 @@ namespace com.fpnn {
         }
 
         public void OnSecond(long timestamp) {
-            bool timeout = false;
+            if (this._timeout <= 0) {
+                return;
+            }
 
+            bool timeout = false;
             lock (conn_locker) {
                 if (conn_locker.Status != 0) {
                     if (timestamp - conn_locker.timestamp >= this._timeout) {
@@ -239,12 +242,14 @@ namespace com.fpnn {
                 return;
             }
 
-            this.SocketClose();
+            try {
+                this.SocketClose();
+            } catch (Exception ex) {
+                ErrorRecorderHolder.recordError(ex);
+            }
         }
 
         private void SocketClose() {
-            socket_locker.Status = 3;
-
             if (this._stream != null) {
                 this._stream.Close();
                 this._stream = null;
@@ -261,6 +266,7 @@ namespace com.fpnn {
                 ErrorRecorderHolder.recordError(ex);
             }
 
+            socket_locker.Status = 3;
             this.OnClose();
         }
 
@@ -283,6 +289,8 @@ namespace com.fpnn {
             this.Socket_Error = null;
         }
 
+        private Object self_locker = new Object();
+
         public void Write(byte[] buffer) {
             if (buffer == null || buffer.Length <= 0) {
                 return;
@@ -294,7 +302,7 @@ namespace com.fpnn {
                 }
             }
 
-            lock (this._sendQueue) {
+            lock (self_locker) {
                 for (int i = 0; i < buffer.Length; i++) {
                     this._sendQueue.Add(buffer[i]);
                 }
@@ -356,7 +364,7 @@ namespace com.fpnn {
 
             byte[] buffer = new byte[0];
 
-            lock (this._sendQueue) {
+            lock (self_locker) {
                 buffer = this._sendQueue.ToArray();
                 this._sendQueue.Clear();
             }

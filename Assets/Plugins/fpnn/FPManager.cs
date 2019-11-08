@@ -58,6 +58,10 @@ namespace com.fpnn {
         }
 
         public void AddSecond(EventDelegate callback) {
+            if (callback == null) {
+                return;
+            }
+
             lock (timer_locker) {
                 if (this._secondCalls.Count >= 500) {
                     ErrorRecorderHolder.recordError(new Exception("Second Calls Limit!"));
@@ -71,6 +75,10 @@ namespace com.fpnn {
         }
 
         public void RemoveSecond(EventDelegate callback) {
+            if (callback == null) {
+                return;
+            }
+
             lock (timer_locker) {
                 int index = this._secondCalls.IndexOf(callback);
 
@@ -184,6 +192,10 @@ namespace com.fpnn {
         }
 
         private void CallService(ICollection<ServiceDelegate> list) {
+            if (list == null) {
+                return;
+            }
+            
             foreach (ServiceDelegate service in list) {
                 if (service != null) {
                     try {
@@ -213,6 +225,10 @@ namespace com.fpnn {
         private List<ServiceDelegate> _serviceCache = new List<ServiceDelegate>();
 
         public void EventTask(EventDelegate callback, EventData evd) {
+            if (callback == null) {
+                return;
+            }
+
             this.AddService(() => {
                 if (callback != null) {
                     callback(evd);
@@ -221,6 +237,10 @@ namespace com.fpnn {
         }
 
         public void CallbackTask(CallbackDelegate callback, CallbackData cbd) {
+            if (callback == null) {
+                return;
+            }
+
             this.AddService(() => {
                 if (callback != null) {
                     callback(cbd);
@@ -229,6 +249,10 @@ namespace com.fpnn {
         }
 
         public void AsyncTask(Action<object> taskAction, object state) {
+            if (taskAction == null) {
+                return;
+            }
+
             this.AddService(() => {
                 if (taskAction != null) {
                     taskAction(state);
@@ -236,21 +260,12 @@ namespace com.fpnn {
             });
         }
 
-        public void DelayTask(int milliSecond, Action<object> taskAction, object state) {
-            if (milliSecond <= 0) {
-                this.AsyncTask(taskAction, state);
-                return;
-            }
-
-            TimerTask task = new TimerTask();
-            task.state = state;
-            task.callback = taskAction;
-            task.timestamp = this.GetMilliTimestamp() + milliSecond;
-            this.AddTimerTask(task);
-        }
-
         private void AddService(ServiceDelegate service) {
             this.StartServiceThread();
+
+            if (service == null) {
+                return;
+            }
 
             lock (service_locker) {
                 if (this._serviceCache.Count < 10000) {
@@ -267,6 +282,23 @@ namespace com.fpnn {
             } catch (Exception ex) {
                 ErrorRecorderHolder.recordError(ex);
             }
+        }
+
+        public void DelayTask(int milliSecond, Action<object> taskAction, object state) {
+            if (milliSecond <= 0) {
+                this.AsyncTask(taskAction, state);
+                return;
+            }
+
+            if (taskAction == null) {
+                return;
+            }
+
+            TimerTask task = new TimerTask();
+            task.state = state;
+            task.callback = taskAction;
+            task.timestamp = this.GetMilliTimestamp() + milliSecond;
+            this.AddTimerTask(task);
         }
 
 

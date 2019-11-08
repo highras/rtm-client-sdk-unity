@@ -43,55 +43,6 @@ public class Integration_RTMClient {
     }
 
     [UnityTest]
-    public IEnumerator Client_GetPackage() {
-        RTMClient client = new RTMClient(
-            this._dispatch,
-            this._pid,
-            this._uid,
-            this._token,
-            null,
-            new Dictionary<string, string>(),
-            true,
-            20 * 1000,
-            true
-        );
-        Assert.IsNull(client.GetPackage());
-        client.Destroy();
-        yield return new WaitForSeconds(1.0f);
-    }
-
-    [UnityTest]
-    public IEnumerator Client_Login_GetPackage() {
-        int closeCount = 0;
-        int loginCount = 0;
-        RTMClient client = new RTMClient(
-            this._dispatch,
-            this._pid,
-            this._uid,
-            this._token,
-            null,
-            new Dictionary<string, string>(),
-            true,
-            20 * 1000,
-            true
-        );
-        client.GetEvent().AddListener("login", (evd) => {
-            loginCount++;
-        });
-        client.GetEvent().AddListener("close", (evd) => {
-            closeCount++;
-        });
-        client.Login(null);
-        yield return new WaitForSeconds(2.0f);
-        Assert.IsNotNull(client.GetPackage());
-        Assert.IsNotNull(client.GetProcessor());
-        client.Destroy();
-        yield return new WaitForSeconds(1.0f);
-        Assert.AreEqual(1, loginCount);
-        Assert.AreEqual(1, closeCount);
-    }
-
-    [UnityTest]
     public IEnumerator Client_Login_Login() {
         int closeCount = 0;
         int loginCount = 0;

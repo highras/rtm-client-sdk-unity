@@ -17,11 +17,10 @@ namespace com.rtm {
         private static byte[] MSGPACK_PAYLOAD = { 0x80 };
 
         private class PingLocker {
-
             public int Status = 0;
         }
 
-        private object action_locker = new object();
+        private object self_locker = new object();
         private IDictionary<string, Action<IDictionary<string, object>>> _actionDict = new Dictionary<string, Action<IDictionary<string, object>>>();
 
         private Type _type;
@@ -32,8 +31,11 @@ namespace com.rtm {
 
         public void Destroy() {
             this.ClearPingTimestamp();
-            this._actionDict.Clear();
-            this._duplicateMap.Clear();
+
+            lock (self_locker) {
+                this._actionDict.Clear();
+                this._duplicateMap.Clear();
+            }
         }
 
         public void Service(FPData data, AnswerDelegate answer) {
@@ -72,7 +74,8 @@ namespace com.rtm {
                     }
 
                     using (MemoryStream inputStream = new MemoryStream(data.MsgpackPayload())) {
-                        payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                        // payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
+                        payload = MsgPackFix.Deserialize<IDictionary<string, object>>(inputStream, RTMRegistration.RTMEncoding);
                     }
                 } catch (Exception ex) {
                     ErrorRecorderHolder.recordError(ex);
@@ -106,7 +109,7 @@ namespace com.rtm {
                 return;
             }
 
-            lock (action_locker) {
+            lock (self_locker) {
                 if (!this._actionDict.ContainsKey(name)) {
                     this._actionDict.Add(name, action);
                 } else {
@@ -120,7 +123,7 @@ namespace com.rtm {
                 return;
             }
 
-            lock (action_locker) {
+            lock (self_locker) {
                 if (this._actionDict.ContainsKey(name)) {
                     this._actionDict.Remove(name);
                 }
@@ -128,7 +131,7 @@ namespace com.rtm {
         }
 
         private void PushService(string name, IDictionary<string, object> data) {
-            lock (action_locker) {
+            lock (self_locker) {
                 if (this._actionDict.ContainsKey(name)) {
                     Action<IDictionary<string, object>> action = this._actionDict[name];
 
@@ -208,19 +211,16 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
-            if (mtype != RTMConfig.CHAT_TYPE.audio) {
-                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(byte[])) {
-                    string msg = Json.DefaultEncoding.GetString((byte[]) data["msg"]);
-                    data["msg"] = msg;
-                }
-            }
-
             if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvChat;
             }
 
             if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(String)) {
+                    byte[] msg = Json.DefaultEncoding.GetBytes(Convert.ToString(data["msg"]));
+                    data["msg"] = msg;
+                }
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvAudio;
             }
@@ -268,19 +268,16 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
-            if (mtype != RTMConfig.CHAT_TYPE.audio) {
-                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(byte[])) {
-                    string msg = Json.DefaultEncoding.GetString((byte[]) data["msg"]);
-                    data["msg"] = msg;
-                }
-            }
-
             if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvGroupChat;
             }
 
             if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(String)) {
+                    byte[] msg = Json.DefaultEncoding.GetBytes(Convert.ToString(data["msg"]));
+                    data["msg"] = msg;
+                }
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvGroupAudio;
             }
@@ -328,19 +325,16 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
-            if (mtype != RTMConfig.CHAT_TYPE.audio) {
-                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(byte[])) {
-                    string msg = Json.DefaultEncoding.GetString((byte[]) data["msg"]);
-                    data["msg"] = msg;
-                }
-            }
-
             if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvRoomChat;
             }
 
             if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(String)) {
+                    byte[] msg = Json.DefaultEncoding.GetBytes(Convert.ToString(data["msg"]));
+                    data["msg"] = msg;
+                }
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvRoomAudio;
             }
@@ -387,19 +381,16 @@ namespace com.rtm {
                 mtype = Convert.ToByte(data["mtype"]);
             }
 
-            if (mtype != RTMConfig.CHAT_TYPE.audio) {
-                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(byte[])) {
-                    string msg = Json.DefaultEncoding.GetString((byte[]) data["msg"]);
-                    data["msg"] = msg;
-                }
-            }
-
             if (mtype == RTMConfig.CHAT_TYPE.text) {
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvBroadcastChat;
             }
 
             if (mtype == RTMConfig.CHAT_TYPE.audio) {
+                if (data.ContainsKey("msg") && data["msg"].GetType() == typeof(String)) {
+                    byte[] msg = Json.DefaultEncoding.GetBytes(Convert.ToString(data["msg"]));
+                    data["msg"] = msg;
+                }
                 data.Remove("mtype");
                 name = RTMConfig.SERVER_PUSH.recvBroadcastAudio;
             }
@@ -696,7 +687,7 @@ namespace com.rtm {
 
             string key = sb.ToString();
 
-            lock (this._duplicateMap) {
+            lock (self_locker) {
                 long timestamp = FPManager.Instance.GetMilliTimestamp();
 
                 if (this._duplicateMap.ContainsKey(key)) {
@@ -705,17 +696,15 @@ namespace com.rtm {
                     if (expire > timestamp) {
                         return false;
                     }
-
                     this._duplicateMap.Remove(key);
                 }
-
                 this._duplicateMap.Add(key, RTMConfig.MID_TTL + timestamp);
                 return true;
             }
         }
 
         private void CheckExpire(long timestamp) {
-            lock (this._duplicateMap) {
+            lock (self_locker) {
                 List<string> keys = new List<string>(this._duplicateMap.Keys);
 
                 foreach (string key in keys) {

@@ -22,7 +22,7 @@ public class Main : MonoBehaviour {
         RTMRegistration.Register();
 
         byte[] fileBytes = null;
-        // fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
+        fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
 
         //SingleClientSend
         // this._testCase = new SingleClientSend();
@@ -34,7 +34,7 @@ public class Main : MonoBehaviour {
         // this._testCase = new SingleClientPush();
 
         //TestCase
-        this._testCase = new TestCase(777779, "C61F0215AC7B9FA999159E55D4CB127F");
+        this._testCase = new TestCase(777779, "FA77FB4FA1E19E3EA7A9500DC6D9649C");
 
         //SingleMicphone
         // this._testCase = new SingleMicphone();
@@ -45,11 +45,14 @@ public class Main : MonoBehaviour {
     }
 
     byte[] LoadFile(string filePath) {
-        FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-        byte[] bytes = new byte[fs.Length];
-        fs.Read(bytes, 0, bytes.Length);
-        fs.Close();
-        return bytes;
+        try {
+            FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            byte[] bytes = new byte[fs.Length];
+            fs.Read(bytes, 0, bytes.Length);
+            fs.Close();
+            return bytes;
+        } catch (Exception ex) {}
+        return null;
     }
 
     void Update() {
