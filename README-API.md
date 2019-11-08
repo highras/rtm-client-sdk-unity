@@ -248,7 +248,7 @@
 * `SendAudio(long to, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送聊天语音, 消息类型`RTMConfig.CHAT_TYPE.audio`
     * `to`: **(long)** 接收方uid
     * `audio`: **(byte[])** 语音数据
-    * `attrs`: **(string)** 附加信息, 没有可传`""`
+    * `attrs`: **(string)** 附加信息, `Json`字符串, 至少带两个参数(`lang`: 语言类型, `duration`: 语音长度 ms)
     * `mid`: **(long)** 语音消息 id, 用于过滤重复聊天语音, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
@@ -284,7 +284,7 @@
 * `SendGroupAudio(long gid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group聊天语音, 消息类型`RTMConfig.CHAT_TYPE.audio`
     * `gid`: **(long)** group id
     * `audio`: **(byte[])** 语音数据
-    * `attrs`: **(string)** 附加信息, 可传`""`
+    * `attrs`: **(string)** 附加信息, `Json`字符串, 至少带两个参数(`lang`: 语言类型, `duration`: 语音长度 ms)
     * `mid`: **(long)** 语音消息 id, 用于过滤重复聊天语音, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
@@ -320,7 +320,7 @@
 * `SendRoomAudio(long rid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room聊天语音, 消息类型`RTMConfig.CHAT_TYPE.audio`
     * `rid`: **(long)** room id
     * `audio`: **(byte[])** 语音数据
-    * `attrs`: **(string)** 附加信息, 可传`""`
+    * `attrs`: **(string)** 附加信息, `Json`字符串, 至少带两个参数(`lang`: 语言类型, `duration`: 语音长度 ms)
     * `mid`: **(long)** 语音消息 id, 用于过滤重复聊天语音, 非重发时为`0`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
