@@ -21,6 +21,8 @@
 
 * `GetProcessor`: **(RTMProcessor)** 监听PushService的句柄
 
+* `GetEvent`: **(FPEvent)** 监听事件的句柄
+
 * `Destroy()`: 断开连接并销毁
 
 * `Login(string endpoint)`: 连接并登陆
@@ -444,7 +446,7 @@
 
 * `DeleteChat(long mid, long to, int timeout, CallbackDelegate callback)`: 删除P2P聊天消息
     * `mid`: **(long)** 聊天消息 id
-    * `xid`: **(long)** 聊天消息接收方User id
+    * `to`: **(long)** 聊天消息接收方User id
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
@@ -704,8 +706,8 @@
             * `payload`: **(IDictionary(val:string))**
 
 * `DataSet(string key, string value, int timeout, CallbackDelegate callback)`: 设置存储的数据信息
-    * `key`: **(string)** 存储数据对应键值, 最长`128 字节`
-    * `value`: **(string)** 存储数据实际内容, 最长`1024 * 1024 * 2字节`
+    * `key`: **(string)** 存储数据对应键值, 最长`128字节`
+    * `value`: **(string)** 存储数据实际内容, 最长`65535字节`
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**

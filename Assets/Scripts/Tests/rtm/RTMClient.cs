@@ -69,11 +69,6 @@ namespace com.rtm {
             }
 
             Debug.Log("[RTM] rtm_sdk@" + RTMConfig.VERSION + ", fpnn_sdk@" + FPConfig.VERSION);
-
-            if (debug) {
-                Json.DefaultEncoding = RTMRegistration.RTMEncoding;
-            } 
-
             this._dispatch = dispatch;
             this._pid = pid;
             this._uid = uid;
@@ -98,7 +93,7 @@ namespace com.rtm {
             this._processor = new RTMProcessor();
             this._processor.AddPushService(RTMConfig.KICKOUT, OnKickout);
             FPManager.Instance.AddSecond(OnSecondDelegate);
-            ErrorRecorderHolder.setInstance(new RTMErrorRecorder(this._debug));
+            ErrorRecorderHolder.setInstance(new RTMErrorRecorder(this._event, this._debug));
         }
 
         private void OnKickout(IDictionary<string, object> data) {
@@ -144,17 +139,7 @@ namespace com.rtm {
             }
         }
 
-        public FPPackage GetPackage() {
-            lock (self_locker) {
-                if (this._baseClient != null) {
-                    return this._baseClient.GetPackage();
-                }
-            }
-
-            return null;
-        }
-
-        public void SendQuest(string method, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
+        private void SendQuest(string method, IDictionary<string, object> payload, CallbackDelegate callback, int timeout) {
             FPData data = new FPData();
             data.SetFlag(0x1);
             data.SetMtype(0x1);
@@ -805,10 +790,16 @@ namespace com.rtm {
                             { "from", items[1] },
                             { "mtype", items[2] },
                             { "mid", items[3] },
-                            { "msg", items[4] },
-                            { "attrs", items[5] },
-                            { "mtime", items[6] }
+                            { "deleted", items[4] },
+                            { "msg", items[5] },
+                            { "attrs", items[6] },
+                            { "mtime", items[7] }
                         };
+
+                        if (GroupMsg.ContainsKey("deleted")) {
+                            GroupMsg.Remove("deleted");
+                        }
+
                         byte mtype = Convert.ToByte(GroupMsg["mtype"]);
 
                         if (mtype == RTMConfig.CHAT_TYPE.audio) {
@@ -900,10 +891,16 @@ namespace com.rtm {
                             { "from", items[1] },
                             { "mtype", items[2] },
                             { "mid", items[3] },
-                            { "msg", items[4] },
-                            { "attrs", items[5] },
-                            { "mtime", items[6] }
+                            { "deleted", items[4] },
+                            { "msg", items[5] },
+                            { "attrs", items[6] },
+                            { "mtime", items[7] }
                         };
+
+                        if (RoomMsg.ContainsKey("deleted")) {
+                            RoomMsg.Remove("deleted");
+                        }
+
                         byte mtype = Convert.ToByte(RoomMsg["mtype"]);
 
                         if (mtype == RTMConfig.CHAT_TYPE.audio) {
@@ -993,10 +990,16 @@ namespace com.rtm {
                             { "from", items[1] },
                             { "mtype", items[2] },
                             { "mid", items[3] },
-                            { "msg", items[4] },
-                            { "attrs", items[5] },
-                            { "mtime", items[6] }
+                            { "deleted", items[4] },
+                            { "msg", items[5] },
+                            { "attrs", items[6] },
+                            { "mtime", items[7] }
                         };
+
+                        if (BroadcastMsg.ContainsKey("deleted")) {
+                            BroadcastMsg.Remove("deleted");
+                        }
+
                         byte mtype = Convert.ToByte(BroadcastMsg["mtype"]);
 
                         if (mtype == RTMConfig.CHAT_TYPE.audio) {
@@ -1088,10 +1091,16 @@ namespace com.rtm {
                             { "direction", items[1] },
                             { "mtype", items[2] },
                             { "mid", items[3] },
-                            { "msg", items[4] },
-                            { "attrs", items[5] },
-                            { "mtime", items[6] }
+                            { "deleted", items[4] },
+                            { "msg", items[5] },
+                            { "attrs", items[6] },
+                            { "mtime", items[7] }
                         };
+
+                        if (P2PMsg.ContainsKey("deleted")) {
+                            P2PMsg.Remove("deleted");
+                        }
+
                         byte mtype = Convert.ToByte(P2PMsg["mtype"]);
 
                         if (mtype == RTMConfig.CHAT_TYPE.audio) {
@@ -1212,7 +1221,7 @@ namespace com.rtm {
          * rtmGate (3a')
          *
          * @param {long}                    to
-         * @param {byte[]}                  audio 
+         * @param {byte[]}                  audio
          * @param {string}                  attrs
          * @param {long}                    mid
          * @param {int}                     timeout
@@ -1236,7 +1245,7 @@ namespace com.rtm {
          * rtmGate (3a'')
          *
          * @param {long}                    to
-         * @param {string}                  msg 
+         * @param {string}                  msg
          * @param {string}                  attrs
          * @param {long}                    mid
          * @param {int}                     timeout
@@ -1547,7 +1556,7 @@ namespace com.rtm {
          *
          * rtmGate (3h)
          *
-         * @param {bool}                    clear 
+         * @param {bool}                    clear
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -1565,7 +1574,6 @@ namespace com.rtm {
                     "clear", clear
                 }
             };
-
             this.SendQuest("getunread", payload, callback, timeout);
         }
 
@@ -1612,7 +1620,7 @@ namespace com.rtm {
          * rtmGate (3k)
          *
          * @param {long}                    mid
-         * @param {long}                    to 
+         * @param {long}                    to
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -1633,7 +1641,7 @@ namespace com.rtm {
          * rtmGate (3k')
          *
          * @param {long}                    mid
-         * @param {long}                    gid 
+         * @param {long}                    gid
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -1654,7 +1662,7 @@ namespace com.rtm {
          * rtmGate (3k'')
          *
          * @param {long}                    mid
-         * @param {long}                    rid 
+         * @param {long}                    rid
          * @param {int}                     timeout
          * @param {CallbackDelegate}        callback
          *
@@ -1783,7 +1791,7 @@ namespace com.rtm {
          * rtmGate (3o)
          *
          * @param {byte[]}                      audio
-         * @param {string}                      lang 
+         * @param {string}                      lang
          * @param {string}                      action
          * @param {int}                         timeout
          * @param {CallbackDelegate}            callback
@@ -2535,6 +2543,7 @@ namespace com.rtm {
                 if (callback != null) {
                     callback(new CallbackData(new Exception("empty file bytes!")));
                 }
+
                 return;
             }
 
@@ -2576,6 +2585,7 @@ namespace com.rtm {
                 if (callback != null) {
                     callback(new CallbackData(new Exception("empty file bytes!")));
                 }
+
                 return;
             }
 
@@ -2617,6 +2627,7 @@ namespace com.rtm {
                 if (callback != null) {
                     callback(new CallbackData(new Exception("empty file bytes!")));
                 }
+
                 return;
             }
 
@@ -2672,6 +2683,7 @@ namespace com.rtm {
                     if (callback != null) {
                         callback(cbd);
                     }
+
                     return;
                 }
 
@@ -2681,6 +2693,7 @@ namespace com.rtm {
                     if (callback != null) {
                         callback(new CallbackData(new Exception("file token error")));
                     }
+
                     return;
                 }
 
@@ -2691,19 +2704,24 @@ namespace com.rtm {
                 if (dict != null && dict.ContainsKey("token")) {
                     token = Convert.ToString(dict["token"]);
                 }
+
                 if (dict != null && dict.ContainsKey("endpoint")) {
                     endpoint = Convert.ToString(dict["endpoint"]);
                 }
+
                 if (string.IsNullOrEmpty(token)) {
                     if (callback != null) {
                         callback(new CallbackData(new Exception("file token is null or empty")));
                     }
+
                     return;
                 }
+
                 if (string.IsNullOrEmpty(endpoint)) {
                     if (callback != null) {
                         callback(new CallbackData(new Exception("file endpoint is null or empty")));
                     }
+
                     return;
                 }
 
@@ -2827,26 +2845,33 @@ namespace com.rtm {
 
             public void Send(RTMSender sender, Hashtable ops, string token, IDictionary<string, object> payload, int timeout, CallbackDelegate callback) {
                 string method = null;
+
                 if (ops.Contains("cmd")) {
                     method = Convert.ToString(ops["cmd"]);
                 }
+
                 if (string.IsNullOrEmpty(method)) {
                     if (callback != null) {
                         callback(new CallbackData(new Exception("wrong cmd!")));
                     }
+
                     return;
                 }
 
                 byte[] fileBytes = null;
+
                 if (ops.Contains("file")) {
                     fileBytes = (byte[])ops["file"];
                 }
+
                 string fileMd5 = FPManager.Instance.GetMD5(fileBytes, false);
                 string sign = FPManager.Instance.GetMD5(fileMd5 + ":" + token, false);
+
                 if (string.IsNullOrEmpty(sign)) {
                     if (callback != null) {
                         callback(new CallbackData(new Exception("wrong sign!")));
                     }
+
                     return;
                 }
 
@@ -2855,10 +2880,13 @@ namespace com.rtm {
                 }
 
                 string fileExt = null;
+
                 if (ops.Contains("ext")) {
                     fileExt = Convert.ToString(ops["ext"]);
                 }
+
                 string fileName = null;
+
                 if (ops.Contains("filename")) {
                     fileName = Convert.ToString(ops["filename"]);
                 }
@@ -2868,9 +2896,11 @@ namespace com.rtm {
                         "sign", sign
                     }
                 };
+
                 if (string.IsNullOrEmpty(fileExt)) {
                     attrs.Add("ext", fileExt);
                 }
+
                 if (string.IsNullOrEmpty(fileName)) {
                     attrs.Add("filename", fileName);
                 }
@@ -2931,7 +2961,6 @@ namespace com.rtm {
                     if (data.GetFlag() == 1) {
                         try {
                             using (MemoryStream inputStream = new MemoryStream(data.MsgpackPayload())) {
-                                // payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
                                 payload = MsgPackFix.Deserialize<IDictionary<string, object>>(inputStream, RTMRegistration.RTMEncoding);
                             }
                         } catch (Exception ex) {
@@ -2963,14 +2992,19 @@ namespace com.rtm {
         private class RTMErrorRecorder: ErrorRecorder {
 
             private bool _debug;
+            private FPEvent _event;
 
-            public RTMErrorRecorder(bool debug) {
+            public RTMErrorRecorder(FPEvent evt, bool debug) {
+                this._event = evt;
                 this._debug = debug;
             }
 
             public override void recordError(Exception ex) {
                 if (this._debug) {
                     Debug.LogWarning(ex);
+                }
+                if (this._event != null) {
+                    this._event.FireEvent(new EventData("error", ex));
                 }
             }
         }
@@ -3015,7 +3049,7 @@ namespace com.rtm {
         public static Encoding RTMEncoding = new UTF8Encoding(false, true);
 
         public static void Register() {
-            Json.DefaultEncoding = new UTF8Encoding(false, false);
+            Json.DefaultEncoding = RTMEncoding;
             FPManager.Instance.Init();
         }
     }

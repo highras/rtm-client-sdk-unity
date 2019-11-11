@@ -21,8 +21,7 @@ public class Main : MonoBehaviour {
     void Start() {
         RTMRegistration.Register();
 
-        byte[] fileBytes = null;
-        fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
+        byte[] fileBytes = LoadFile(Application.dataPath + "/StreamingAssets/key/test-secp256k1-public.der");
 
         //SingleClientSend
         // this._testCase = new SingleClientSend();
@@ -34,7 +33,7 @@ public class Main : MonoBehaviour {
         // this._testCase = new SingleClientPush();
 
         //TestCase
-        this._testCase = new TestCase(777779, "FA77FB4FA1E19E3EA7A9500DC6D9649C");
+        this._testCase = new TestCase(777779, "2EF4D15F9C3084F9A8B37E834AEE5C2D");
 
         //SingleMicphone
         // this._testCase = new SingleMicphone();

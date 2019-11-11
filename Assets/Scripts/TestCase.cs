@@ -91,7 +91,6 @@ public class TestCase : Main.ITestCase {
     }
 
     private Thread _thread;
-    private bool _sendAble;
 
     private void StartThread() {
         lock (send_locker) {

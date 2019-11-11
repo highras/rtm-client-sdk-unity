@@ -74,7 +74,6 @@ namespace com.rtm {
                     }
 
                     using (MemoryStream inputStream = new MemoryStream(data.MsgpackPayload())) {
-                        // payload = MsgPack.Deserialize<IDictionary<string, object>>(inputStream);
                         payload = MsgPackFix.Deserialize<IDictionary<string, object>>(inputStream, RTMRegistration.RTMEncoding);
                     }
                 } catch (Exception ex) {

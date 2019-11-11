@@ -175,7 +175,7 @@
 * `pushroomaudio`: RTMGate主动推送Room聊天语音
     * `data`: **(IDictionary(string, object))**
         * `data.from`: **(long)** 发送者 id
-        * `data.rid`: **(long)** Room id语音数据
+        * `data.rid`: **(long)** Room id
         * `data.msg`: **(byte[])** 聊天语音数据
         * `data.mid`: **(long)** 语音消息 id, 当前链接会话内唯一
         * `data.attrs`: **(string)** 发送时附加的自定义内容
@@ -211,7 +211,7 @@
 * `pushroomcmd`: RTMGate主动推送Room聊天命令
     * `data`: **(IDictionary(string, object))**
         * `data.from`: **(long)** 发送者 id
-        * `data.rid`: **(long)** Room id语音数据
+        * `data.rid`: **(long)** Room id
         * `data.msg`: **(string)** 命令内容
         * `data.mid`: **(long)** 命令消息 id, 当前链接会话内唯一
         * `data.attrs`: **(string)** 发送时附加的自定义内容
