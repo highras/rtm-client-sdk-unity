@@ -12,13 +12,11 @@ namespace com.fpnn {
     public class FPSocket {
 
         private class SocketLocker {
-
             public int Count = 0;
             public int Status = 0;
         }
 
         private class ConnectingLocker {
-
             public int Status = 0;
             public long timestamp = 0;
         }

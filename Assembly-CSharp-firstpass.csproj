@@ -142,6 +142,7 @@
      <Compile Include="Assets\Plugins\GameDevWare.Serialization\TypeSerializerAttribute.cs" />
      <Compile Include="Assets\Plugins\rtm\msgpack\MsgPackFix.cs" />
      <Compile Include="Assets\Plugins\rtm\msgpack\MsgPackFixReader.cs" />
+     <Compile Include="Assets\Plugins\rtm\msgpack\MsgPackFixWriter.cs" />
      <Compile Include="Assets\Plugins\rtm\platform\RTMAdpcm.cs" />
      <Compile Include="Assets\Plugins\rtm\platform\RTMAudioManager.cs" />
      <Compile Include="Assets\Plugins\rtm\platform\RTMMicrophone.cs" />

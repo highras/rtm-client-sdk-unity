@@ -37,7 +37,6 @@ namespace com.fpnn {
         }
 
         public void SetReinforce(bool value) {
-
             this._reinforce = value;
         }
 

@@ -3,12 +3,10 @@ using System;
 namespace com.fpnn {
 
     public abstract class ErrorRecorder {
-
         public abstract void recordError(Exception e);
     }
 
     public class DefaultErrorRecorder: ErrorRecorder {
-
         public override void recordError(Exception e) {
             //TODO
             // Unity
@@ -20,7 +18,6 @@ namespace com.fpnn {
     }
 
     public class ErrorRecorderHolder {
-
         private static ErrorRecorder uniqueInstance;
         private static object lock_obj = new object();
 

@@ -10,21 +10,17 @@ namespace com.fpnn {
     public delegate void ServiceDelegate();
 
     public class FPManager {
-
         private class TimerTask {
-
             public object state;
             public long timestamp;
             public Action<object> callback;
         }
 
         private class ServiceLocker {
-
             public int Status = 0;
         }
 
         private class TimerLocker {
-
             public int Status = 0;
         }
 

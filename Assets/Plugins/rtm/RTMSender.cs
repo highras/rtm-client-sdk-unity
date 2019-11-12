@@ -93,21 +93,12 @@ namespace com.rtm {
         private void StopServiceThread() {
             lock (service_locker) {
                 if (service_locker.Status == 1) {
-                    service_locker.Status = 2;
-
                     try {
                         this._serviceEvent.Set();
                     } catch (Exception ex) {
                         ErrorRecorderHolder.recordError(ex);
                     }
-
-                    RTMSender self = this;
-                    FPManager.Instance.DelayTask(100, (state) => {
-                        lock (service_locker) {
-                            service_locker.Status = 0;
-                            self._serviceCache.Clear();
-                        }
-                    }, null);
+                    service_locker.Status = 0;
                 }
             }
         }
