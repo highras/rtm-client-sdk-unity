@@ -58,6 +58,8 @@ namespace com.fpnn {
             this._sock.Socket_Error = this.OnError;
         }
 
+        public void SetCloseDelayForAppleMobileDeviceInBackground(int delayMilliseconds) { this._sock.SetCloseDelayForAppleMobileDeviceInBackground(delayMilliseconds); }
+
         private void OnSecondDelegate(EventData evd) {
             this.OnSecond(evd.GetTimestamp());
         }
@@ -344,6 +346,11 @@ namespace com.fpnn {
             lock (seq_locker) {
                 return ++this._seq;
             }
+        }
+
+        public static void AppleMobileDeviceSwitchToBackground(bool background)
+        {
+            FPSocket.AppleMobileDeviceSwitchToBackground(background);
         }
     }
 }

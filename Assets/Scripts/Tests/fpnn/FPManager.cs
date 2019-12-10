@@ -206,13 +206,12 @@ namespace com.fpnn {
         private void StopServiceThread() {
             lock (service_locker) {
                 if (service_locker.Status == 1) {
+                    service_locker.Status = 0;
                     try {
                         this._serviceEvent.Set();
                     } catch (Exception ex) {
                         ErrorRecorderHolder.recordError(ex);
                     }
-
-                    service_locker.Status = 0;
                     this._serviceCache.Clear();
                 }
             }

@@ -3051,6 +3051,7 @@ namespace com.rtm {
         public static void Register() {
             Json.DefaultEncoding = RTMEncoding;
             FPManager.Instance.Init();
+            SocketMonitor.Instance.Init();
         }
     }
 }

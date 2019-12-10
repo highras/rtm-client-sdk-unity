@@ -11,13 +11,26 @@ namespace com.fpnn {
 
     public class FPSocket {
 
+        private enum SocketStatus {
+            Normal,
+            SocketWillClosing,
+            ScoketClosed
+        }
+
+        private enum ConnectingStatus
+        {
+            NoAction,
+            WillConnect,
+            Connecting
+        }
+
         private class SocketLocker {
             public int Count = 0;
-            public int Status = 0;
+            public SocketStatus Status = SocketStatus.Normal;
         }
 
         private class ConnectingLocker {
-            public int Status = 0;
+            public ConnectingStatus Status = ConnectingStatus.NoAction;
             public long timestamp = 0;
         }
 
@@ -34,6 +47,14 @@ namespace com.fpnn {
         private NetworkStream _stream;
 
         private bool _isIPv6 = false;
+
+        //-- For RUM sending bg event.
+        private bool _delayCloseTriggered = false;
+        private int _closeDelayForAppleMobileDeviceInBsckground = 0;
+        public void SetCloseDelayForAppleMobileDeviceInBackground(int delayMilliseconds) { _closeDelayForAppleMobileDeviceInBsckground = delayMilliseconds; }
+
+        private static volatile bool _appleMobileDeviceInBackground = false;
+        public static void AppleMobileDeviceSwitchToBackground(bool background) { _appleMobileDeviceInBackground = background; }
 
         private List<byte> _sendQueue = new List<byte>();
         private ManualResetEvent _sendEvent = new ManualResetEvent(false);
@@ -65,15 +86,15 @@ namespace com.fpnn {
                 }
 
                 socket_locker.Count = 0;
-                socket_locker.Status = 0;
+                socket_locker.Status = SocketStatus.Normal;
             }
 
             lock (conn_locker) {
-                if (conn_locker.Status != 0) {
+                if (conn_locker.Status != ConnectingStatus.NoAction) {
                     return;
                 }
 
-                conn_locker.Status = 1;
+                conn_locker.Status = ConnectingStatus.WillConnect;
                 conn_locker.timestamp = FPManager.Instance.GetMilliTimestamp();
             }
 
@@ -82,11 +103,11 @@ namespace com.fpnn {
 
         private void AsyncConnect(object state) {
             lock (conn_locker) {
-                if (conn_locker.Status != 1) {
+                if (conn_locker.Status != ConnectingStatus.WillConnect) {
                     return;
                 }
 
-                conn_locker.Status = 2;
+                conn_locker.Status = ConnectingStatus.Connecting;
             }
 
             try {
@@ -109,7 +130,7 @@ namespace com.fpnn {
                 }
             } catch (Exception ex) {
                 lock (conn_locker) {
-                    conn_locker.Status = 0;
+                    conn_locker.Status = ConnectingStatus.NoAction;
                 }
 
                 this.Close(ex);
@@ -123,11 +144,11 @@ namespace com.fpnn {
                 lock (socket_locker) {
                     this._socket.EndConnect(ar);
                     this._stream = this._socket.GetStream();
-                    isClose = (socket_locker.Status != 0);
+                    isClose = (socket_locker.Status != SocketStatus.Normal);
                 }
 
                 lock (conn_locker) {
-                    conn_locker.Status = 0;
+                    conn_locker.Status = ConnectingStatus.NoAction;
                 }
 
                 if (isClose) {
@@ -140,7 +161,7 @@ namespace com.fpnn {
                 this.OnWrite(this._stream);
             } catch (Exception ex) {
                 lock (conn_locker) {
-                    conn_locker.Status = 0;
+                    conn_locker.Status = ConnectingStatus.NoAction;
                 }
 
                 this.Close(ex);
@@ -165,7 +186,7 @@ namespace com.fpnn {
 
         public bool IsConnecting() {
             lock (conn_locker) {
-                return conn_locker.Status != 0;
+                return conn_locker.Status != ConnectingStatus.NoAction;
             }
         }
 
@@ -176,10 +197,10 @@ namespace com.fpnn {
 
             bool timeout = false;
             lock (conn_locker) {
-                if (conn_locker.Status != 0) {
+                if (conn_locker.Status != ConnectingStatus.NoAction) {
                     if (timestamp - conn_locker.timestamp >= this._timeout) {
                         timeout = true;
-                        conn_locker.Status = 0;
+                        conn_locker.Status = ConnectingStatus.NoAction;
                     }
                 }
             }
@@ -194,9 +215,9 @@ namespace com.fpnn {
                 bool firstClose = false;
 
                 lock (socket_locker) {
-                    if (socket_locker.Status == 0) {
+                    if (socket_locker.Status == SocketStatus.Normal) {
                         firstClose = true;
-                        socket_locker.Status = 1;
+                        socket_locker.Status = SocketStatus.SocketWillClosing;
 
                         if (ex != null) {
                             this.OnError(ex);
@@ -223,16 +244,27 @@ namespace com.fpnn {
             }
         }
 
+        private void BackgroundDelayClose(object _)
+        {
+            if (!_appleMobileDeviceInBackground)
+            {
+                lock (socket_locker) { _delayCloseTriggered = false; }
+                return;
+            }
+
+            Close(null);
+        }
+
         private void DelayClose(object state) {
             lock (socket_locker) {
-                if (socket_locker.Status != 3) {
+                if (socket_locker.Status != SocketStatus.ScoketClosed) {
                     this.SocketClose();
                 }
             }
         }
 
         private void TryClose() {
-            if (socket_locker.Status == 3) {
+            if (socket_locker.Status == SocketStatus.ScoketClosed) {
                 return;
             }
 
@@ -264,7 +296,7 @@ namespace com.fpnn {
                 ErrorRecorderHolder.recordError(ex);
             }
 
-            socket_locker.Status = 3;
+            socket_locker.Status = SocketStatus.ScoketClosed;
             this.OnClose();
         }
 
@@ -295,7 +327,7 @@ namespace com.fpnn {
             }
 
             lock (socket_locker) {
-                if (socket_locker.Status != 0) {
+                if (socket_locker.Status != SocketStatus.Normal) {
                     return;
                 }
             }
@@ -371,6 +403,7 @@ namespace com.fpnn {
         }
 
         private void WriteSocket(NetworkStream stream, byte[] buffer, Action<NetworkStream> calllback) {
+            bool needTriggerDelayTask = false;
             lock (socket_locker) {
                 if (this._socket == null) {
                     return;
@@ -381,7 +414,22 @@ namespace com.fpnn {
                     return;
                 }
 
-                if (socket_locker.Status == 0) {
+                if (_appleMobileDeviceInBackground)
+                {
+                    if (_closeDelayForAppleMobileDeviceInBsckground == 0)
+                    {
+                        this.Close(null);
+                        return;
+                    }
+
+                    if (!_delayCloseTriggered)
+                    {
+                        needTriggerDelayTask = true;
+                        _delayCloseTriggered = true;
+                    }
+                }
+
+                    if (socket_locker.Status == SocketStatus.Normal) {
                     try {
                         this._sendEvent.Reset();
                     } catch (Exception ex) {
@@ -390,6 +438,9 @@ namespace com.fpnn {
                 }
                 socket_locker.Count++;
             }
+
+            if (needTriggerDelayTask)
+                FPManager.Instance.DelayTask(_closeDelayForAppleMobileDeviceInBsckground, BackgroundDelayClose, null);
 
             try {
                 FPSocket self = this;
@@ -418,6 +469,8 @@ namespace com.fpnn {
         }
 
         public void ReadSocket(NetworkStream stream, byte[] buffer, int rlen, Action<byte[], int> calllback) {
+            bool needTriggerDelayTask = false;
+
             lock (socket_locker) {
                 if (this._socket == null) {
                     return;
@@ -427,8 +480,27 @@ namespace com.fpnn {
                     this.Close(null);
                     return;
                 }
+
+                if (_appleMobileDeviceInBackground)
+                {
+                    if (_closeDelayForAppleMobileDeviceInBsckground == 0)
+                    {
+                        this.Close(null);
+                        return;
+                    }
+
+                    if (!_delayCloseTriggered)
+                    {
+                        needTriggerDelayTask = true;
+                        _delayCloseTriggered = true;
+                    }
+                }
+
                 socket_locker.Count++;
             }
+
+            if (needTriggerDelayTask)
+                FPManager.Instance.DelayTask(_closeDelayForAppleMobileDeviceInBsckground, BackgroundDelayClose, null);
 
             try {
                 FPSocket self = this;
