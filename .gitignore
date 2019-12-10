@@ -1,5 +1,10 @@
 /**/.DS_Store
 /**/.vscode
+/**/.vs/
 /**/*.log
 /**/Temp/
 /**/Library/
+/**/[Oo]bj/
+/**/*.cs.meta
+/**/*.sln
+/**/*.csproj
