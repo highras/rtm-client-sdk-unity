@@ -257,6 +257,11 @@ namespace com.fpnn {
 
         private void DelayClose(object state) {
             lock (socket_locker) {
+                if (socket_locker.Count > 0) {
+                    FPManager.Instance.DelayTask(80, DelayClose, null);
+                    return;
+                }
+
                 if (socket_locker.Status != SocketStatus.ScoketClosed) {
                     this.SocketClose();
                 }
