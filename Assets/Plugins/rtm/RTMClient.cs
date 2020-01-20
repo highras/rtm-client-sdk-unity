@@ -117,10 +117,20 @@ namespace com.rtm {
             }
 
             if (lastPingTimestamp > 0 && timestamp - lastPingTimestamp > RTMConfig.RECV_PING_TIMEOUT) {
-                lock (self_locker) {
+                /*lock (self_locker) {
                     if (this._baseClient != null && this._baseClient.IsOpen()) {
                         this._baseClient.Close(new Exception("ping timeout"));
                     }
+                }*/
+
+                BaseClient client;
+                lock (self_locker)
+                {
+                    client = _baseClient;
+                }
+                if (client != null && client.IsOpen())
+                {
+                    client.Close(new Exception("ping timeout"));
                 }
             }
 

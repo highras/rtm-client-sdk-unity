@@ -213,6 +213,7 @@ namespace com.fpnn {
         public void Close(Exception ex) {
             try {
                 bool firstClose = false;
+                bool needRunOnCloseEvent = false;
 
                 lock (socket_locker) {
                     if (socket_locker.Status == SocketStatus.Normal) {
@@ -233,8 +234,11 @@ namespace com.fpnn {
                             return;
                         }
                     }
-                    this.TryClose();
+                    this.TryClose(out needRunOnCloseEvent);
                 }
+
+                if (needRunOnCloseEvent)
+                    this.OnClose();
 
                 if (firstClose) {
                     FPManager.Instance.DelayTask(200, DelayClose, null);
@@ -256,6 +260,7 @@ namespace com.fpnn {
         }
 
         private void DelayClose(object state) {
+            bool needRunOnCloseEvent = false;
             lock (socket_locker) {
                 if (socket_locker.Count > 0) {
                     FPManager.Instance.DelayTask(80, DelayClose, null);
@@ -264,11 +269,16 @@ namespace com.fpnn {
 
                 if (socket_locker.Status != SocketStatus.ScoketClosed) {
                     this.SocketClose();
+                    needRunOnCloseEvent = true;
                 }
             }
+
+            if (needRunOnCloseEvent)
+                this.OnClose();
         }
 
-        private void TryClose() {
+        private void TryClose(out bool needRunOnCloseEvent) {
+            needRunOnCloseEvent = false;
             if (socket_locker.Status == SocketStatus.ScoketClosed) {
                 return;
             }
@@ -279,6 +289,7 @@ namespace com.fpnn {
 
             try {
                 this.SocketClose();
+                needRunOnCloseEvent = true;
             } catch (Exception ex) {
                 ErrorRecorderHolder.recordError(ex);
             }
@@ -302,13 +313,17 @@ namespace com.fpnn {
             }
 
             socket_locker.Status = SocketStatus.ScoketClosed;
-            this.OnClose();
         }
 
         private void OnClose() {
             try {
-                if (this.Socket_Close != null) {
-                    this.Socket_Close(new EventData("close"));
+                Action<EventData> closeEvent;
+                lock (socket_locker)
+                {
+                    closeEvent = Socket_Close;
+                }
+                if (closeEvent != null) {
+                    closeEvent(new EventData("close"));
                 }
             } catch (Exception ex) {
                 ErrorRecorderHolder.recordError(ex);
