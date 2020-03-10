@@ -1,7 +1,10 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
+using GameDevWare.Serialization;
+using com.fpnn;
 
 namespace com.rtm {
 
@@ -58,32 +61,132 @@ namespace com.rtm {
         }
 
         public static byte[] AudioClipToBytes(AudioClip clip) {
-            try {
-                float[] samples = new float[clip.samples * clip.channels];
-                clip.GetData(samples, 0);
+            MemoryStream ms = new MemoryStream();
+            ConvertAndWriteWav(ms, clip);
+            WriteWavHeader(ms, clip); 
+            return ConvertToAmrwb(ms.ToArray());
+        }
 
-                byte[] data = new byte[clip.samples * clip.channels];
-                for (int i = 0; i < samples.Length; i++) {
-                    //convert to the -128 to +128 range
-                    float conv = samples[i] * 128.0f;
-                    int c = Mathf.RoundToInt(conv);
-                    c += 127;
+        public static byte[] ConvertToAmrwb(byte[] wavBuffer)
+        {
+            int status = 0;
+            int amrSize = 0;
+            
+            IntPtr wavSrcPtr = Marshal.AllocHGlobal(wavBuffer.Length);
+            Marshal.Copy(wavBuffer, 0, wavSrcPtr, wavBuffer.Length);
 
-                    if (c < 0) {
-                        c = 0;
-                    }
+            IntPtr amrPtr = RTMAudioConvert.convert_wav_to_amrwb(wavSrcPtr, wavBuffer.Length, ref status, ref amrSize);
 
-                    if (c > 255) {
-                        c = 255;
-                    }
+            Marshal.FreeHGlobal(wavSrcPtr);
 
-                    data[i] = (byte)c;
-                }
-                return data;
-            } catch(Exception ex) {
-                Debug.LogWarning(ex);
+            if (amrPtr != null && status == 0) {
+                byte[] amrBuffer = new byte[amrSize];
+                Marshal.Copy(amrPtr, amrBuffer, 0, amrSize);
+                RTMAudioConvert.free_memory(amrPtr);
+                return amrBuffer;
             }
+
+            if (amrPtr != null)
+                RTMAudioConvert.free_memory(amrPtr);
+
             return null;
+        }
+
+        public static byte[] ConvertToWav(byte[] amrBuffer)
+        {
+            int status = 0;
+            int wavSize = 0;
+            
+            IntPtr amrSrcPtr = Marshal.AllocHGlobal(amrBuffer.Length);
+            Marshal.Copy(amrBuffer, 0, amrSrcPtr, amrBuffer.Length);
+
+            IntPtr wavPtr = RTMAudioConvert.convert_amrwb_to_wav(amrSrcPtr, amrBuffer.Length, ref status, ref wavSize);
+
+            Marshal.FreeHGlobal(amrSrcPtr);
+
+            if (wavPtr != null && status == 0) {
+                byte[] wavBuffer = new byte[wavSize];
+                Marshal.Copy(wavPtr, wavBuffer, 0, wavSize);
+                RTMAudioConvert.free_memory(wavPtr);
+                return wavBuffer;
+            }
+
+            if (wavPtr != null)
+                RTMAudioConvert.free_memory(wavPtr);
+
+            return null;
+        }
+
+        public static void ConvertAndWriteWav(MemoryStream stream, AudioClip clip) {
+            float[] samples = new float[clip.samples];
+            clip.GetData(samples, 0);
+
+            Int16[] intData = new Int16[samples.Length];
+
+            Byte[] bytesData = new Byte[samples.Length * 2];
+
+            int rescaleFactor = 32767; //to convert float to Int16  
+
+            for (int i = 0; i < samples.Length; i++)
+            {
+                intData[i] = (short)(samples[i] * rescaleFactor);
+                Byte[] byteArr = new Byte[2];
+                byteArr = BitConverter.GetBytes(intData[i]);
+                byteArr.CopyTo(bytesData, i * 2);
+            }
+            stream.Write(bytesData, 0, bytesData.Length);
+        }
+
+        public static void WriteWavHeader(MemoryStream stream, AudioClip clip)
+        {
+            int hz = clip.frequency;
+            int channels = clip.channels;
+            int samples = clip.samples;
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            Byte[] riff = System.Text.Encoding.UTF8.GetBytes("RIFF");
+            stream.Write(riff, 0, 4);
+
+            Byte[] chunkSize = BitConverter.GetBytes(stream.Length - 8);
+            stream.Write(chunkSize, 0, 4);
+
+            Byte[] wave = System.Text.Encoding.UTF8.GetBytes("WAVE");
+            stream.Write(wave, 0, 4);
+
+            Byte[] fmt = System.Text.Encoding.UTF8.GetBytes("fmt ");
+            stream.Write(fmt, 0, 4);
+
+            Byte[] subChunk1 = BitConverter.GetBytes(16);
+            stream.Write(subChunk1, 0, 4);
+
+            UInt16 two = 2;
+            UInt16 one = 1;
+
+            Byte[] audioFormat = BitConverter.GetBytes(one);
+            stream.Write(audioFormat, 0, 2);
+
+            Byte[] numChannels = BitConverter.GetBytes(channels);
+            stream.Write(numChannels, 0, 2);
+
+            Byte[] sampleRate = BitConverter.GetBytes(hz);
+            stream.Write(sampleRate, 0, 4);
+
+            Byte[] byteRate = BitConverter.GetBytes(hz * channels * 2); // sampleRate * bytesPerSample*number of channels, here 44100*2*2  
+            stream.Write(byteRate, 0, 4);
+
+            UInt16 blockAlign = (ushort)(channels * 2);
+            stream.Write(BitConverter.GetBytes(blockAlign), 0, 2);
+
+            UInt16 bps = 16;
+            Byte[] bitsPerSample = BitConverter.GetBytes(bps);
+            stream.Write(bitsPerSample, 0, 2);
+
+            Byte[] datastring = System.Text.Encoding.UTF8.GetBytes("data");
+            stream.Write(datastring, 0, 4);
+
+            Byte[] subChunk2 = BitConverter.GetBytes(samples * channels * 2);
+            stream.Write(subChunk2, 0, 4);
         }
 
         public static short[] AudioClipToShorts(AudioClip clip, float gain=1.0f) {
@@ -180,73 +283,66 @@ namespace com.rtm {
             return null;
         }
 
-        public static byte[] EncodeAudioClip(AudioClip clip) {
-            byte[] bytes;
-            short[] data;
-            int channels = 1;
-            int frequency = RTMMicrophone.SAMPLE_RATE;
+        public static byte RTM_HEADER_VERSION = 1;
+        public static byte RTM_HEADER_CONTAINER_TYPE = 0;
+        public static byte RTM_HEADER_CODEC_TYPE = 1; // amr-wb
 
-            if (clip == null) {
+        public static byte[] AddRtmAudioHeader(RTMAudioData audio, string lang) {
+            MemoryStream stream = new MemoryStream();
+
+            IDictionary<string, object> infoData = new Dictionary<string, object>() {
+                { "lang", lang},
+                { "dur", audio.Duration },
+                { "srate", RTMMicrophone.SAMPLE_RATE }
+            };
+            byte[] bytes = new byte[0];
+
+            try {
+                using (MemoryStream outputStream = new MemoryStream()) {
+                    MsgPack.Serialize(infoData, outputStream);
+                    outputStream.Seek(0, SeekOrigin.Begin);
+                    bytes = outputStream.ToArray();
+                }
+            } catch (Exception ex) {
+                ErrorRecorderHolder.recordError(ex);
                 return null;
             }
 
-            channels = clip.channels;
-            frequency = clip.frequency;
 
-            try {
-                data = RTMAudioManager.AudioClipToShorts(clip, 1.0f);
-
-                if (data == null) {
-                    return null;
-                }
-
-                byte[] adpcmData = adpcm.Encode(data);
-
-                if (adpcmData == null || adpcmData.Length == 0) {
-                    return null;
-                }
-
-                using (MemoryStream stream = new MemoryStream()) {
-                    //channels
-                    bytes = BitConverter.GetBytes(channels);
-                    stream.Write(bytes, 0, bytes.Length);
-                    //frequency
-                    bytes = BitConverter.GetBytes(frequency);
-                    stream.Write(bytes, 0, bytes.Length);
-                    //adpcmData
-                    stream.Write(adpcmData, 0, adpcmData.Length);
-                    bytes = stream.ToArray();
-                }
-                return bytes;
-            } catch(Exception ex) {
-                Debug.LogWarning(ex);
-            }
-            return null;
+            stream.Write(new byte[4]{RTM_HEADER_VERSION, RTM_HEADER_CONTAINER_TYPE, RTM_HEADER_CODEC_TYPE, 1}, 0, 4);
+            stream.Write(BitConverter.GetBytes(bytes.Length), 0, 4);
+            stream.Write(bytes, 0, bytes.Length);
+            stream.Write(audio.AmrData, 0, audio.AmrData.Length);
+            return stream.ToArray();
         }
 
-        public static AudioClip DncodeAdpcmData(byte[] adpcmData) {
-            if (adpcmData == null || adpcmData.Length < 8) {
+        public static RTMPcmData GetPcmData(byte[] rtmAudioBuffer) {
+            int offset = 0;
+            if (rtmAudioBuffer.Length < 4)
+                return null;
+            byte version = rtmAudioBuffer[0];
+            byte containerType = rtmAudioBuffer[1];
+            byte codecType = rtmAudioBuffer[2];
+            byte infoDataCount = rtmAudioBuffer[3];
+
+            if (version != RTM_HEADER_VERSION || containerType != RTM_HEADER_CONTAINER_TYPE || codecType != RTM_HEADER_CODEC_TYPE) {
+                return null;
+            }
+            offset += 4;
+
+            for (byte i = 0; i < infoDataCount; i++) {
+                int sectionLength = BitConverter.ToInt32(rtmAudioBuffer, offset);
+                offset += 4;
+                offset += sectionLength;
+            }
+            if (offset >= rtmAudioBuffer.Length) {
                 return null;
             }
 
-            try {
-                //channels
-                byte[] bytes = new byte[4];
-                Buffer.BlockCopy(adpcmData, 0, bytes, 0, bytes.Length);
-                int channels = (int)BitConverter.ToUInt32(bytes, 0);
-                //frequency
-                bytes = new byte[4];
-                Buffer.BlockCopy(adpcmData, 4, bytes, 0, bytes.Length);
-                int frequency = (int)BitConverter.ToUInt32(bytes, 0);
-                //adpcmData
-                bytes = new byte[adpcmData.Length - 8];
-                Buffer.BlockCopy(adpcmData, 8, bytes, 0, bytes.Length);
-                short[] data = adpcm.Decode(bytes);
-                return RTMAudioManager.ShortsToAudioClip(data, channels, frequency, false, 1.0f);
-            } catch(Exception ex) {
-                Debug.LogWarning(ex);
-            }
-            return null;
+            byte[] amrBuffer = new byte[rtmAudioBuffer.Length - offset];
+            Array.Copy(rtmAudioBuffer, offset, amrBuffer, 0, rtmAudioBuffer.Length - offset);
+            byte[] wavBuffer = ConvertToWav(amrBuffer);
+            return new RTMPcmData(wavBuffer);
         }
     }
 }

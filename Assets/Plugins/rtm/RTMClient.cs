@@ -1246,8 +1246,11 @@ namespace com.rtm {
          * @param {long}                    mid
          * </CallbackData>
          */
-        public void SendAudio(long to, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            this.SendMessage(to, RTMConfig.CHAT_TYPE.audio, audio, attrs, mid, timeout, callback);
+        public void SendAudio(long to, RTMAudioData audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            byte[] audioBytes = RTMAudioManager.AddRtmAudioHeader(audio, this._targetLanguage);
+            if (audioBytes != null) {
+                this.SendMessage(to, RTMConfig.CHAT_TYPE.audio, audioBytes, attrs, mid, timeout, callback);
+            }
         }
 
         /**
@@ -1318,8 +1321,11 @@ namespace com.rtm {
          * @param {long}                    mid
          * </CallbackData>
          */
-        public void SendGroupAudio(long gid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            this.SendGroupMessage(gid, RTMConfig.CHAT_TYPE.audio, audio, attrs, mid, timeout, callback);
+        public void SendGroupAudio(long gid, RTMAudioData audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            byte[] audioBytes = RTMAudioManager.AddRtmAudioHeader(audio, this._targetLanguage);
+            if (audioBytes != null) {
+                this.SendGroupMessage(gid, RTMConfig.CHAT_TYPE.audio, audioBytes, attrs, mid, timeout, callback);
+            }
         }
 
         /**
@@ -1390,8 +1396,11 @@ namespace com.rtm {
          * @param {long}                    mid
          * </CallbackData>
          */
-        public void SendRoomAudio(long rid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
-            this.SendRoomMessage(rid, RTMConfig.CHAT_TYPE.audio, audio, attrs, mid, timeout, callback);
+        public void SendRoomAudio(long rid, RTMAudioData audio, string attrs, long mid, int timeout, CallbackDelegate callback) {
+            byte[] audioBytes = RTMAudioManager.AddRtmAudioHeader(audio, this._targetLanguage);
+            if (audioBytes != null) {
+                this.SendRoomMessage(rid, RTMConfig.CHAT_TYPE.audio, audioBytes, attrs, mid, timeout, callback);
+            }
         }
 
         /**
@@ -1744,7 +1753,7 @@ namespace com.rtm {
          * @param {IDictionary(source:string,target:string,sourceText:string,targetText:string)}    payload
          * </CallbackData>
          */
-        public void Translate(string originalMessage, string originalLanguage, string targetLanguage, string type, string profanity, int timeout, CallbackDelegate callback) {
+        public void Translate(string originalMessage, string originalLanguage, string targetLanguage, string type, string profanity, bool postProfanity, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 { "text", originalMessage },
                 { "dst", targetLanguage }
@@ -1760,6 +1769,10 @@ namespace com.rtm {
 
             if (profanity != null) {
                 payload.Add("profanity", profanity);
+            }
+
+            if (postProfanity) {
+                payload.Add("postProfanity", postProfanity);
             }
 
             this.SendQuest("translate", payload, callback, timeout);
@@ -1782,15 +1795,15 @@ namespace com.rtm {
          * @param {IDictionary(text:string)}    payload
          * </CallbackData>
          */
-        public void Profanity(string text, string action, int timeout, CallbackDelegate callback) {
+        public void Profanity(string text, bool classify, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
                 {
                     "text", text
                 }
             };
 
-            if (action != null) {
-                payload.Add("action", action);
+            if (classify) {
+                payload.Add("classify", classify);
             }
 
             this.SendQuest("profanity", payload, callback, timeout);
@@ -1801,8 +1814,6 @@ namespace com.rtm {
          * rtmGate (3o)
          *
          * @param {byte[]}                      audio
-         * @param {string}                      lang
-         * @param {string}                      action
          * @param {int}                         timeout
          * @param {CallbackDelegate}            callback
          *
@@ -1814,15 +1825,35 @@ namespace com.rtm {
          * @param {IDictionary(text:string,lang:string)}    payload
          * </CallbackData>
          */
-        public void Transcribe(byte[] audio, string lang, string action, int timeout, CallbackDelegate callback) {
+        public void Transcribe(byte[] audio, int timeout, CallbackDelegate callback) {
             IDictionary<string, object> payload = new Dictionary<string, object>() {
-                { "audio", audio },
-                { "lang", lang }
+                { "audio", audio }
             };
 
-            if (action != null) {
-                payload.Add("action", action);
-            }
+            this.SendQuest("transcribe", payload, callback, timeout);
+        }
+
+        /**
+         *
+         * rtmGate (3o)
+         *
+         * @param {RTMAudioData}                audio
+         * @param {int}                         timeout
+         * @param {CallbackDelegate}            callback
+         *
+         * @callback
+         * @param {CallbackData}                cbd
+         *
+         * <CallbackData>
+         * @param {Exception}                   exception
+         * @param {IDictionary(text:string,lang:string)}    payload
+         * </CallbackData>
+         */
+        public void Transcribe(RTMAudioData audioData, int timeout, CallbackDelegate callback) {
+            byte[] audio = RTMAudioManager.AddRtmAudioHeader(audioData, this._targetLanguage);
+            IDictionary<string, object> payload = new Dictionary<string, object>() {
+                { "audio", audio }
+            };
 
             this.SendQuest("transcribe", payload, callback, timeout);
         }

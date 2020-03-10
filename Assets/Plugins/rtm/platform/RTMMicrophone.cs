@@ -21,10 +21,10 @@ namespace com.rtm {
             int GetPosition(string device);
             AudioClip Start(string device, bool loop, int lengthSec, int frequency);
             void End(string device);
-            void OnRecord(AudioClip clip);
+            void OnRecord(RTMAudioData audioData);
         }
 
-        public static int RECORD_TIME = 15;
+        public static int RECORD_TIME = 60;
         public static int SAMPLE_RATE = 16000;
         public static int SAMPLE_WINDOW = 128;
 
@@ -83,14 +83,22 @@ namespace com.rtm {
             }
         }
 
-        void Update() {
+        void UpdateLoudness() {
             lock (self_locker) {
+
+                if (!this._isRecording)
+                    return;
+
                 if (this._volumeType == VolumeType.VolumePeak) {
                     this._loudness = LevelMax() * SENSIBILITY;
                 } else {
                     this._loudness = VolumeRMS() * SENSIBILITY;
                 }
             }
+        }
+
+        void Update() {
+
         }
 
         private IEnumerator TimeDown() {
@@ -161,7 +169,7 @@ namespace com.rtm {
                 device = this._micPhone.GetDevices()[0];
             }
 
-            CancelInput();
+            //CancelInput();
 
             lock (self_locker) {
                 this._device = device;
@@ -180,7 +188,7 @@ namespace com.rtm {
                 this._isRecording = true;
                 this._clipRecord = this._micPhone.Start(this._device, false, RECORD_TIME, SAMPLE_RATE);
             }
-            StartCoroutine(TimeDown());
+            StartCoroutine("TimeDown");
         }
 
         public void CancelInput() {
@@ -189,7 +197,6 @@ namespace com.rtm {
             }
 
             bool timeDown = false;
-
             lock (self_locker) {
                 if (this._isRecording) {
                     timeDown = true;
@@ -200,20 +207,49 @@ namespace com.rtm {
             }
 
             if (timeDown) {
-                StopCoroutine(TimeDown());
+                StopCoroutine("TimeDown");
+
+                if (this._micPhone != null) {
+                    AudioClip clip = this.GetAudioClip();
+                    if (clip != null) {
+
+                        this._micPhone.OnRecord(GetAudioData(clip));
+                    }
+                }
             }
+        }
+
+        RTMAudioData GetAudioData(AudioClip clip) {
+            var soundData = new float[clip.samples * clip.channels];
+            clip.GetData(soundData, 0);
+            var newData = new float[this._position * clip.channels];
+
+            //Copy the used samples to a new array
+            for (int i = 0; i < newData.Length; i++) {
+                newData[i] = soundData[i];
+            }
+            
+            //One does not simply shorten an AudioClip,
+            //    so we make a new one with the appropriate length
+            var newClip = AudioClip.Create (clip.name,
+                                            this._position,
+                                            clip.channels,
+                                            clip.frequency,
+                                            false,
+                                            false);
+            
+            newClip.SetData (newData, 0);        //Give it the data from the old clip
+
+            long duration = (long)(newClip.length * 1000);
+            return new RTMAudioData(RTMAudioManager.AudioClipToBytes(newClip), duration);
         }
 
         public void FinishInput() {
             CancelInput();
-
-            if (this._micPhone != null) {
-                AudioClip clip = this.GetAudioClip();
-                this._micPhone.OnRecord(clip);
-            }
         }
 
         public float GetLoudness() {
+            UpdateLoudness();
             lock (self_locker) {
                 return this._loudness;
             }

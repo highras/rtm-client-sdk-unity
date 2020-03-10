@@ -21,9 +21,8 @@ class BaseMicrophone : RTMMicrophone.IMicrophone {
     public void End(string device) {
         Microphone.End(device);
     }
-    public void OnRecord(AudioClip clip) {
+    public void OnRecord(byte[] amrArray) {
         //完成音频采集
-        byte[] adpcm_bytes = RTMAudioManager.EncodeAudioClip(clip);
     }
 }
 
