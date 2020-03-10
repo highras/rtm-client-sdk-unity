@@ -226,3 +226,21 @@
         * `data.mtime`: **(long)**
 
 
+#### Audio相关推送处理例子 ####
+```c#
+RTMProcessor processor = client.GetProcessor();
+processor.AddPushService(RTMConfig.SERVER_PUSH.recvAudio, (data) => {
+     Debug.Log("recive audio...");
+     
+     byte[] rtmAudioArray = (byte[])data["msg"];
+     Transcribe(rtmAudioArray, timeout, callback); // 调用语音识别接口
+     
+     // 进行语音本地播放
+     RTMPcmData pcmData = RTMAudioManager.GetPcmData(rtmAudioArray);
+     // 以下可能要求在Unity Main Thread中进行
+     AudioSource audioSource = GetComponent<AudioSource>();
+     audioSource.clip = AudioClip.Create("testSound", pcmData.SampleCount, 1, pcmData.Frequency, false, false);
+     audioSource.clip.SetData(pcmData.LeftChannel, 0);
+     audioSource.Play();
+});
+···
