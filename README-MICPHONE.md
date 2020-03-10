@@ -23,6 +23,7 @@ class BaseMicrophone : RTMMicrophone.IMicrophone {
     }
     public void OnRecord(RTMAudioData audioData) {
         //完成音频采集
+        // 调用SendAudio发送语音消息或进行语音识别
     }
 }
 
@@ -42,7 +43,7 @@ RTMMicrophone.Instance.InitMic(null, new BaseMicrophone());
     * `device`: **(string)** 音频采集设备, 使用默认设备传`null`
     * `micPhone`: **(IMicrophone)** 音频采集接口实现
 
-* `StartInput()`: 开始采集音频数据, 默认长度15s
+* `StartInput()`: 开始采集音频数据, 默认长度60s
 
 * `CancelInput()`: 取消采集音频数据
 
