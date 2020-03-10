@@ -4,7 +4,7 @@ namespace com.rtm {
 
     public class RTMConfig {
 
-        public static string VERSION = "1.2.7";
+        public static string VERSION = "1.3.0";
 
         public static int MID_TTL = 5 * 1000;                           //MID缓存超时时间(ms)
         public static int RECONN_COUNT_ONCE = 1;                        //一次重新连接流程中的尝试次数
