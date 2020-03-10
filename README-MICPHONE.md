@@ -23,7 +23,7 @@ class BaseMicrophone : RTMMicrophone.IMicrophone {
     }
     public void OnRecord(RTMAudioData audioData) {
         //完成音频采集
-        // 调用SendAudio发送语音消息或进行语音识别
+        //调用SendAudio发送语音或Transcribe进行语音识别
     }
 }
 
