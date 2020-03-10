@@ -247,7 +247,7 @@
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendAudio(long to, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送聊天语音, 消息类型`RTMConfig.CHAT_TYPE.audio`
+* `SendAudio(long to, RTMAudioData audio, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送聊天语音, 消息类型`RTMConfig.CHAT_TYPE.audio`
     * `to`: **(long)** 接收方uid
     * `audio`: **(byte[])** 语音数据
     * `attrs`: **(string)** 附加信息, `Json`字符串, 至少带两个参数(`lang`: 语言类型, `duration`: 语音长度 ms)
@@ -283,7 +283,7 @@
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendGroupAudio(long gid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group聊天语音, 消息类型`RTMConfig.CHAT_TYPE.audio`
+* `SendGroupAudio(long gid, RTMAudioData audio, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送group聊天语音, 消息类型`RTMConfig.CHAT_TYPE.audio`
     * `gid`: **(long)** group id
     * `audio`: **(byte[])** 语音数据
     * `attrs`: **(string)** 附加信息, `Json`字符串, 至少带两个参数(`lang`: 语言类型, `duration`: 语音长度 ms)
@@ -319,7 +319,7 @@
             * `exception`: **(Exception)**
             * `mid`: **(long)**
 
-* `SendRoomAudio(long rid, byte[] audio, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room聊天语音, 消息类型`RTMConfig.CHAT_TYPE.audio`
+* `SendRoomAudio(long rid, RTMAudioData audio, string attrs, long mid, int timeout, CallbackDelegate callback)`: 发送room聊天语音, 消息类型`RTMConfig.CHAT_TYPE.audio`
     * `rid`: **(long)** room id
     * `audio`: **(byte[])** 语音数据
     * `attrs`: **(string)** 附加信息, `Json`字符串, 至少带两个参数(`lang`: 语言类型, `duration`: 语音长度 ms)
@@ -759,6 +759,50 @@
     * `fileExt`: **(string)** 文件扩展名
     * `fileName`: **(string)** 文件名
     * `mid`: **(long)** 业务文件消息 id, 用于过滤重复业务文件消息, 非重发时为`0`
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary(mtime:long))**
+            * `exception`: **(Exception)**
+            * `mid`: **(long)**
+            
+> 增值服务
+
+* `Translate(string originalMessage, string originalLanguage, string targetLanguage, string type, string profanity, bool postProfanity, int timeout, CallbackDelegate callback)`: 翻译
+    * `originalMessage`: **(string)** 原始文字
+    * `originalLanguage`: **(string)** 原始语言,省略传null
+    * `targetLanguage`: **(byte[])** 目标语言
+    * `type`: **(string)** 可选值为chat或mail。如未指定，则默认使用'chat'
+    * `profanity`: **(string)** 敏感语过滤。设置为以下3项之一: off, stop, censor，默认：off
+    * `postProfanity`: **(bool)** 是否把翻译后的文本过滤
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary(mtime:long))**
+            * `exception`: **(Exception)**
+            * `mid`: **(long)**
+
+* `Profanity(string text, bool classify, int timeout, CallbackDelegate callback)`: 文本检测
+    * `text`: **(string)** 原始文字
+    * `classify`: **(string)** 是否进行文本分类检测
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary(mtime:long))**
+            * `exception`: **(Exception)**
+            * `mid`: **(long)**
+            
+* `Transcribe(byte[] audio, int timeout, CallbackDelegate callback)`: 语音识别
+    * `audio`: **(byte[])** 语音原始数据(通过RTM Push过来的Audio数据)
+    * `timeout`: **(int)** 超时时间(ms)
+    * `callback`: **(CallbackDelegate)** 回调方法
+        * `cbd`: **(CallbackData)**
+            * `payload`: **(IDictionary(mtime:long))**
+            * `exception`: **(Exception)**
+            * `mid`: **(long)**
+            
+* `Transcribe(RTMAudioData audioData, int timeout, CallbackDelegate callback)`: 语音识别
+    * `audioData`: **(RTMAudioData)** 语音数据(通过录音接口得到的录音数据)
     * `timeout`: **(int)** 超时时间(ms)
     * `callback`: **(CallbackDelegate)** 回调方法
         * `cbd`: **(CallbackData)**
