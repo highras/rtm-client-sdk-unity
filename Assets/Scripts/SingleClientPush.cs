@@ -24,7 +24,7 @@ public class SingleClientPush : Main.ITestCase {
 
     public void StartTest(byte[] fileBytes) {
         this._client = new RTMClient(
-            "rtm-intl-frontgate.funplus.com:13325",
+            "52.82.27.68:13325",
             11000002,
             777779,
             "266B02147F447DD931C48B747F5ED9E7",

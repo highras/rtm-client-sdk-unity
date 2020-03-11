@@ -12,8 +12,8 @@ using com.rtm;
 
 public class SingleMicphone : Main.ITestCase {
 
-    private const string TOKEN_778899 = "8CCA337812B194AFC1F3E9F3B7659D8C";
-    private const string TOKEN_777779 = "FA77FB4FA1E19E3EA7A9500DC6D9649C";
+    private const string TOKEN_778899 = "A2A618F3F5A032989E68CC7A85D298F6";
+    private const string TOKEN_777779 = "F2256AA281D26FE28CE90B7F164CFC35";
 
     public class BaseMicrophone : RTMMicrophone.IMicrophone {
 
@@ -21,7 +21,7 @@ public class SingleMicphone : Main.ITestCase {
 
         public BaseMicrophone() {
             sendClient = new RTMClient(
-                "52.83.245.22:13325",
+                "52.82.27.68:13325",
                 11000001,
                 778899,
                 TOKEN_778899,
@@ -62,12 +62,11 @@ public class SingleMicphone : Main.ITestCase {
         public void End(string device) {
             Microphone.End(device);
         }
-        public void OnRecord(AudioClip clip) {
-            byte[] data = RTMAudioManager.EncodeAudioClip(clip);
-            Debug.Log("end record, adpcm bytearray len: " + data.Length);
+        public void OnRecord(RTMAudioData audioData) {
+            Debug.Log("end record");
 
             if (sendClient != null) {
-                sendClient.SendAudio(777779, data, "", 0, 20 * 1000, (cbd) => {
+                sendClient.SendAudio(123456, audioData, "", 0, 20 * 1000, (cbd) => {
                     if (cbd.GetException() != null) {
                         Debug.Log(cbd.GetException());
                     } else {
@@ -90,7 +89,7 @@ public class SingleMicphone : Main.ITestCase {
 
     public void StartTest(byte[] fileBytes) {
         receiveClient = new RTMClient(
-            "52.83.245.22:13325",
+            "52.82.27.68:13325",
             11000001,
             777779,
             TOKEN_777779,
@@ -131,7 +130,9 @@ public class SingleMicphone : Main.ITestCase {
 
         lock (self_locker) {
             if (this._audioBytes != null) {
-                clip = RTMAudioManager.DncodeAdpcmData(this._audioBytes);
+                RTMPcmData pcmData = RTMAudioManager.GetPcmData(this._audioBytes);
+                 clip = AudioClip.Create("testSound", pcmData.SampleCount, 1, pcmData.Frequency, false, false);
+                clip.SetData(pcmData.LeftChannel, 0);
                 this._audioBytes = null;
             }
         }

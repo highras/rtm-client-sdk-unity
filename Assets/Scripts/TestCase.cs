@@ -33,7 +33,7 @@ public class TestCase : Main.ITestCase {
     public void StartTest(byte[] fileBytes) {
         this._fileBytes = fileBytes;
         this._client = new RTMClient(
-            "52.83.245.22:13325",
+            "52.82.27.68:13325",
             11000001,
             this._uid,
             this._token,
@@ -534,7 +534,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (3m)
         //---------------------------------Translate--------------------------------------
-        this._client.Translate("点数优惠", RTMConfig.TRANS_LANGUAGE.zh_cn, RTMConfig.TRANS_LANGUAGE.en, "chat", "censor", timeout, (cbd) => {
+        this._client.Translate("点数优惠", RTMConfig.TRANS_LANGUAGE.zh_cn, RTMConfig.TRANS_LANGUAGE.en, "chat", "censor", false, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {
@@ -546,7 +546,7 @@ public class TestCase : Main.ITestCase {
         this.ThreadSleep(sleep);
         //rtmGate (3n)
         //---------------------------------Profanity--------------------------------------
-        this._client.Profanity("点数优惠", "stop", timeout, (cbd) => {
+        this._client.Profanity("点数优惠", true, timeout, (cbd) => {
             object obj = cbd.GetPayload();
 
             if (obj != null) {

@@ -32,7 +32,7 @@ public class SingleClientSend : Main.ITestCase {
 
     public void StartTest(byte[] fileBytes) {
         this._client = new RTMClient(
-            "52.83.245.22:13325",
+            "52.82.27.68:13325",
             11000001,
             777779,
             "FA77FB4FA1E19E3EA7A9500DC6D9649C",

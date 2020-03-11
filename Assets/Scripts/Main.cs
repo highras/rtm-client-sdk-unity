@@ -33,7 +33,7 @@ public class Main : MonoBehaviour {
         // this._testCase = new SingleClientPush();
 
         //TestCase
-        this._testCase = new TestCase(777779, "2EF4D15F9C3084F9A8B37E834AEE5C2D");
+        this._testCase = new TestCase(777779, "BED251A09DEA0109B28CBD9A79DAD1B5");
 
         //SingleMicphone
         // this._testCase = new SingleMicphone();
