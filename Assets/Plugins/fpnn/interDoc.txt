@@ -1,0 +1,9 @@
+﻿注意要点：
+1. 可能出现的情况：
+    TCPConnection 还有效，此时被TCPClient和ClientEngine引用，但TCPClient除了关闭事件外，
+    没有其他地方被引用（用户代码已经完成，且用户没有调用Close()）。因此：
+    i. TCPConnection 需要在连接事件完成后，抛弃连接事件代理，避免长时间持有client的引用，导致无法释放资源
+    ii. TCPClient 需要在状态转换后，判断是否放弃当前的TCPConnection对象，避免资源持续相互引用，无法释放
+    iii. ClientEngine 需要在完成连接关闭事件后，再抛弃对 TCPConnection 的引用。（核心重点）
+
+2. TCPClient & TCPConnection 正在连接的时候，被用户调用 Close() 关闭了。
