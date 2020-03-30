@@ -231,7 +231,7 @@ namespace com.fpnn.rtm
                 message.mtype = (byte)Convert.ChangeType(items[2], TypeCode.Byte);
                 message.mid = (long)Convert.ChangeType(items[3], TypeCode.Int64);
 
-                if (message.mtype != MessageMType_Audio)
+                if (message.mtype == MessageMType_Audio)
                 {
 
                     if (CheckBinaryType(items[5]))
