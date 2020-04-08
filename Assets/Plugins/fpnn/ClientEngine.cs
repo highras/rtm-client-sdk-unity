@@ -229,19 +229,19 @@ namespace com.fpnn
 
         public static Int64 GetCurrentSeconds()
         {
-            TimeSpan span = DateTime.Now - originDateTime;
+            TimeSpan span = DateTime.UtcNow - originDateTime;
             return (Int64)Math.Floor(span.TotalSeconds);
         }
 
         public static Int64 GetCurrentMilliseconds()
         {
-            TimeSpan span = DateTime.Now - originDateTime;
+            TimeSpan span = DateTime.UtcNow - originDateTime;
             return (Int64)Math.Floor(span.TotalMilliseconds);
         }
 
         public static Int64 GetCurrentMicroseconds()
         {
-            TimeSpan span = DateTime.Now - originDateTime;
+            TimeSpan span = DateTime.UtcNow - originDateTime;
             return (Int64)Math.Floor(span.TotalMilliseconds * 1000);
         }
 

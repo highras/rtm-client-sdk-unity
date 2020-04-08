@@ -303,8 +303,8 @@ namespace com.fpnn.rtm
                     }
                     callback(result.count, result.lastId, result.beginMsec, result.endMsec, result.messages, errorCode);
                 }
-                
-                callback(0, 0, 0, 0, null, errorCode);
+                else
+                    callback(0, 0, 0, 0, null, errorCode);
             }, timeout);
         }
 
@@ -378,8 +378,8 @@ namespace com.fpnn.rtm
                     }
                     callback(result.count, result.lastId, result.beginMsec, result.endMsec, result.messages, errorCode);
                 }
-
-                callback(0, 0, 0, 0, null, errorCode);
+                else
+                    callback(0, 0, 0, 0, null, errorCode);
             }, timeout);
         }
 
@@ -452,8 +452,8 @@ namespace com.fpnn.rtm
                     }
                     callback(result.count, result.lastId, result.beginMsec, result.endMsec, result.messages, errorCode);
                 }
-
-                callback(0, 0, 0, 0, null, errorCode);
+                else
+                    callback(0, 0, 0, 0, null, errorCode);
             }, timeout);
         }
 
@@ -527,8 +527,8 @@ namespace com.fpnn.rtm
                     }
                     callback(result.count, result.lastId, result.beginMsec, result.endMsec, result.messages, errorCode);
                 }
-
-                callback(0, 0, 0, 0, null, errorCode);
+                else
+                    callback(0, 0, 0, 0, null, errorCode);
             }, timeout);
         }
 
