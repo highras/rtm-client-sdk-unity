@@ -23,7 +23,7 @@ namespace com.fpnn
 
         public void OnAnswer(Answer answer)
         {
-            callback(answer, ErrorCode.FPNN_EC_OK);
+            callback(answer, answer.IsException() ? answer.ErrorCode() : ErrorCode.FPNN_EC_OK);
         }
         public void OnException(Answer answer, int errorCode)
         {
