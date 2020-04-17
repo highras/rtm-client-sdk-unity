@@ -60,6 +60,10 @@ Return Values:
 
 	Others are the reason for calling failed.
 
+**Notice:**
+
+If returned value is zero (FPNN_EC_OK) and the output parameter ok is false in sync calling, or errorCode is zero (FPNN_EC_OK) and authStatus is false in async calling, means the token is invalid, which need to be fetched again from RTM server by business server-end.
+
 ### Bye
 
 	public void Bye(bool async = true);
