@@ -205,11 +205,11 @@ Parameters:
 
 + `string appType`
 
-	Application information.
+	Application information. apns or fcm
 
 + `string deviceToke`
 
-	Device ASPN or FCM push token.
+	Device token
 
 + `int timeout`
 
@@ -252,7 +252,7 @@ Parameters:
 
 + `string deviceToke`
 
-	Device ASPN or FCM push token.
+	Device token
 
 + `int timeout`
 
