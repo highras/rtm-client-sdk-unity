@@ -284,6 +284,8 @@ namespace com.fpnn.rtm
                 lock (interLocker)
                 {
                     trigger = rtmGateConnectionId == connectionId;
+                    if (trigger)
+                        status = ClientStatus.Closed;
                 }
 
                 if (trigger)
@@ -393,7 +395,7 @@ namespace com.fpnn.rtm
                         if (endpoint.Length == 0)
                         {
                             if (errorRecorder != null)
-                                errorRecorder.RecordError("RtmGated auth return ok = false, but gate is empty.");
+                                errorRecorder.RecordError("RtmGated auth return ok = false, but gate is empty. Token maybe expired.");
 
                             AuthFinish(false, fpnn.ErrorCode.FPNN_EC_OK);
                             return;

@@ -209,7 +209,7 @@ Parameters:
 
 + `string deviceToke`
 
-	Device token
+	Device Token
 
 + `int timeout`
 
@@ -252,7 +252,7 @@ Parameters:
 
 + `string deviceToke`
 
-	Device token
+	Device Token
 
 + `int timeout`
 
