@@ -61,6 +61,10 @@ public void PushAudio(long fromUid, long toUid, long mid, byte[] message, string
 {
 	RTMAudioData audioData = new RTMAudioData(message); // create RTMAudioData
 
+	// if your project has automatic speech recognition turned on, you can get the recognition result like this:
+	string resultText = audioData.RecognitionText;
+	string resultLanguage = audioData.RecognitionLang;
+
 	// you can do the speech recognition like this:
 	string resultText = "", resultLanguage = "";
 	someRtmClient.Transcribe(out resultText, out resultLanguage, audioData.Audio);

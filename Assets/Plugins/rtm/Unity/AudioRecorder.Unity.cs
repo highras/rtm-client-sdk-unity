@@ -16,8 +16,8 @@ namespace com.fpnn.rtm
             void OnRecord(RTMAudioData audioData);
         }
 
-        public static int MAX_RECORD_SECONDS = 60;
         public static int RECORD_SAMPLE_RATE = 16000;
+        private int maxRecordSeconds = 60;
 
         private bool isPause;
         private bool isFocus;
@@ -64,7 +64,7 @@ namespace com.fpnn.rtm
 
         private IEnumerator TimeDown() {
             int time = 0;
-            while (++time < MAX_RECORD_SECONDS) {
+            while (++time < this.maxRecordSeconds) {
                 lock (selfLocker) {
                     if (!isRecording) {
                         yield return 0;
@@ -94,7 +94,7 @@ namespace com.fpnn.rtm
             }
         }
 
-        public void StartInput() {
+        public void StartInput(int maxRecordSeconds = 60) {
             if (micPhone == null) {
                 return;
             }
@@ -103,8 +103,9 @@ namespace com.fpnn.rtm
                 if (isRecording) {
                     return;
                 }
+                this.maxRecordSeconds = maxRecordSeconds;
                 isRecording = true;
-                clipRecord = Microphone.Start(device, false, MAX_RECORD_SECONDS, RECORD_SAMPLE_RATE);
+                clipRecord = Microphone.Start(device, false, this.maxRecordSeconds, RECORD_SAMPLE_RATE);
                 micPhone.Start();
             }
             StartCoroutine("TimeDown");

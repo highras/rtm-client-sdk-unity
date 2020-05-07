@@ -26,6 +26,8 @@ namespace com.fpnn.rtm
         public string lang;
         public long duration;
         public int sampleRate;
+        public string rtext = "";
+        public string rlang = "";
 
         private readonly byte[] headerArray;
 

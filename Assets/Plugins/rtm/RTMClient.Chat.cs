@@ -568,6 +568,14 @@ namespace com.fpnn.rtm
         //-- Action<string text, string language, errorCode>
         public bool Transcribe(Action<string, string, int> callback, byte[] audio, int timeout = 120)
         {
+            RTMAudioData audioData = new RTMAudioData(audio);
+            string cacheText = audioData.RecognitionText;
+            string cacheLanguage = audioData.RecognitionLang;
+            if (cacheText != "" && cacheLanguage != "") {
+                callback(cacheText, cacheLanguage, fpnn.ErrorCode.FPNN_EC_OK);
+                return true;
+            }
+
             TCPClient client = GetCoreClient();
             if (client == null)
                 return false;
@@ -598,6 +606,15 @@ namespace com.fpnn.rtm
 
         public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, int timeout = 120)
         {
+            RTMAudioData audioData = new RTMAudioData(audio);
+            string cacheText = audioData.RecognitionText;
+            string cacheLanguage = audioData.RecognitionLang;
+            if (cacheText != "" && cacheLanguage != "") {
+                resultText = cacheText;
+                resultLanguage = cacheLanguage;
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+
             resultText = "";
             resultLanguage = null;
 

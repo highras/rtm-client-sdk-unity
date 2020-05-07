@@ -66,6 +66,14 @@ namespace com.fpnn.rtm
                     rtmAudioHeader.sampleRate = Convert.ToInt32(value);
                     frequency = rtmAudioHeader.sampleRate;
                 }
+                if (infoData.TryGetValue("rtext", out value))
+                {
+                    rtmAudioHeader.rtext = (string)value;
+                }
+                if (infoData.TryGetValue("rlang", out value))
+                {
+                    rtmAudioHeader.rlang = (string)value;
+                }
 
                 offset += sectionLength;
             }
@@ -151,6 +159,22 @@ namespace com.fpnn.rtm
             get
             {
                 return rtmAudioHeader;
+            }
+        }
+
+        public string RecognitionText
+        {
+            get
+            {
+                return rtmAudioHeader.rtext;
+            }
+        }
+
+        public string RecognitionLang
+        {
+            get
+            {
+                return rtmAudioHeader.rlang;
             }
         }
         
