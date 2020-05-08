@@ -25,11 +25,6 @@
         void PushRoomMessage(long fromUid, long roomId, byte mtype, long mid, byte[] message, string attrs, long mtime);
         void PushBroadcastMessage(long fromUid, byte mtype, long mid, byte[] message, string attrs, long mtime);
 
-        void PushChat(long fromUid, long toUid, long mid, string message, string attrs, long mtime);
-        void PushGroupChat(long fromUid, long groupId, long mid, string message, string attrs, long mtime);
-        void PushRoomChat(long fromUid, long roomId, long mid, string message, string attrs, long mtime);
-        void PushBroadcastChat(long fromUid, long mid, string message, string attrs, long mtime);
-
         void PushChat(long fromUid, long toUid, long mid, TranslatedMessage message, string attrs, long mtime);
         void PushGroupChat(long fromUid, long groupId, long mid, TranslatedMessage message, string attrs, long mtime);
         void PushRoomChat(long fromUid, long roomId, long mid, TranslatedMessage message, string attrs, long mtime);

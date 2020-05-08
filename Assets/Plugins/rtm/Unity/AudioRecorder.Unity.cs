@@ -147,7 +147,6 @@ namespace com.fpnn.rtm
                                             position,
                                             clip.channels,
                                             clip.frequency,
-                                            false,
                                             false);
             
             newClip.SetData(newData, 0);

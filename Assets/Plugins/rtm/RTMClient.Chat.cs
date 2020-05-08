@@ -376,17 +376,17 @@ namespace com.fpnn.rtm
         public bool Translate(Action<TranslatedMessage, int> callback, string text,
             TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
-            bool postProfanity = false, int timeout = 0)
+            int timeout = 0)
         {
             return Translate(callback, text, GetTranslatedLanguage(destinationLanguage),
-                GetTranslatedLanguage(sourceLanguage), type, profanity, postProfanity, timeout);
+                GetTranslatedLanguage(sourceLanguage), type, profanity, timeout);
         }
 
         //-- Action<TranslatedMessage, errorCode>
         private bool Translate(Action<TranslatedMessage, int> callback, string text,
             string destinationLanguage, string sourceLanguage = "",
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
-            bool postProfanity = false, int timeout = 0)
+            int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -410,8 +410,6 @@ namespace com.fpnn.rtm
                 case ProfanityType.Censor: quest.Param("profanity", "censor"); break;
                 case ProfanityType.Off: quest.Param("profanity", "off"); break;
             }
-
-            quest.Param("postProfanity", postProfanity);
 
             return client.SendQuest(quest, (Answer answer, int errorCode) => {
 
@@ -439,16 +437,16 @@ namespace com.fpnn.rtm
         public int Translate(out TranslatedMessage translatedMessage, string text,
             TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
-            bool postProfanity = false, int timeout = 0)
+            int timeout = 0)
         {
             return Translate(out translatedMessage, text, GetTranslatedLanguage(destinationLanguage),
-                GetTranslatedLanguage(sourceLanguage), type, profanity, postProfanity, timeout);
+                GetTranslatedLanguage(sourceLanguage), type, profanity, timeout);
         }
 
         private int Translate(out TranslatedMessage translatedMessage, string text,
             string destinationLanguage, string sourceLanguage = "",
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
-            bool postProfanity = false, int timeout = 0)
+            int timeout = 0)
         {
             translatedMessage = null;
 
@@ -474,8 +472,6 @@ namespace com.fpnn.rtm
                 case ProfanityType.Censor: quest.Param("profanity", "censor"); break;
                 case ProfanityType.Off: quest.Param("profanity", "off"); break;
             }
-
-            quest.Param("postProfanity", postProfanity);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -568,13 +564,28 @@ namespace com.fpnn.rtm
         //-- Action<string text, string language, errorCode>
         public bool Transcribe(Action<string, string, int> callback, byte[] audio, int timeout = 120)
         {
+            return TranscribeInternal(callback, audio, null, timeout);
+        }
+
+        public bool Transcribe(Action<string, string, int> callback, byte[] audio, bool filterProfanity, int timeout = 120)
+        {
+            return TranscribeInternal(callback, audio, filterProfanity, timeout);
+        }
+
+        private bool TranscribeInternal(Action<string, string, int> callback, byte[] audio, bool? filterProfanity, int timeout = 120)
+        {
+#if UNITY_2017_1_OR_NEWER
             RTMAudioData audioData = new RTMAudioData(audio);
             string cacheText = audioData.RecognitionText;
             string cacheLanguage = audioData.RecognitionLang;
-            if (cacheText != "" && cacheLanguage != "") {
-                callback(cacheText, cacheLanguage, fpnn.ErrorCode.FPNN_EC_OK);
+            if (cacheText != "" && cacheLanguage != "")
+            {
+                ClientEngine.RunTask(() => {
+                    callback(cacheText, cacheLanguage, fpnn.ErrorCode.FPNN_EC_OK);
+                });
                 return true;
             }
+#endif
 
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -582,6 +593,8 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("transcribe");
             quest.Param("audio", audio);
+            if (filterProfanity.HasValue)
+                quest.Param("profanityFilter", filterProfanity.Value);
 
             return client.SendQuest(quest, (Answer answer, int errorCode) => {
 
@@ -606,14 +619,27 @@ namespace com.fpnn.rtm
 
         public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, int timeout = 120)
         {
+            return TranscribeInternal(out resultText, out resultLanguage, audio, null, timeout);
+        }
+
+        public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, bool filterProfanity, int timeout = 120)
+        {
+            return TranscribeInternal(out resultText, out resultLanguage, audio, filterProfanity, timeout);
+        }
+
+        private int TranscribeInternal(out string resultText, out string resultLanguage, byte[] audio, bool? filterProfanity, int timeout = 120)
+        {
+#if UNITY_2017_1_OR_NEWER
             RTMAudioData audioData = new RTMAudioData(audio);
             string cacheText = audioData.RecognitionText;
             string cacheLanguage = audioData.RecognitionLang;
-            if (cacheText != "" && cacheLanguage != "") {
+            if (cacheText != "" && cacheLanguage != "")
+            {
                 resultText = cacheText;
                 resultLanguage = cacheLanguage;
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
+#endif
 
             resultText = "";
             resultLanguage = null;
@@ -624,6 +650,8 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("transcribe");
             quest.Param("audio", audio);
+            if (filterProfanity.HasValue)
+                quest.Param("profanityFilter", filterProfanity.Value);
 
             Answer answer = client.SendQuest(quest, timeout);
 

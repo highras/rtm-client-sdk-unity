@@ -215,13 +215,13 @@ namespace com.fpnn
             }
         }
 
-        internal static bool RunTask(common.TaskThreadPool.ITask task)
+        public static bool RunTask(common.TaskThreadPool.ITask task)
         {
             CheckInitStatus();
             return taskPool.Wakeup(task);
         }
 
-        internal static bool RunTask(Action action)
+        public static bool RunTask(Action action)
         {
             CheckInitStatus();
             return taskPool.Wakeup(action);

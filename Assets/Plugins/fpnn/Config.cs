@@ -3,7 +3,7 @@ namespace com.fpnn
 {
     public class Config
     {
-        public static readonly string Version = "2.0.2";
+        public static readonly string Version = "2.0.3";
 
         //----------------[ Nested Structure ]-----------------------//
         public struct TaskThreadPoolConfig

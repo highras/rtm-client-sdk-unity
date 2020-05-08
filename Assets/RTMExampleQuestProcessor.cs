@@ -109,47 +109,10 @@ namespace example.common
                 Debug.Log(sb.ToString());
         }
 
-        public void PushChat(long fromUid, long toUid, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push chat: from {0}, mid: {1}, attrs: {2}, message: {3}",
-                    fromUid, mid, attrs, message);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushGroupChat(long fromUid, long groupId, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push group chat: from {0},in group {4}, mid: {1}, attrs: {2}, message: {3}",
-                    fromUid, mid, attrs, message, groupId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushRoomChat(long fromUid, long roomId, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push room chat: from {0},in room {4}, mid: {1}, attrs: {2}, message: {3}",
-                    fromUid, mid, attrs, message, roomId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushBroadcastChat(long fromUid, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push broadcast chat: from {0}, mid: {1}, attrs: {2}, message: {3}",
-                    fromUid, mid, attrs, message);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-
         public void PushChat(long fromUid, long toUid, long mid, com.fpnn.rtm.TranslatedMessage message, string attrs, long mtime)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push translated chat: from {0}, mid: {1}, attrs: {2}, from {3} {4} to {5} {6}",
+            sb.AppendFormat("Receive push translated chat: from {0}, mid: {1}, attrs: {2}, from language {3} content {4} to language {5} content {6}",
                     fromUid, mid, attrs, message.source, message.sourceText, message.target, message.targetText);
 
             lock (this)
@@ -158,7 +121,7 @@ namespace example.common
         public void PushGroupChat(long fromUid, long groupId, long mid, com.fpnn.rtm.TranslatedMessage message, string attrs, long mtime)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push translated group chat: from {0}, in group {7}, mid: {1}, attrs: {2}, from {3} {4} to {5} {6}",
+            sb.AppendFormat("Receive push translated group chat: from {0}, in group {7}, mid: {1}, attrs: {2}, from language {3} content {4} to language {5} content {6}",
                     fromUid, mid, attrs, message.source, message.sourceText, message.target, message.targetText, groupId);
 
             lock (this)
@@ -167,7 +130,7 @@ namespace example.common
         public void PushRoomChat(long fromUid, long roomId, long mid, com.fpnn.rtm.TranslatedMessage message, string attrs, long mtime)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push translated room chat: from {0}, in room {7}, mid: {1}, attrs: {2}, from {3} {4} to {5} {6}",
+            sb.AppendFormat("Receive push translated room chat: from {0}, in room {7}, mid: {1}, attrs: {2}, from language {3} content {4} to language {5} content {6}",
                     fromUid, mid, attrs, message.source, message.sourceText, message.target, message.targetText, roomId);
 
             lock (this)
@@ -176,7 +139,7 @@ namespace example.common
         public void PushBroadcastChat(long fromUid, long mid, com.fpnn.rtm.TranslatedMessage message, string attrs, long mtime)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push translated broadcast chat: from {0}, mid: {1}, attrs: {2}, from {3} {4} to {5} {6}",
+            sb.AppendFormat("Receive push translated broadcast chat: from {0}, mid: {1}, attrs: {2}, from language {3} content {4} to language {5} content {6}",
                     fromUid, mid, attrs, message.source, message.sourceText, message.target, message.targetText);
 
             lock (this)

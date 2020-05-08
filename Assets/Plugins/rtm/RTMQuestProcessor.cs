@@ -25,11 +25,6 @@ namespace com.fpnn.rtm
         void PushRoomMessage(long fromUid, long roomId, byte mtype, long mid, byte[] message, string attrs, long mtime);
         void PushBroadcastMessage(long fromUid, byte mtype, long mid, byte[] message, string attrs, long mtime);
 
-        void PushChat(long fromUid, long toUid, long mid, string message, string attrs, long mtime);
-        void PushGroupChat(long fromUid, long groupId, long mid, string message, string attrs, long mtime);
-        void PushRoomChat(long fromUid, long roomId, long mid, string message, string attrs, long mtime);
-        void PushBroadcastChat(long fromUid, long mid, string message, string attrs, long mtime);
-
         void PushChat(long fromUid, long toUid, long mid, TranslatedMessage message, string attrs, long mtime);
         void PushGroupChat(long fromUid, long groupId, long mid, TranslatedMessage message, string attrs, long mtime);
         void PushRoomChat(long fromUid, long roomId, long mid, TranslatedMessage message, string attrs, long mtime);
@@ -155,32 +150,49 @@ namespace com.fpnn.rtm
         }
 
         //----------------------[ RTM Messagess Utilities ]-------------------//
-        private TranslatedMessage ProcessChatMessage(Quest quest, out string message)
+        private TranslatedMessage ProcessChatMessage(Quest quest)
         {
+            TranslatedMessage tm = new TranslatedMessage();
+
             try
             {
-                message = quest.Want<string>("msg");
-                return null;
-            }
-            catch (InvalidCastException)
-            {
                 Dictionary<object, object> msg = quest.Want<Dictionary<object, object>>("msg");
-                TranslatedMessage tm = new TranslatedMessage();
-                tm.source = (string)msg["source"];
-                tm.target = (string)msg["target"];
-                tm.sourceText = (string)msg["sourceText"];
-                tm.targetText = (string)msg["targetText"];
-
-                if (tm.targetText.Length == 0)
+                if (msg.TryGetValue("source", out object source))
                 {
-                    message = tm.sourceText;
-                    return null;
+                    tm.source = (string)source;
                 }
                 else
+                    tm.source = string.Empty;
+
+                if (msg.TryGetValue("target", out object target))
                 {
-                    message = string.Empty;
-                    return tm;
+                    tm.target = (string)target;
                 }
+                else
+                    tm.target = string.Empty;
+
+                if (msg.TryGetValue("sourceText", out object sourceText))
+                {
+                    tm.sourceText = (string)sourceText;
+                }
+                else
+                    tm.sourceText = string.Empty;
+
+                if (msg.TryGetValue("targetText", out object targetText))
+                {
+                    tm.targetText = (string)targetText;
+                }
+                else
+                    tm.targetText = string.Empty;
+
+                return tm;
+            }
+            catch (InvalidCastException e)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("ProcessChatMessage failed.", e);
+
+                return null;
             }
         }
 
@@ -226,10 +238,8 @@ namespace com.fpnn.rtm
 
             if (mtype == RTMClient.MessageMType_Chat)
             {
-                TranslatedMessage tm = ProcessChatMessage(quest, out string orginialMessage);
-                if (tm == null)
-                    questProcessor.PushChat(from, to, mid, orginialMessage, attrs, mtime);
-                else
+                TranslatedMessage tm = ProcessChatMessage(quest);
+                if (tm != null)
                     questProcessor.PushChat(from, to, mid, tm, attrs, mtime);
 
                 return null;
@@ -286,10 +296,8 @@ namespace com.fpnn.rtm
 
             if (mtype == RTMClient.MessageMType_Chat)
             {
-                TranslatedMessage tm = ProcessChatMessage(quest, out string orginialMessage);
-                if (tm == null)
-                    questProcessor.PushGroupChat(from, groupId, mid, orginialMessage, attrs, mtime);
-                else
+                TranslatedMessage tm = ProcessChatMessage(quest);
+                if (tm != null)
                     questProcessor.PushGroupChat(from, groupId, mid, tm, attrs, mtime);
 
                 return null;
@@ -346,10 +354,8 @@ namespace com.fpnn.rtm
 
             if (mtype == RTMClient.MessageMType_Chat)
             {
-                TranslatedMessage tm = ProcessChatMessage(quest, out string orginialMessage);
-                if (tm == null)
-                    questProcessor.PushRoomChat(from, roomId, mid, orginialMessage, attrs, mtime);
-                else
+                TranslatedMessage tm = ProcessChatMessage(quest);
+                if (tm != null)
                     questProcessor.PushRoomChat(from, roomId, mid, tm, attrs, mtime);
 
                 return null;
@@ -405,10 +411,8 @@ namespace com.fpnn.rtm
 
             if (mtype == RTMClient.MessageMType_Chat)
             {
-                TranslatedMessage tm = ProcessChatMessage(quest, out string orginialMessage);
-                if (tm == null)
-                    questProcessor.PushBroadcastChat(from, mid, orginialMessage, attrs, mtime);
-                else
+                TranslatedMessage tm = ProcessChatMessage(quest);
+                if (tm != null)
                     questProcessor.PushBroadcastChat(from, mid, tm, attrs, mtime);
 
                 return null;

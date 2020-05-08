@@ -52,13 +52,13 @@ Return Values:
 	public bool Translate(Action<TranslatedMessage, int> callback, string text,
             TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
-            bool postProfanity = false, int timeout = 0);
+            int timeout = 0);
 	
 	//-- Sync Method
 	public int Translate(out TranslatedMessage translatedMessage, string text,
             TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
-            bool postProfanity = false, int timeout = 0);
+            int timeout = 0);
 
 Translate text to target language.
 
@@ -97,10 +97,6 @@ Parameters:
 	* ProfanityType.Off (**Default**)
 	* ProfanityType.Stop
 	* ProfanityType.Censor
-
-+ `bool postProfanity`
-
-	Enable profanity filter for translated text.
 
 + `int timeout`
 
@@ -184,9 +180,11 @@ Return Values:
 
 	//-- Async Method
 	public bool Transcribe(Action<string, string, int> callback, byte[] audio, int timeout = 120);
+	public bool Transcribe(Action<string, string, int> callback, byte[] audio, bool filterProfanity, int timeout = 120);
 	
 	//-- Sync Method
 	public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, int timeout = 120);
+	public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, bool filterProfanity, int timeout = 120);
 
 Speech Recognition.
 
@@ -210,6 +208,10 @@ Parameters:
 + `byte[] audio`
 
 	Speech data.
+
++ `filterProfanity`
+
+	Enable or disable sensitive words detected and filter.
 
 + `int timeout`
 

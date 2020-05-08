@@ -3,8 +3,8 @@ namespace com.fpnn.rtm
 {
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "2.0.5";
-        public static readonly string InterfaceVersion = "2.0.0";
+        public static readonly string SDKVersion = "2.1.0";
+        public static readonly string InterfaceVersion = "2.0.2";
 
         internal static int lostConnectionAfterLastPingInSeconds = 120;
         internal static int globalConnectTimeoutSeconds = 30;
