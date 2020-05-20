@@ -149,11 +149,11 @@ namespace com.fpnn
         {
             lock (interLocker)
             {
-                if (conn == connection)
+                if (connection == conn)
                 {
                     status = newStatus;
                     if (status == ClientStatus.Closed)
-                        conn = null;
+                        connection = null;
                 }
             }
         }
@@ -162,6 +162,9 @@ namespace com.fpnn
         {
             conn.SetConnectedDelegate((Int64 connectionId, string endpoint, bool connected) =>
             {
+                if (!connected)
+                    SetClientStatus(conn, ClientStatus.Closed);
+
                 if (cb != null)
                     try
                     {
@@ -173,7 +176,8 @@ namespace com.fpnn
                             errorRecorder.RecordError("Connected event exception. Remote endpoint: " + endpoint + ".", ex);
                     }
 
-                SetClientStatus(conn, connected ? ClientStatus.Connected : ClientStatus.Closed);
+                if (connected)
+                    SetClientStatus(conn, ClientStatus.Connected);
 
                 finishEvent.Set();
             });

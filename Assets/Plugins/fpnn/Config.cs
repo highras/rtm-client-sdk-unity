@@ -3,7 +3,7 @@ namespace com.fpnn
 {
     public class Config
     {
-        public static readonly string Version = "2.0.3";
+        public static readonly string Version = "2.0.4";
 
         //----------------[ Nested Structure ]-----------------------//
         public struct TaskThreadPoolConfig
@@ -22,6 +22,7 @@ namespace com.fpnn
         public int globalQuestTimeoutSeconds;
         public int maxPayloadSize;
         public common.ErrorRecorder errorRecorder;
+        public bool dropAllUnexecutedTaskWhenExiting;
 
         public Config()
         {
@@ -34,6 +35,12 @@ namespace com.fpnn
             globalConnectTimeoutSeconds = 5;
             globalQuestTimeoutSeconds = 5;
             maxPayloadSize = 1024 * 1024 * 4;        //-- 4MB
+
+#if UNITY_EDITOR
+            dropAllUnexecutedTaskWhenExiting = true;
+#else
+            dropAllUnexecutedTaskWhenExiting = false;
+#endif
         }
     }
 }

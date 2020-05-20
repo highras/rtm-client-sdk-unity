@@ -14,6 +14,7 @@ namespace com.fpnn
         private static Dictionary<TCPConnection, Int64> connectingConnections;
         private static HashSet<TCPConnection> allConnections;
         private static common.TaskThreadPool taskPool;
+        private static bool dropAllTaskWhenQuit;
 
         internal static DateTime originDateTime;
         internal static int globalConnectTimeoutSeconds;
@@ -62,6 +63,7 @@ namespace com.fpnn
                 allConnections = new HashSet<TCPConnection>();
                 originDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
+                dropAllTaskWhenQuit = config.dropAllUnexecutedTaskWhenExiting;
                 globalConnectTimeoutSeconds = config.globalConnectTimeoutSeconds;
                 globalQuestTimeoutSeconds = config.globalQuestTimeoutSeconds;
                 maxPayloadSize = config.maxPayloadSize;
@@ -72,11 +74,7 @@ namespace com.fpnn
                     config.taskThreadPoolConfig.maxThreadCount,
                     config.taskThreadPoolConfig.maxQueueLengthLimitation,
                     config.taskThreadPoolConfig.tempLatencySeconds,
-#if UNITY_2017_1_OR_NEWER
-                    false
-#else
-                    true
-#endif
+                    dropAllTaskWhenQuit
                     );
 
                 taskPool.SetErrorRecorder(config.errorRecorder);
@@ -260,7 +258,7 @@ namespace com.fpnn
             quitSemaphore = null;
 
             PlatformUninit();
-            taskPool.Close();
+            taskPool.Close(dropAllTaskWhenQuit);
         }
     }
 }

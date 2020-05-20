@@ -5,8 +5,8 @@ using System.Threading;
 namespace com.fpnn.common
 {
     /*
-     * All thread is background thread.
-     * Close() is not necessary.
+     * Close() is not necessary when using background thread.
+     * 
      * If using ErrorRecoder, please call TaskThreadPool.SetDefaultErrorRecorder()
      *      before creating any instance, or call SetErrorRecorder() for each instance
      *      before WakeUp()s are called.
@@ -314,7 +314,7 @@ namespace com.fpnn.common
             }
         }
 
-        public void Close()      //-- Synchronous method.
+        public void Close(bool dropAllTasks = false)      //-- Synchronous method.
         {
             bool active = true;
 
@@ -322,6 +322,9 @@ namespace com.fpnn.common
             {
                 if (core.stopped)
                     return;
+
+                if (dropAllTasks)
+                    core.taskQueue.Clear();
 
                 if (core.backgroundThread || (core.normalThreadCount == 0 && core.tempThreadCount == 0))
                     active = false;

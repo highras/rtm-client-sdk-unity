@@ -6,12 +6,6 @@ using com.fpnn.proto;
 
 namespace com.fpnn
 {
-    // Reference: https://github.com/gaochundong/Cowboy/blob/master/Cowboy/Cowboy.Sockets/Tcp/Client/EAP/TcpSocketSaeaClient.cs
-    // Reference: https://answers.unity.com/questions/812618/how-to-use-socketasynceventargs-in-unity3d.html
-    // Reference: https://blog.csdn.net/fuemocheng/article/details/78241405
-    // Reference: https://www.cnblogs.com/MRRAOBX/articles/3908026.html
-    // Reference: https://docs.microsoft.com/zh-cn/dotnet/api/system.net.sockets.socketasynceventargs?view=netframework-4.6
-
     internal class TCPConnection
     {
         private const int MaxRecursionDeepOfReceiveFunction = 10;
@@ -31,6 +25,7 @@ namespace com.fpnn
         private volatile bool beginClosing;
         private volatile bool requireClose;
         private bool connectingCanBeCannelled;
+        private int connectCompletedSignForUnityIl2CPPDisCompliantImplement;
 
         private Socket socket;
         private SocketAsyncEventArgs receiveAsyncEventArgs;
@@ -63,6 +58,7 @@ namespace com.fpnn
             beginClosing = false;
             requireClose = false;
             connectingCanBeCannelled = false;
+            connectCompletedSignForUnityIl2CPPDisCompliantImplement = 0;
 
             socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
             receiveAsyncEventArgs = new SocketAsyncEventArgs { RemoteEndPoint = endpoint };
@@ -212,6 +208,29 @@ namespace com.fpnn
 
         private void ConnectCompleted(object sender, SocketAsyncEventArgs e)
         {
+            int unityDisCompliantSign = System.Threading.Interlocked.Exchange(ref connectCompletedSignForUnityIl2CPPDisCompliantImplement, 1);
+            if (unityDisCompliantSign != 0)
+            {
+                if (e.SocketError != SocketError.Success)
+                {
+                    lock (interLocker)
+                    {
+                        if (status == TCPClient.ClientStatus.Connecting)
+                        {
+                            requireClose = true;
+                            return;
+                        }
+                        else if (status == TCPClient.ClientStatus.Closed)
+                            return;
+                    }
+
+                    //-- status == TCPClient.ClientStatus.Connected
+                    Close();
+                }
+
+                return;
+            }
+
             if (e.SocketError != SocketError.Success)
             {
                 if (errorRecorder != null && !requireClose)
@@ -265,6 +284,10 @@ namespace com.fpnn
             catch (SocketException ex)
             {
                 CloseByException("Receive data from " + endpoint + " exception. Access socket is error.", ex, false);
+            }
+            catch (InvalidOperationException)
+            {
+                //-- Do nothings
             }
         }
 
@@ -341,6 +364,10 @@ namespace com.fpnn
             {
                 CloseByException("Receive data from " + endpoint + " exception. Access socket is error.", ex, false);
             }
+            catch (InvalidOperationException)
+            {
+                //-- Do nothings
+            }
         }
 
         private void SendCompleted(object sender, SocketAsyncEventArgs e)
@@ -401,6 +428,10 @@ namespace com.fpnn
             {
                 CloseByException("Send data to " + endpoint + " exception. Access socket is error.", ex, false);
             }
+            catch (InvalidOperationException)
+            {
+                //-- DO nothings
+            }
         }
 
         private void CheckSending()
@@ -439,6 +470,10 @@ namespace com.fpnn
             catch (SocketException ex)
             {
                 CloseByException("Send data to " + endpoint + " exception. Access socket is error.", ex, false);
+            }
+            catch (InvalidOperationException)
+            {
+                //-- Do nothings
             }
         }
 
