@@ -629,9 +629,10 @@ namespace com.fpnn.rtm
                     isConnecting = true;
                 }
                 else
+                {
                     clients.Add(rtmGate);
-
-                status = ClientStatus.Closed;
+                    status = ClientStatus.Closed;
+                }
             }
 
             foreach (TCPClient client in clients)
