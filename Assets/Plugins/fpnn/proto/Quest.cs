@@ -28,7 +28,7 @@ namespace com.fpnn.proto
             static public Int64 GetCurrentMilliseconds()
             {
                 DateTime originDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-                TimeSpan span = DateTime.Now - originDateTime;
+                TimeSpan span = DateTime.UtcNow - originDateTime;
                 return (Int64)Math.Floor(span.TotalMilliseconds);
             }
 

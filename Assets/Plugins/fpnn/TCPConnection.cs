@@ -863,7 +863,7 @@ namespace com.fpnn
                         if (timeoutInSeconds == 0)
                             timeoutInSeconds = ClientEngine.globalQuestTimeoutSeconds;
 
-                        TimeSpan span = DateTime.Now - ClientEngine.originDateTime;
+                        TimeSpan span = DateTime.UtcNow - ClientEngine.originDateTime;
                         Int64 seconds = (Int64)Math.Floor(span.TotalSeconds) + timeoutInSeconds;
 
                         AnswerCallbackUnit unit = new AnswerCallbackUnit();

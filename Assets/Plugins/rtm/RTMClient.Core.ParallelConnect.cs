@@ -120,7 +120,6 @@ namespace com.fpnn.rtm
                     }
 
                     rtmGateConnectionId = connectionId;
-                    lastAvailableRtmGateEndpoint = endpoint;
                     RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
                     Auth();
                 }

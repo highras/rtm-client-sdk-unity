@@ -23,6 +23,7 @@ namespace com.fpnn.rtm
             public Dictionary<string, string> attr;
             public string lang;
 
+            public bool usingDefaultQuestTimeout;
             public int remainedTimeout;
             public long lastActionMsecTimeStamp;
 
@@ -70,9 +71,9 @@ namespace com.fpnn.rtm
         private TCPClient dispatch;
         private TCPClient rtmGate;
         private Int64 rtmGateConnectionId;
+        private Int64 reservedRtmGateConnectionId;
 
         private AuthStatusInfo authStatsInfo;
-        private string lastAvailableRtmGateEndpoint;
         private common.ErrorRecorder errorRecorder;
 
         public RTMClient(string endpoint, long pid, long uid, IRTMQuestProcessor serverPushProcessor)
@@ -213,8 +214,6 @@ namespace com.fpnn.rtm
         private void AuthFinish(bool authStatus, int errorCode)
         {
             AuthStatusInfo currInfo;
-            TCPClient client = null;
-            long connectionId = 0;
             long currUid;
 
             lock (interLocker)
@@ -230,10 +229,9 @@ namespace com.fpnn.rtm
                 else
                 {
                     status = ClientStatus.Closed;
-                    connectionId = rtmGateConnectionId;
+                    reservedRtmGateConnectionId = rtmGateConnectionId;
                     rtmGateConnectionId = 0;
-                    client = rtmGate;
-                    rtmGate = null;
+                    //-- Reserving rtmGate without closing for quick relogin.
                 }
 
                 currInfo = authStatsInfo;
@@ -246,11 +244,8 @@ namespace com.fpnn.rtm
             if (currInfo != null)
                 currInfo.authCallback(pid, currUid, authStatus, errorCode);
 
-            if (connectionId != 0)
-                RTMControlCenter.UnregisterSession(connectionId);
-
-            if (client != null)
-                client.Close();
+            if (reservedRtmGateConnectionId != 0)
+                RTMControlCenter.UnregisterSession(reservedRtmGateConnectionId);
         }
 
         private bool AdjustAuthRemainedTimeout()
@@ -281,15 +276,26 @@ namespace com.fpnn.rtm
             client.SetConnectionCloseDelegate((Int64 connectionId, string endpoint, bool causedByError) => {
 
                 bool trigger = false;
+                bool isConnecting = false;
                 lock (interLocker)
                 {
                     trigger = rtmGateConnectionId == connectionId;
                     if (trigger)
-                        status = ClientStatus.Closed;
+                    {
+                        if (status == ClientStatus.Connecting)
+                            isConnecting = true;
+                        else
+                            status = ClientStatus.Closed;
+                    }
                 }
 
                 if (trigger)
-                    processor.SessionClosed(causedByError ? com.fpnn.ErrorCode.FPNN_EC_CORE_UNKNOWN_ERROR : com.fpnn.ErrorCode.FPNN_EC_OK);
+                {
+                    if (isConnecting)
+                        AuthFinish(false, com.fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    else
+                        processor.SessionClosed(causedByError ? com.fpnn.ErrorCode.FPNN_EC_CORE_UNKNOWN_ERROR : com.fpnn.ErrorCode.FPNN_EC_OK);
+                }
             });
         }
 
@@ -325,7 +331,6 @@ namespace com.fpnn.rtm
                         if (connected)
                         {
                             rtmGateConnectionId = connectionId;
-                            lastAvailableRtmGateEndpoint = ipv4endpoint;
                             RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
                             Auth();
                         }
@@ -352,9 +357,9 @@ namespace com.fpnn.rtm
                 AuthFinish(false, errorCode);
         }
 
-        private void Auth()
+        private void Auth(bool checkRemainedTimeout = true)
         {
-            if (!AdjustAuthRemainedTimeout())
+            if (checkRemainedTimeout && !AdjustAuthRemainedTimeout())
                 return;
 
             processor.SetConnectionId(rtmGateConnectionId);
@@ -375,6 +380,10 @@ namespace com.fpnn.rtm
 
             if (authStatsInfo.attr != null && authStatsInfo.attr.Count > 0)
                 quest.Param("attrs", authStatsInfo.attr);
+
+            int timeout = authStatsInfo.remainedTimeout;
+            if (authStatsInfo.usingDefaultQuestTimeout && RTMConfig.globalQuestTimeoutSeconds < timeout)
+                timeout = RTMConfig.globalQuestTimeoutSeconds;
 
             bool status = rtmGate.SendQuest(quest, (Answer answer, int errorCode) => {
                 if (requireClose)
@@ -413,7 +422,7 @@ namespace com.fpnn.rtm
                 {
                     AuthFinish(false, errorCode);
                 }
-            }, authStatsInfo.remainedTimeout);
+            }, timeout);
             if (!status)
                 AuthFinish(false, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
         }
@@ -436,7 +445,6 @@ namespace com.fpnn.rtm
                 if (connected)
                 {
                     rtmGateConnectionId = connectionId;
-                    lastAvailableRtmGateEndpoint = endpoint;
                     RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
                     Auth();
                 }
@@ -467,6 +475,49 @@ namespace com.fpnn.rtm
                 client.Close();
         }
 
+        private void QuickRelogin()
+        {
+            rtmGateConnectionId = reservedRtmGateConnectionId;
+            RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
+            Auth(false);
+        }
+
+        private void QuickConnectRelogin()
+        {
+            TCPClient client;
+            lock (interLocker)
+            {
+                client = rtmGate;
+                authStatsInfo.rtmClients.Add(rtmGate);
+            }
+            ConfigRtmGateClient(client, (Int64 connectionId, string endpoint, bool connected) => {
+                if (requireClose)
+                {
+                    AuthFinish(false, fpnn.ErrorCode.FPNN_EC_CORE_CONNECTION_CLOSED);
+                    return;
+                }
+
+                if (connected)
+                {
+                    rtmGateConnectionId = connectionId;
+                    RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
+                    Auth();
+                }
+                else
+                {
+                    if (!AdjustAuthRemainedTimeout())
+                        return;
+
+                    if (AsyncFetchRtmGateEndpoint("ipv4", DispatchCallBack_Which_IPv4, authStatsInfo.remainedTimeout))
+                    {
+                        AuthFinish(false, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                        return;
+                    }
+                }
+            }, authStatsInfo.remainedTimeout);
+            client.AsyncConnect();
+        }
+
         //-------------[ Login & System interfaces ]--------------------------//
         /**
          * Return false if logined, or other async Login is processing, or No available connection.
@@ -492,6 +543,9 @@ namespace com.fpnn.rtm
          */
         private bool Login(AuthDelegate callback, string token, Dictionary<string, string> attr, string lang = "", int timeout = 0)
         {
+            bool quickLogin = false;
+            bool quickConnectLogin = false;
+
             lock (interLocker)
             {
                 if (status == ClientStatus.Connected)
@@ -502,16 +556,33 @@ namespace com.fpnn.rtm
 
                 status = ClientStatus.Connecting;
                 syncConnectingEvent.Reset();
+
+                requireClose = false;
+
+                if (rtmGate != null)
+                {
+                    if (rtmGate.IsConnected())
+                        quickLogin = true;
+                    else
+                        quickConnectLogin = true;
+                }
             }
 
+            bool usingDefaultQuestTimeout = false;
             if (timeout == 0)
             {
-                timeout = ((ConnectTimeout == 0) ? RTMConfig.globalConnectTimeoutSeconds : ConnectTimeout)
-                    + ((QuestTimeout == 0) ? RTMConfig.globalQuestTimeoutSeconds : QuestTimeout);
+                usingDefaultQuestTimeout = true;
+
+                if (quickLogin)
+                    timeout = RTMConfig.globalQuestTimeoutSeconds;
+                else
+                    timeout = ((ConnectTimeout == 0) ? RTMConfig.globalConnectTimeoutSeconds : ConnectTimeout)
+                        + ((QuestTimeout == 0) ? RTMConfig.globalQuestTimeoutSeconds : QuestTimeout);
             }
 
             authStatsInfo = new AuthStatusInfo
             {
+                usingDefaultQuestTimeout = usingDefaultQuestTimeout,
                 remainedTimeout = timeout,
                 authCallback = callback,
                 rtmClients = new HashSet<TCPClient>(),
@@ -521,6 +592,18 @@ namespace com.fpnn.rtm
             authStatsInfo.attr = attr;
             authStatsInfo.lang = lang;
             authStatsInfo.lastActionMsecTimeStamp = ClientEngine.GetCurrentMilliseconds();
+
+            if (quickLogin)
+            {
+                QuickRelogin();
+                return true;
+            }
+
+            if (quickConnectLogin)
+            {
+                QuickConnectRelogin();
+                return true;
+            }
 
             if (AsyncFetchRtmGateEndpoint("ipv4", DispatchCallBack_Which_IPv4, timeout))
                 return true;
