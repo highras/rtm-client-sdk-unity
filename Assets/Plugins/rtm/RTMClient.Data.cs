@@ -10,12 +10,20 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("dataget");
             quest.Param("key", key);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 string value = null;
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
@@ -29,6 +37,14 @@ namespace com.fpnn.rtm
                 }
                 callback(value, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int DataGet(out string value, string key, int timeout = 0)
@@ -62,13 +78,29 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("dataset");
             quest.Param("key", key);
             quest.Param("val", value);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int DataSet(string key, string value, int timeout = 0)
@@ -90,12 +122,28 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("datadel");
             quest.Param("key", key);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int DataDelete(string key, int timeout = 0)

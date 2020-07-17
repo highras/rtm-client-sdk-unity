@@ -6,56 +6,60 @@ using com.fpnn.proto;
 
 namespace com.fpnn.rtm
 {
-    public interface IRTMQuestProcessor
+    public class RTMQuestProcessor
     {
-        void SessionClosed(int ClosedByErrorCode);        //-- com.fpnn.ErrorCode & com.fpnn.rtm.ErrorCode
+        //----------------[ System Events ]-----------------//
+        public virtual void SessionClosed(int ClosedByErrorCode) { }    //-- ErrorCode: com.fpnn.ErrorCode & com.fpnn.rtm.ErrorCode
 
-        void Kickout();
-        void KickoutRoom(long roomId);
+        //-- Return true for starting relogin, false for stopping relogin.
+        public virtual bool ReloginWillStart(int lastErrorCode, int retriedCount) { return true; }
+        public virtual void ReloginCompleted(bool successful, bool retryAgain, int errorCode, int retriedCount) { }
 
-        //-- message for string format
-        void PushMessage(long fromUid, long toUid, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushGroupMessage(long fromUid, long groupId, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushRoomMessage(long fromUid, long roomId, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushBroadcastMessage(long fromUid, byte mtype, long mid, string message, string attrs, long mtime);
+        public virtual void Kickout() { }
+        public virtual void KickoutRoom(long roomId) { }
 
-        //-- message for binary format
-        void PushMessage(long fromUid, long toUid, byte mtype, long mid, byte[] message, string attrs, long mtime);
-        void PushGroupMessage(long fromUid, long groupId, byte mtype, long mid, byte[] message, string attrs, long mtime);
-        void PushRoomMessage(long fromUid, long roomId, byte mtype, long mid, byte[] message, string attrs, long mtime);
-        void PushBroadcastMessage(long fromUid, byte mtype, long mid, byte[] message, string attrs, long mtime);
+        //----------------[ Message Interfaces ]-----------------//
+        //-- Messages
+        public virtual void PushMessage(RTMMessage message) { }
+        public virtual void PushGroupMessage(RTMMessage message) { }
+        public virtual void PushRoomMessage(RTMMessage message) { }
+        public virtual void PushBroadcastMessage(RTMMessage message) { }
 
-        void PushChat(long fromUid, long toUid, long mid, TranslatedMessage message, string attrs, long mtime);
-        void PushGroupChat(long fromUid, long groupId, long mid, TranslatedMessage message, string attrs, long mtime);
-        void PushRoomChat(long fromUid, long roomId, long mid, TranslatedMessage message, string attrs, long mtime);
-        void PushBroadcastChat(long fromUid, long mid, TranslatedMessage message, string attrs, long mtime);
+        //-- Chat
+        public virtual void PushChat(RTMMessage message) { }
+        public virtual void PushGroupChat(RTMMessage message) { }
+        public virtual void PushRoomChat(RTMMessage message) { }
+        public virtual void PushBroadcastChat(RTMMessage message) { }
 
-        void PushAudio(long fromUid, long toUid, long mid, byte[] message, string attrs, long mtime);
-        void PushGroupAudio(long fromUid, long groupId, long mid, byte[] message, string attrs, long mtime);
-        void PushRoomAudio(long fromUid, long roomId, long mid, byte[] message, string attrs, long mtime);
-        void PushBroadcastAudio(long fromUid, long mid, byte[] message, string attrs, long mtime);
+        //-- Audio
+        public virtual void PushAudio(RTMMessage message) { }
+        public virtual void PushGroupAudio(RTMMessage message) { }
+        public virtual void PushRoomAudio(RTMMessage message) { }
+        public virtual void PushBroadcastAudio(RTMMessage message) { }
 
-        void PushCmd(long fromUid, long toUid, long mid, string message, string attrs, long mtime);
-        void PushGroupCmd(long fromUid, long groupId, long mid, string message, string attrs, long mtime);
-        void PushRoomCmd(long fromUid, long roomId, long mid, string message, string attrs, long mtime);
-        void PushBroadcastCmd(long fromUid, long mid, string message, string attrs, long mtime);
+        //-- Cmd
+        public virtual void PushCmd(RTMMessage message) { }
+        public virtual void PushGroupCmd(RTMMessage message) { }
+        public virtual void PushRoomCmd(RTMMessage message) { }
+        public virtual void PushBroadcastCmd(RTMMessage message) { }
 
-        void PushFile(long fromUid, long toUid, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushGroupFile(long fromUid, long groupId, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushRoomFile(long fromUid, long roomId, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushBroadcastFile(long fromUid, byte mtype, long mid, string message, string attrs, long mtime);
+        //-- Files
+        public virtual void PushFile(RTMMessage message) { }
+        public virtual void PushGroupFile(RTMMessage message) { }
+        public virtual void PushRoomFile(RTMMessage message) { }
+        public virtual void PushBroadcastFile(RTMMessage message) { }
     }
 
-    internal class RTMQuestProcessor: IQuestProcessor
+    internal class RTMMasterProcessor: IRTMMasterProcessor
     {
-        private IRTMQuestProcessor questProcessor;
+        private RTMQuestProcessor questProcessor;
         private DuplicatedMessageFilter duplicatedFilter;
         private ErrorRecorder errorRecorder;
         private Int64 connectionId;
         private Int64 lastPingTime;
-        private Dictionary<string, QuestProcessDelegate> methodMap;
+        private readonly Dictionary<string, QuestProcessDelegate> methodMap;
 
-        public RTMQuestProcessor()
+        public RTMMasterProcessor()
         {
             duplicatedFilter = new DuplicatedMessageFilter();
             lastPingTime = 0;
@@ -73,7 +77,7 @@ namespace com.fpnn.rtm
             };
         }
 
-        public void SetProcessor(IRTMQuestProcessor processor)
+        public void SetProcessor(RTMQuestProcessor processor)
         {
             questProcessor = processor;
         }
@@ -150,26 +154,26 @@ namespace com.fpnn.rtm
         }
 
         //----------------------[ RTM Messagess Utilities ]-------------------//
-        private TranslatedMessage ProcessChatMessage(Quest quest)
+        private TranslatedInfo ProcessChatMessage(Quest quest)
         {
-            TranslatedMessage tm = new TranslatedMessage();
+            TranslatedInfo tm = new TranslatedInfo();
 
             try
             {
                 Dictionary<object, object> msg = quest.Want<Dictionary<object, object>>("msg");
                 if (msg.TryGetValue("source", out object source))
                 {
-                    tm.source = (string)source;
+                    tm.sourceLanguage = (string)source;
                 }
                 else
-                    tm.source = string.Empty;
+                    tm.sourceLanguage = string.Empty;
 
                 if (msg.TryGetValue("target", out object target))
                 {
-                    tm.target = (string)target;
+                    tm.targetLanguage = (string)target;
                 }
                 else
-                    tm.target = string.Empty;
+                    tm.targetLanguage = string.Empty;
 
                 if (msg.TryGetValue("sourceText", out object sourceText))
                 {
@@ -217,6 +221,58 @@ namespace com.fpnn.rtm
             return info;
         }
 
+        private RTMMessage BuildRTMMessage(Quest quest, long from, long to, long mid)
+        {
+            RTMMessage rtmMessage = new RTMMessage
+            {
+                fromUid = from,
+                toId = to,
+                messageId = mid,
+                messageType = quest.Want<byte>("mtype"),
+                attrs = quest.Want<string>("attrs"),
+                modifiedTime = quest.Want<long>("mtime")
+            };
+
+            if (rtmMessage.messageType == (byte)MessageType.Chat)
+            {
+                rtmMessage.translatedInfo = ProcessChatMessage(quest);
+                if (rtmMessage.translatedInfo != null)
+                {
+                    if (rtmMessage.translatedInfo.targetText.Length > 0)
+                        rtmMessage.stringMessage = rtmMessage.translatedInfo.targetText;
+                    else
+                        rtmMessage.stringMessage = rtmMessage.translatedInfo.sourceText;
+                }
+            }
+            else if (rtmMessage.messageType == (byte)MessageType.Cmd)
+            {
+                rtmMessage.stringMessage = quest.Want<string>("msg");
+            }
+            else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
+            {
+                rtmMessage.stringMessage = quest.Want<string>("msg");
+            }
+            else
+            {
+                MessageInfo messageInfo = BuildMessageInfo(quest);
+                if (messageInfo.isBinary)
+                {
+                    rtmMessage.binaryMessage = messageInfo.binaryData;
+                }
+                else if (rtmMessage.messageType == (byte)MessageType.Audio)
+                {
+                    rtmMessage.audioInfo = RTMClient.BuildAudioInfo(messageInfo.message, errorRecorder);
+
+                    if (rtmMessage.audioInfo != null)
+                        rtmMessage.stringMessage = rtmMessage.audioInfo.recognizedText;
+                }
+                else
+                    rtmMessage.stringMessage = messageInfo.message;
+            }
+
+            return rtmMessage;
+        }
+
         //----------------------[ RTM Messagess ]-------------------//
         public Answer PushMessage(Int64 connectionId, string endpoint, Quest quest)
         {
@@ -232,45 +288,29 @@ namespace com.fpnn.rtm
             if (duplicatedFilter.CheckP2PMessage(from, mid) == false)
                 return null;
 
-            byte mtype = quest.Want<byte>("mtype");
-            string attrs = quest.Want<string>("attrs");
-            long mtime = quest.Want<long>("mtime");
+            RTMMessage rtmMessage = BuildRTMMessage(quest, from, to, mid);
 
-            if (mtype == RTMClient.MessageMType_Chat)
+            if (rtmMessage.messageType == (byte)MessageType.Chat)
             {
-                TranslatedMessage tm = ProcessChatMessage(quest);
-                if (tm != null)
-                    questProcessor.PushChat(from, to, mid, tm, attrs, mtime);
-
-                return null;
+                if (rtmMessage.translatedInfo != null)
+                    questProcessor.PushChat(rtmMessage);
             }
-
-            MessageInfo messageInfo = BuildMessageInfo(quest);
-            if (mtype == RTMClient.MessageMType_Audio)
+            else if (rtmMessage.messageType == (byte)MessageType.Audio)
             {
-                byte[] audioData = messageInfo.binaryData;
-
-                if (!messageInfo.isBinary)
-                    audioData = RTMClient.ConvertStringToByteArray(messageInfo.message);
-
-                questProcessor.PushAudio(from, to, mid, audioData, attrs, mtime);
-                return null;
+                if (rtmMessage.audioInfo != null)
+                    questProcessor.PushAudio(rtmMessage);
             }
-
-            if (mtype == RTMClient.MessageMType_Cmd)
+            else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
-                questProcessor.PushCmd(from, to, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushCmd(rtmMessage);
             }
-            else if (mtype >= 40 && mtype <= 50)
+            else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
-                questProcessor.PushFile(from, to, mtype, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushFile(rtmMessage);
             }
             else
             {
-                if (messageInfo.isBinary)
-                    questProcessor.PushMessage(from, to, mtype, mid, messageInfo.binaryData, attrs, mtime);
-                else
-                    questProcessor.PushMessage(from, to, mtype, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushMessage(rtmMessage);
             }
 
             return null;
@@ -290,45 +330,29 @@ namespace com.fpnn.rtm
             if (duplicatedFilter.CheckGroupMessage(groupId, from, mid) == false)
                 return null;
 
-            byte mtype = quest.Want<byte>("mtype");
-            string attrs = quest.Want<string>("attrs");
-            long mtime = quest.Want<long>("mtime");
+            RTMMessage rtmMessage = BuildRTMMessage(quest, from, groupId, mid);
 
-            if (mtype == RTMClient.MessageMType_Chat)
+            if (rtmMessage.messageType == (byte)MessageType.Chat)
             {
-                TranslatedMessage tm = ProcessChatMessage(quest);
-                if (tm != null)
-                    questProcessor.PushGroupChat(from, groupId, mid, tm, attrs, mtime);
-
-                return null;
+                if (rtmMessage.translatedInfo != null)
+                    questProcessor.PushGroupChat(rtmMessage);
             }
-
-            MessageInfo messageInfo = BuildMessageInfo(quest);
-            if (mtype == RTMClient.MessageMType_Audio)
+            else if (rtmMessage.messageType == (byte)MessageType.Audio)
             {
-                byte[] audioData = messageInfo.binaryData;
-
-                if (!messageInfo.isBinary)
-                    audioData = RTMClient.ConvertStringToByteArray(messageInfo.message);
-
-                questProcessor.PushGroupAudio(from, groupId, mid, audioData, attrs, mtime);
-                return null;
+                if (rtmMessage.audioInfo != null)
+                    questProcessor.PushGroupAudio(rtmMessage);
             }
-
-            if (mtype == RTMClient.MessageMType_Cmd)
+            else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
-                questProcessor.PushGroupCmd(from, groupId, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushGroupCmd(rtmMessage);
             }
-            else if (mtype >= 40 && mtype <= 50)
+            else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
-                questProcessor.PushGroupFile(from, groupId, mtype, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushGroupFile(rtmMessage);
             }
             else
             {
-                if (messageInfo.isBinary)
-                    questProcessor.PushGroupMessage(from, groupId, mtype, mid, messageInfo.binaryData, attrs, mtime);
-                else
-                    questProcessor.PushGroupMessage(from, groupId, mtype, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushGroupMessage(rtmMessage);
             }
 
             return null;
@@ -348,45 +372,29 @@ namespace com.fpnn.rtm
             if (duplicatedFilter.CheckRoomMessage(roomId, from, mid) == false)
                 return null;
 
-            byte mtype = quest.Want<byte>("mtype");
-            string attrs = quest.Want<string>("attrs");
-            long mtime = quest.Want<long>("mtime");
+            RTMMessage rtmMessage = BuildRTMMessage(quest, from, roomId, mid);
 
-            if (mtype == RTMClient.MessageMType_Chat)
+            if (rtmMessage.messageType == (byte)MessageType.Chat)
             {
-                TranslatedMessage tm = ProcessChatMessage(quest);
-                if (tm != null)
-                    questProcessor.PushRoomChat(from, roomId, mid, tm, attrs, mtime);
-
-                return null;
+                if (rtmMessage.translatedInfo != null)
+                    questProcessor.PushRoomChat(rtmMessage);
             }
-
-            MessageInfo messageInfo = BuildMessageInfo(quest);
-            if (mtype == RTMClient.MessageMType_Audio)
+            else if (rtmMessage.messageType == (byte)MessageType.Audio)
             {
-                byte[] audioData = messageInfo.binaryData;
-
-                if (!messageInfo.isBinary)
-                    audioData = RTMClient.ConvertStringToByteArray(messageInfo.message);
-
-                questProcessor.PushRoomAudio(from, roomId, mid, audioData, attrs, mtime);
-                return null;
+                if (rtmMessage.audioInfo != null)
+                    questProcessor.PushRoomAudio(rtmMessage);
             }
-
-            if (mtype == RTMClient.MessageMType_Cmd)
+            else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
-                questProcessor.PushRoomCmd(from, roomId, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushRoomCmd(rtmMessage);
             }
-            else if (mtype >= 40 && mtype <= 50)
+            else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
-                questProcessor.PushRoomFile(from, roomId, mtype, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushRoomFile(rtmMessage);
             }
             else
             {
-                if (messageInfo.isBinary)
-                    questProcessor.PushRoomMessage(from, roomId, mtype, mid, messageInfo.binaryData, attrs, mtime);
-                else
-                    questProcessor.PushRoomMessage(from, roomId, mtype, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushRoomMessage(rtmMessage);
             }
 
             return null;
@@ -405,45 +413,29 @@ namespace com.fpnn.rtm
             if (duplicatedFilter.CheckBroadcastMessage(from, mid) == false)
                 return null;
 
-            byte mtype = quest.Want<byte>("mtype");
-            string attrs = quest.Want<string>("attrs");
-            long mtime = quest.Want<long>("mtime");
+            RTMMessage rtmMessage = BuildRTMMessage(quest, from, 0, mid);
 
-            if (mtype == RTMClient.MessageMType_Chat)
+            if (rtmMessage.messageType == (byte)MessageType.Chat)
             {
-                TranslatedMessage tm = ProcessChatMessage(quest);
-                if (tm != null)
-                    questProcessor.PushBroadcastChat(from, mid, tm, attrs, mtime);
-
-                return null;
+                if (rtmMessage.translatedInfo != null)
+                    questProcessor.PushBroadcastChat(rtmMessage);
             }
-
-            MessageInfo messageInfo = BuildMessageInfo(quest);
-            if (mtype == RTMClient.MessageMType_Audio)
+            else if (rtmMessage.messageType == (byte)MessageType.Audio)
             {
-                byte[] audioData = messageInfo.binaryData;
-
-                if (!messageInfo.isBinary)
-                    audioData = RTMClient.ConvertStringToByteArray(messageInfo.message);
-
-                questProcessor.PushBroadcastAudio(from, mid, audioData, attrs, mtime);
-                return null;
+                if (rtmMessage.audioInfo != null)
+                    questProcessor.PushBroadcastAudio(rtmMessage);
             }
-
-            if (mtype == RTMClient.MessageMType_Cmd)
+            else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
-                questProcessor.PushBroadcastCmd(from, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushBroadcastCmd(rtmMessage);
             }
-            else if (mtype >= 40 && mtype <= 50)
+            else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
-                questProcessor.PushBroadcastFile(from, mtype, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushBroadcastFile(rtmMessage);
             }
             else
             {
-                if (messageInfo.isBinary)
-                    questProcessor.PushBroadcastMessage(from, mtype, mid, messageInfo.binaryData, attrs, mtime);
-                else
-                    questProcessor.PushBroadcastMessage(from, mtype, mid, messageInfo.message, attrs, mtime);
+                questProcessor.PushBroadcastMessage(rtmMessage);
             }
 
             return null;

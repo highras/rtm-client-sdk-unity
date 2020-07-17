@@ -14,7 +14,7 @@ public class Main : MonoBehaviour
     private string rtmServerEndpoint = "rtm-nx-front.ilivedata.com:13325";
     private long pid = 1000001;
     private long uid = 99688848;
-    private string token = "0AF1E4089148A8D0552DF401BE6404B8";
+    private string token = "97CE9F3D84981AC465BC858E526A4EFE";
 
     Thread testThread;
     ITestCase tester;

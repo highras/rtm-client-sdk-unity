@@ -8,9 +8,11 @@
 
 	//-- Async Method
 	public bool SendFile(ActTimeDelegate callback, long peerUid, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public bool SendFile(ActTimeDelegate callback, long peerUid, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
 	
 	//-- Sync Method
 	public int SendFile(out long mtime, long peerUid, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public int SendFile(out long mtime, long peerUid, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
 
 Send P2P file.
 
@@ -75,9 +77,11 @@ Return Values:
 
 	//-- Async Method
 	public bool SendGroupFile(ActTimeDelegate callback, long groupId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public bool SendGroupFile(ActTimeDelegate callback, long groupId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
 	
 	//-- Sync Method
 	public int SendGroupFile(out long mtime, long groupId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public int SendGroupFile(out long mtime, long groupId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
 
 Send file in group.
 
@@ -142,9 +146,11 @@ Return Values:
 
 	//-- Async Method
 	public bool SendRoomFile(ActTimeDelegate callback, long roomId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public bool SendRoomFile(ActTimeDelegate callback, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
 	
 	//-- Sync Method
 	public int SendRoomFile(out long mtime, long roomId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public int SendRoomFile(out long mtime, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
 
 Send file in room.
 

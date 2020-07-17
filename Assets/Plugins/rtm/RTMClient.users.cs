@@ -12,12 +12,20 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getonlineusers");
             quest.Param("uids", uids);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 HashSet<long> onlineUids = null;
 
@@ -34,6 +42,14 @@ namespace com.fpnn.rtm
                 }
                 callback(onlineUids, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int GetOnlineUsers(out HashSet<long> onlineUids, HashSet<long> uids, int timeout = 0)
@@ -68,7 +84,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("setuserinfo");
             if (publicInfo != null)
@@ -76,7 +100,15 @@ namespace com.fpnn.rtm
             if (privateInfo != null)
                 quest.Param("pinfo", privateInfo);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int SetUserInfo(string publicInfo = null, string privateInfo = null, int timeout = 0)
@@ -101,10 +133,18 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getuserinfo");
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 string publicInfo = null;
                 string privateInfo = null;
@@ -123,6 +163,14 @@ namespace com.fpnn.rtm
                 }
                 callback(publicInfo, privateInfo, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int GetUserInfo(out string publicInfo, out string privateInfo, int timeout = 0)
@@ -159,12 +207,20 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getuseropeninfo");
             quest.Param("uids", uids);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 Dictionary<string, string> publicInfos = null;
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
@@ -180,6 +236,14 @@ namespace com.fpnn.rtm
                 }
                 callback(publicInfos, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int GetUserPublicInfo(out Dictionary<string, string> publicInfos, HashSet<long> uids, int timeout = 0)

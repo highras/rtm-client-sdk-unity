@@ -11,12 +11,28 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("addfriends");
             quest.Param("friends", uids);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int AddFriends(HashSet<long> uids, int timeout = 0)
@@ -37,12 +53,28 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("delfriends");
             quest.Param("friends", uids);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int DeleteFriends(HashSet<long> uids, int timeout = 0)
@@ -64,10 +96,18 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getfriends");
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 HashSet<long> friends = null;
 
@@ -84,6 +124,14 @@ namespace com.fpnn.rtm
                 }
                 callback(friends, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int GetFriends(out HashSet<long> friends, int timeout = 0)
@@ -116,12 +164,28 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("addblacks");
             quest.Param("blacks", uids);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int AddBlacklist(HashSet<long> uids, int timeout = 0)
@@ -142,12 +206,28 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("delblacks");
             quest.Param("blacks", uids);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int DeleteBlacklist(HashSet<long> uids, int timeout = 0)
@@ -169,10 +249,18 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getblacks");
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 HashSet<long> friends = null;
 
@@ -189,6 +277,14 @@ namespace com.fpnn.rtm
                 }
                 callback(friends, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int GetBlacklist(out HashSet<long> uids, int timeout = 0)

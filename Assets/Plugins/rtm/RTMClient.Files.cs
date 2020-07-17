@@ -223,7 +223,7 @@ namespace com.fpnn.rtm
                     break;
             }
 
-            quest.Param("pid", pid);
+            quest.Param("pid", projectId);
             quest.Param("from", uid);
             quest.Param("token", info.token);
             quest.Param("mtype", info.mtype);
@@ -344,12 +344,26 @@ namespace com.fpnn.rtm
                 if (errorRecorder != null)
                     errorRecorder.RecordError("Send file require mtype between [40, 50], current mtype is " + mtype);
 
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
                 return false;
             }
 
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             SendFileInfo info = new SendFileInfo
             {
@@ -364,9 +378,17 @@ namespace com.fpnn.rtm
                 callback = callback
             };
 
-            return FileToken((string token, string endpoint, int errorCode) => {
+            bool asyncStarted = FileToken((string token, string endpoint, int errorCode) => {
                 GetFileTokenCallback(info, token, endpoint, errorCode);
             }, tokenType, info.xid, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         private int RealSendFile(out long mtime, FileTokenType tokenType, long targetId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
@@ -478,6 +500,17 @@ namespace com.fpnn.rtm
             return RealSendFile(out mtime, FileTokenType.P2P, peerUid, mtype, fileContent, filename, fileExtension, timeout);
         }
 
+        //-- New interface: mtype in MessageType enumeration.
+        public bool SendFile(ActTimeDelegate callback, long peerUid, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
+        {
+            return RealSendFile(callback, FileTokenType.P2P, peerUid, (byte)type, fileContent, filename, fileExtension, timeout);
+        }
+
+        public int SendFile(out long mtime, long peerUid, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
+        {
+            return RealSendFile(out mtime, FileTokenType.P2P, peerUid, (byte)type, fileContent, filename, fileExtension, timeout);
+        }
+
         //===========================[ Sned Group File ]=========================//
         public bool SendGroupFile(ActTimeDelegate callback, long groupId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
         {
@@ -489,6 +522,17 @@ namespace com.fpnn.rtm
             return RealSendFile(out mtime, FileTokenType.Group, groupId, mtype, fileContent, filename, fileExtension, timeout);
         }
 
+        //-- New interface: mtype in MessageType enumeration.
+        public bool SendGroupFile(ActTimeDelegate callback, long groupId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
+        {
+            return RealSendFile(callback, FileTokenType.Group, groupId, (byte)type, fileContent, filename, fileExtension, timeout);
+        }
+
+        public int SendGroupFile(out long mtime, long groupId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
+        {
+            return RealSendFile(out mtime, FileTokenType.Group, groupId, (byte)type, fileContent, filename, fileExtension, timeout);
+        }
+
         //===========================[ Sned Room File ]=========================//
         public bool SendRoomFile(ActTimeDelegate callback, long roomId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
         {
@@ -498,6 +542,17 @@ namespace com.fpnn.rtm
         public int SendRoomFile(out long mtime, long roomId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
         {
             return RealSendFile(out mtime, FileTokenType.Room, roomId, mtype, fileContent, filename, fileExtension, timeout);
+        }
+
+        //-- New interface: mtype in MessageType enumeration.
+        public bool SendRoomFile(ActTimeDelegate callback, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
+        {
+            return RealSendFile(callback, FileTokenType.Room, roomId, (byte)type, fileContent, filename, fileExtension, timeout);
+        }
+
+        public int SendRoomFile(out long mtime, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120)
+        {
+            return RealSendFile(out mtime, FileTokenType.Room, roomId, (byte)type, fileContent, filename, fileExtension, timeout);
         }
     }
 }

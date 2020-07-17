@@ -3,20 +3,22 @@ namespace com.fpnn.rtm
 {
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "2.1.4";
-        public static readonly string InterfaceVersion = "2.1.0";
+        public static readonly string SDKVersion = "2.2.0";
+        public static readonly string InterfaceVersion = "2.2.1";
 
         internal static int lostConnectionAfterLastPingInSeconds = 120;
         internal static int globalConnectTimeoutSeconds = 30;
         internal static int globalQuestTimeoutSeconds = 30;
         internal static int fileGateClientHoldingSeconds = 150;
         internal static common.ErrorRecorder errorRecorder = null;
+        internal static bool triggerCallbackIfAsyncMethodReturnFalse = false;
 
         public int maxPingInterval;
         public int globalConnectTimeout;
         public int globalQuestTimeout;
         public int fileClientHoldingSeconds;
         public common.ErrorRecorder defaultErrorRecorder;
+        public bool forceTriggerCallbackWhenAsyncMethodReturnFalse;
 
         public RTMConfig()
         {
@@ -24,6 +26,7 @@ namespace com.fpnn.rtm
             globalConnectTimeout = 30;
             globalQuestTimeout = 30;
             fileClientHoldingSeconds = 150;
+            forceTriggerCallbackWhenAsyncMethodReturnFalse = false;
         }
 
         internal static void Config(RTMConfig config)
@@ -33,6 +36,7 @@ namespace com.fpnn.rtm
             globalQuestTimeoutSeconds = config.globalQuestTimeout;
             fileGateClientHoldingSeconds = config.fileClientHoldingSeconds;
             errorRecorder = config.defaultErrorRecorder;
+            triggerCallbackIfAsyncMethodReturnFalse = config.forceTriggerCallbackWhenAsyncMethodReturnFalse;
         }
     }
 
@@ -61,5 +65,29 @@ namespace com.fpnn.rtm
         zh_cn,       //中文（简体）
         zh_tw,       //中文（繁体）
         None
+    }
+
+    public enum MessageType : byte
+    {
+        Withdraw = 1,
+        GEO = 2,
+        MultiLogin = 7,
+        Chat = 30,
+        Audio = 31,
+        Cmd = 32,
+        RealAudio = 35,
+        RealVideo = 36,
+        ImageFile = 40,
+        AudioFile = 41,
+        VideoFile = 42,
+        NormalFile = 50
+    }
+
+    public enum MessageCategory : byte
+    {
+        P2PMessage = 1,
+        GroupMessage = 2,
+        RoomMessage = 3,
+        BroadcastMessage = 4
     }
 }

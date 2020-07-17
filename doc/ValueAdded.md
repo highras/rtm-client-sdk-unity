@@ -49,13 +49,13 @@ Return Values:
 ### Translate
 
 	//-- Async Method
-	public bool Translate(Action<TranslatedMessage, int> callback, string text,
+	public bool Translate(Action<TranslatedInfo, int> callback, string text,
             TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
             int timeout = 0);
 	
 	//-- Sync Method
-	public int Translate(out TranslatedMessage translatedMessage, string text,
+	public int Translate(out TranslatedInfo translatedinfo, string text,
             TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
             int timeout = 0);
@@ -64,15 +64,15 @@ Translate text to target language.
 
 Parameters:
 
-+ `Action<TranslatedMessage>, int> callback`
++ `Action<TranslatedInfo>, int> callback`
 
 	Callabck for async method.  
-	First `TranslatedMessage` is translation message result, please refer [TranslatedMessage](Structures.md#TranslatedMessage);  
+	First `TranslatedInfo` is translation message result, please refer [TranslatedInfo](Structures.md#TranslatedInfo);  
 	Second `int` is the error code indicating the calling is successful or the failed reasons.
 
-+ `out TranslatedMessage translatedMessag`
++ `out TranslatedInfo translatedinfo`
 
-	The translation message result, please refer [TranslatedMessage](Structures.md#TranslatedMessage).
+	The translation message result, please refer [TranslatedInfo](Structures.md#TranslatedInfo).
 
 + `string text`
 
@@ -181,10 +181,16 @@ Return Values:
 	//-- Async Method
 	public bool Transcribe(Action<string, string, int> callback, byte[] audio, int timeout = 120);
 	public bool Transcribe(Action<string, string, int> callback, byte[] audio, bool filterProfanity, int timeout = 120);
+
+	public bool Transcribe(Action<string, string, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 120);
+	public bool Transcribe(Action<string, string, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, bool filterProfanity, int timeout = 120);
 	
 	//-- Sync Method
 	public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, int timeout = 120);
 	public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, bool filterProfanity, int timeout = 120);
+
+	public int Transcribe(out string resultText, out string resultLanguage, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 120);
+	public int Transcribe(out string resultText, out string resultLanguage, long fromUid, long toId, long messageId, MessageCategory messageCategory, bool filterProfanity, int timeout = 120);
 
 Speech Recognition.
 
@@ -208,6 +214,30 @@ Parameters:
 + `byte[] audio`
 
 	Speech data.
+
++ `fromUid`
+
+	Uid of the message sender, which message is wanted to be transcribed.
+
++ `toId`
+
+	Receiver id of the message.
+
+	If the message is P2P message, `toId` means the uid of receiver;  
+	If the message is group message, `toId` means the `groupId`;  
+	If the message is room message, `toId` means the `roomId`;  
+	If the message is broadcast message, `toId` is `0`.
+
+
++ `messageId`
+
+	Message id for the message which wanted to be transcribed.
+
++ `messageCategory`
+
+	MessageCategory enumeration.
+
+	Can be MessageCategory.P2PMessage, MessageCategory.GroupMessage, MessageCategory.RoomMessage, MessageCategory.BroadcastMessage.
 
 + `filterProfanity`
 

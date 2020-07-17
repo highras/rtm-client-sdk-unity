@@ -28,10 +28,10 @@ namespace com.fpnn.rtm
         public RTMAudioData(byte[] audio)
         {
             this.audio = audio;
-            ParseAudioData(audio);
+            ParseAudioHeader();
         }
 
-        private void ParseAudioData(byte[] audio)
+        private void ParseAudioHeader()
         {
             rtmAudioHeader = new RTMAudioHeader();
 
@@ -77,6 +77,23 @@ namespace com.fpnn.rtm
 
                 offset += sectionLength;
             }
+        }
+
+        private void ParseAudioData()
+        {
+            int offset = 0;
+            if (audio.Length < 4)
+                return;
+            
+            byte infoDataCount = audio[3];
+
+            offset += 4;
+
+            for (byte i = 0; i < infoDataCount; i++) {
+                int sectionLength = BitConverter.ToInt32(audio, offset);
+                offset += 4;
+                offset += sectionLength;
+            }
             if (offset >= audio.Length) {
                 return;
             }
@@ -85,7 +102,6 @@ namespace com.fpnn.rtm
             Array.Copy(audio, offset, amrBuffer, 0, audio.Length - offset);
             byte[] wavBuffer = AudioConvert.ConvertToWav(amrBuffer);
             
-
             int channelCount = wavBuffer[22];
             
             int pos = 12; 
@@ -126,6 +142,8 @@ namespace com.fpnn.rtm
         {
             get
             {
+                if (pcmData == null)
+                    ParseAudioData();
                 return pcmData;
             }
         }

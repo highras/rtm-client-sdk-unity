@@ -97,7 +97,7 @@ class Histories : Main.ITestCase
             {
                 StringBuilder sb = new StringBuilder();
                 sb.AppendFormat("-- Fetched: ID: {0}, from {1}, mtype {2}, mid {3}, binary message length {4}, attrs {5}, mtime {6}",
-                    hm.id, hm.fromUid, hm.mtype, hm.mid, hm.binaryMessage.Length, hm.attrs, hm.mtime);
+                    hm.cursorId, hm.fromUid, hm.messageType, hm.messageId, hm.binaryMessage.Length, hm.attrs, hm.modifiedTime);
 
                 Debug.Log(sb.ToString());
             }
@@ -105,7 +105,7 @@ class Histories : Main.ITestCase
             {
                 StringBuilder sb = new StringBuilder();
                 sb.AppendFormat("-- Fetched: ID: {0}, from {1}, mtype {2}, mid {3}, message {4}, attrs {5}, mtime {6}",
-                    hm.id, hm.fromUid, hm.mtype, hm.mid, hm.stringMessage, hm.attrs, hm.mtime);
+                    hm.cursorId, hm.fromUid, hm.messageType, hm.messageId, hm.stringMessage, hm.attrs, hm.modifiedTime);
 
                 Debug.Log(sb.ToString());
             }
@@ -137,7 +137,7 @@ class Histories : Main.ITestCase
 
             beginMsec = result.beginMsec;
             endMsec = result.endMsec;
-            lastId = result.lastId;
+            lastId = result.lastCursorId;
         }
 
         Debug.Log("Get P2P history message total fetched " + fetchedCount + " items");
@@ -170,7 +170,7 @@ class Histories : Main.ITestCase
 
             beginMsec = result.beginMsec;
             endMsec = result.endMsec;
-            lastId = result.lastId;
+            lastId = result.lastCursorId;
         }
 
         Debug.Log("Get group history message total fetched " + fetchedCount + " items");
@@ -203,7 +203,7 @@ class Histories : Main.ITestCase
 
             beginMsec = result.beginMsec;
             endMsec = result.endMsec;
-            lastId = result.lastId;
+            lastId = result.lastCursorId;
         }
 
         Debug.Log("Get room history message total fetched " + fetchedCount + " items");
@@ -236,7 +236,7 @@ class Histories : Main.ITestCase
 
             beginMsec = result.beginMsec;
             endMsec = result.endMsec;
-            lastId = result.lastId;
+            lastId = result.lastCursorId;
         }
 
         Debug.Log("Get broadcast history message total fetched " + fetchedCount + " items");
@@ -270,7 +270,7 @@ class Histories : Main.ITestCase
 
             beginMsec = result.beginMsec;
             endMsec = result.endMsec;
-            lastId = result.lastId;
+            lastId = result.lastCursorId;
         }
 
         Debug.Log("Get P2P history chat total fetched " + fetchedCount + " items");
@@ -303,7 +303,7 @@ class Histories : Main.ITestCase
 
             beginMsec = result.beginMsec;
             endMsec = result.endMsec;
-            lastId = result.lastId;
+            lastId = result.lastCursorId;
         }
 
         Debug.Log("Get group history chat total fetched " + fetchedCount + " items");
@@ -389,7 +389,7 @@ class Histories : Main.ITestCase
 
             beginMsec = result.beginMsec;
             endMsec = result.endMsec;
-            lastId = result.lastId;
+            lastId = result.lastCursorId;
         }
 
         Debug.Log("Get room history chat total fetched " + fetchedCount + " items");
@@ -422,7 +422,7 @@ class Histories : Main.ITestCase
 
             beginMsec = result.beginMsec;
             endMsec = result.endMsec;
-            lastId = result.lastId;
+            lastId = result.lastCursorId;
         }
 
         Debug.Log("Get broadcast history chat total fetched " + fetchedCount + " items");

@@ -485,10 +485,10 @@ Return Values:
 ### Delete Message
 
 	//-- Async Method
-	public bool DeleteMessage(DoneDelegate callback, long xid, long mid, int type, int timeout = 0);
+	public bool DeleteMessage(DoneDelegate callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0);
 	
 	//-- Sync Method
-	public int DeleteMessage(long xid, long mid, int type, int timeout = 0);
+	public int DeleteMessage(long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0);
 
 Delete a sent message.
 
@@ -500,19 +500,25 @@ Parameters:
 
 	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
 
-+ `long xid`
++ `fromUid`
 
-	Peer uid for P2P chat, or group id for group chat, or room id for room chat.
+	Uid of the message sender, which message is wanted to be deleted.
 
-+ `long mid`
++ `toId`
 
-	The mid of chat message.
+	If the message is P2P message, `toId` means the uid of peer;  
+	If the message is group message, `toId` means the `groupId`;  
+	If the message is room message, `toId` means the `roomId`.
 
-+ `int type`
++ `messageId`
 
-	* 1: P2P Chat
-	* 2: Group Chat
-	* 3: Room Chat
+	Message id for the message which wanted to be deleted.
+
++ `messageCategory`
+
+	MessageCategory enumeration.
+
+	Can be MessageCategory.P2PMessage, MessageCategory.GroupMessage, MessageCategory.RoomMessage.
 
 + `int timeout`
 
@@ -538,10 +544,10 @@ Return Values:
 ### Get Message
 
 	//-- Async Method
-	public bool GetMessage(Action<RetrievedMessage, int> callback, long xid, long mid, int type, int timeout = 0);
+	public bool GetMessage(Action<RetrievedMessage, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0);
 	
 	//-- Sync Method
-	public int GetMessage(out RetrievedMessage retrievedMessage, long xid, long mid, int type, int timeout = 0);
+	public int GetMessage(out RetrievedMessage retrievedMessage, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0);
 
 Retrieve a sent message.
 
@@ -557,19 +563,26 @@ Parameters:
 
 	The retrieved data, please refer [RetrievedMessage](Structures.md#RetrievedMessage).	
 
-+ `long xid`
++ `fromUid`
 
-	Peer uid for P2P chat, or group id for group chat, or room id for room chat.
+	Uid of the message sender, which message is wanted to be retrieved.
 
-+ `long mid`
++ `toId`
 
-	The mid of chat.
+	If the message is P2P message, `toId` means the uid of peer;  
+	If the message is group message, `toId` means the `groupId`;  
+	If the message is room message, `toId` means the `roomId`;  
+	If the message is broadcast message, `toId` is `0`.
 
-+ `int type`
++ `messageId`
 
-	* 1: P2P Chat
-	* 2: Group Chat
-	* 3: Room Chat
+	Message id for the message which wanted to be retrieved.
+
++ `messageCategory`
+
+	MessageCategory enumeration.
+
+	Can be MessageCategory.P2PMessage, MessageCategory.GroupMessage, MessageCategory.RoomMessage, MessageCategory.BroadcastMessage.
 
 + `int timeout`
 

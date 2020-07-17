@@ -57,7 +57,7 @@ namespace com.fpnn.rtm
 
         //-------------[ Fields ]--------------------------//
         private object interLocker;
-        private readonly long pid;
+        private readonly long projectId;
         private readonly long uid;
 
         private ClientStatus status;
@@ -67,7 +67,7 @@ namespace com.fpnn.rtm
         public volatile int ConnectTimeout;
         public volatile int QuestTimeout;
 
-        private RTMQuestProcessor processor;
+        private IRTMMasterProcessor processor;
         private TCPClient dispatch;
         private TCPClient rtmGate;
         private Int64 rtmGateConnectionId;
@@ -76,10 +76,12 @@ namespace com.fpnn.rtm
         private AuthStatusInfo authStatsInfo;
         private common.ErrorRecorder errorRecorder;
 
-        public RTMClient(string endpoint, long pid, long uid, IRTMQuestProcessor serverPushProcessor)
+        //-- Obsolete in v.2.2.0
+        [Obsolete("Constructor with interface IRTMQuestProcessor is deprecated, please use Constructor with class RTMQuestProcessor instead.")]
+        public RTMClient(string endpoint, long projectId, long uid, IRTMQuestProcessor serverPushProcessor)
         {
             interLocker = new object();
-            this.pid = pid;
+            this.projectId = projectId;
             this.uid = uid;
             status = ClientStatus.Closed;
             requireClose = false;
@@ -88,8 +90,34 @@ namespace com.fpnn.rtm
             ConnectTimeout = 0;
             QuestTimeout = 0;
 
-            processor = new RTMQuestProcessor();
-            processor.SetProcessor(serverPushProcessor);
+            RTMMasterProcessorV1 processorV1 = new RTMMasterProcessorV1();
+            processorV1.SetProcessor(serverPushProcessor);
+            processor = processorV1;
+
+            dispatch = TCPClient.Create(endpoint, true);
+            errorRecorder = RTMConfig.errorRecorder;
+            if (errorRecorder != null)
+            {
+                processor.SetErrorRecorder(errorRecorder);
+                dispatch.SetErrorRecorder(errorRecorder);
+            }
+        }
+
+        public RTMClient(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor)
+        {
+            interLocker = new object();
+            this.projectId = projectId;
+            this.uid = uid;
+            status = ClientStatus.Closed;
+            requireClose = false;
+            syncConnectingEvent = new ManualResetEvent(false);
+
+            ConnectTimeout = 0;
+            QuestTimeout = 0;
+
+            RTMMasterProcessor processorCurrent = new RTMMasterProcessor();
+            processorCurrent.SetProcessor(serverPushProcessor);
+            processor = processorCurrent;
 
             dispatch = TCPClient.Create(endpoint, true);
             errorRecorder = RTMConfig.errorRecorder;
@@ -102,11 +130,21 @@ namespace com.fpnn.rtm
 
         //-------------[ Fack Fields ]--------------------------//
 
+        //-- Obsolete in v.2.2.0
+        [Obsolete("Property Pid is deprecated, please use ProjectId instead.")]
         public long Pid
         {
             get
             {
-                return pid;
+                return projectId;
+            }
+        }
+
+        public long ProjectId
+        {
+            get
+            {
+                return projectId;
             }
         }
 
@@ -242,7 +280,7 @@ namespace com.fpnn.rtm
             }
 
             if (currInfo != null)
-                currInfo.authCallback(pid, currUid, authStatus, errorCode);
+                currInfo.authCallback(projectId, currUid, authStatus, errorCode);
 
             if (reservedRtmGateConnectionId != 0)
                 RTMControlCenter.UnregisterSession(reservedRtmGateConnectionId);
@@ -365,7 +403,7 @@ namespace com.fpnn.rtm
             processor.SetConnectionId(rtmGateConnectionId);
             
             Quest quest = new Quest("auth");
-            quest.Param("pid", pid);
+            quest.Param("pid", projectId);
             quest.Param("uid", uid);
             quest.Param("token", authStatsInfo.token);
 
@@ -548,11 +586,16 @@ namespace com.fpnn.rtm
 
             lock (interLocker)
             {
-                if (status == ClientStatus.Connected)
-                    return false;
+                if (status == ClientStatus.Connected || status == ClientStatus.Connecting)
+                {
+                    if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                        ClientEngine.RunTask(() =>
+                        {
+                            callback(projectId, uid, false, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                        });
 
-                if (status == ClientStatus.Connecting)
                     return false;
+                }
 
                 status = ClientStatus.Connecting;
                 syncConnectingEvent.Reset();
@@ -616,6 +659,12 @@ namespace com.fpnn.rtm
                 {
                     status = ClientStatus.Closed;
                     syncConnectingEvent.Set();
+
+                    if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                        ClientEngine.RunTask(() =>
+                        {
+                            callback(projectId, uid, false, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                        });
                 }
 
                 return false;
@@ -658,7 +707,7 @@ namespace com.fpnn.rtm
         private int Login(out bool ok, string token, Dictionary<string, string> attr, string lang = "", int timeout = 0)
         {
             SyncLoginStatus syncLoginStatus = new SyncLoginStatus();
-            bool actionBegin = Login((long pid, long uid, bool authStatus, int errorCode) => {
+            bool actionBegin = Login((long projectId, long uid, bool authStatus, int errorCode) => {
                 syncLoginStatus.ok = authStatus;
                 syncLoginStatus.errorCode = errorCode;
                 syncLoginStatus.Set();
@@ -690,7 +739,7 @@ namespace com.fpnn.rtm
             }
         }
 
-        public void Close()
+        public void Close(bool waitConnectingCannelled = true)
         {
             HashSet<TCPClient> clients = new HashSet<TCPClient>();
             clients.Add(dispatch);
@@ -721,7 +770,7 @@ namespace com.fpnn.rtm
             foreach (TCPClient client in clients)
                 client.Close();
 
-            if (isConnecting)
+            if (isConnecting && waitConnectingCannelled)
                 syncConnectingEvent.WaitOne();
         }
     }

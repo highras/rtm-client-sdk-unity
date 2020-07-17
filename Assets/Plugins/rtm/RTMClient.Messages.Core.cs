@@ -10,7 +10,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("sendmsg");
             quest.Param("to", uid);
@@ -19,7 +27,7 @@ namespace com.fpnn.rtm
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                     mtime = answer.Want<long>("mtime");
@@ -27,6 +35,14 @@ namespace com.fpnn.rtm
                 callback(mtime, errorCode);
 
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         private int InternalSendMessage(out long mtime, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -58,7 +74,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("sendgroupmsg");
             quest.Param("gid", groupId);
@@ -67,7 +91,7 @@ namespace com.fpnn.rtm
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                     mtime = answer.Want<long>("mtime");
@@ -75,6 +99,14 @@ namespace com.fpnn.rtm
                 callback(mtime, errorCode);
 
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         private int InternalSendGroupMessage(out long mtime, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -106,7 +138,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("sendroommsg");
             quest.Param("rid", roomId);
@@ -115,7 +155,7 @@ namespace com.fpnn.rtm
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                     mtime = answer.Want<long>("mtime");
@@ -123,6 +163,14 @@ namespace com.fpnn.rtm
                 callback(mtime, errorCode);
 
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         private int InternalSendRoomMessage(out long mtime, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -154,7 +202,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("sendmsg");
             quest.Param("to", uid);
@@ -163,7 +219,7 @@ namespace com.fpnn.rtm
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                     mtime = answer.Want<long>("mtime");
@@ -171,6 +227,14 @@ namespace com.fpnn.rtm
                 callback(mtime, errorCode);
 
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         private int InternalSendMessage(out long mtime, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -202,7 +266,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("sendgroupmsg");
             quest.Param("gid", groupId);
@@ -211,7 +283,7 @@ namespace com.fpnn.rtm
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                     mtime = answer.Want<long>("mtime");
@@ -219,6 +291,14 @@ namespace com.fpnn.rtm
                 callback(mtime, errorCode);
 
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         private int InternalSendGroupMessage(out long mtime, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -250,7 +330,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("sendroommsg");
             quest.Param("rid", roomId);
@@ -259,7 +347,7 @@ namespace com.fpnn.rtm
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                     mtime = answer.Want<long>("mtime");
@@ -267,6 +355,14 @@ namespace com.fpnn.rtm
                 callback(mtime, errorCode);
 
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         private int InternalSendRoomMessage(out long mtime, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)

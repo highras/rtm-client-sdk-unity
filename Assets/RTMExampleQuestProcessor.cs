@@ -1,262 +1,309 @@
-﻿using System.Text;
+﻿using System;
+using com.fpnn.rtm;
 using UnityEngine;
 
 namespace example.common
 {
-    public class RTMExampleQuestProcessor : com.fpnn.rtm.IRTMQuestProcessor
+    public class RTMExampleQuestProcessor : RTMQuestProcessor
     {
         public RTMExampleQuestProcessor()
         {
         }
 
-        public void SessionClosed(int ClosedByErrorCode)
+        //----------------[ System Events ]-----------------//
+
+        public override void SessionClosed(int ClosedByErrorCode)
         {
             lock (this)
-                Debug.Log("Session closed by error code: " + ClosedByErrorCode);
+                Debug.Log($"Session closed by error code: {ClosedByErrorCode}");
         }
 
-        public void Kickout()
+        public override bool ReloginWillStart(int lastErrorCode, int retriedCount)
+        {
+            lock (this)
+                Debug.Log($"Relogin will start. Last error code is {lastErrorCode}, total relogin count is {retriedCount}.");
+
+            return true;
+        }
+
+        public override void ReloginCompleted(bool successful, bool retryAgain, int errorCode, int retriedCount)
+        {
+            lock (this)
+            {
+                if (successful)
+                    Debug.Log("Relogin Completed. Relogin succeeded, total relogin count is " + retriedCount);
+                else
+                    Debug.Log($"Relogin Completed. Relogin failed, error code: {errorCode}, will"
+                        + (retryAgain ? "" : " not") + " retry again. Total relogin count is {retriedCount}.");
+            }
+        }
+
+        public override void Kickout()
         {
             lock (this)
                 Debug.Log("Received kickout.");
         }
 
-        public void KickoutRoom(long roomId)
+        public override void KickoutRoom(long roomId)
         {
             lock (this)
-                Debug.Log("Kickout from room " + roomId);
+                Debug.Log($"Kickout from room {roomId}");
         }
 
-        //-- message for string format
-        public void PushMessage(long fromUid, long toUid, byte mtype, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push message: from {0}, type: {1}, mid: {2}, attrs: {3}, message: {4}",
-                fromUid, mtype, mid, attrs, message);
+        //----------------[ Message Interfaces ]-----------------//
 
+        //-- Messages
+        public override void PushMessage(RTMMessage message)
+        {
             lock (this)
-                Debug.Log(sb.ToString());
+            {
+                if (message.binaryMessage == null)
+                    Debug.Log($"Receive push message: from {message.fromUid}, " +
+                        $"type: {message.messageType}, mid: {message.messageId}, " +
+                        $"attrs: {message.attrs}, message: {message.stringMessage}");
+                else
+                    Debug.Log($"Receive push binary message: from {message.fromUid}, " +
+                        $"type: {message.messageType}, mid: {message.messageId}, " +
+                        $"attrs: {message.attrs}, message length: {message.binaryMessage.Length}");
+            }
+        }
+        public override void PushGroupMessage(RTMMessage message)
+        {
+            lock (this)
+            {
+                if (message.binaryMessage == null)
+                    Debug.Log($"Receive push group message: from {message.fromUid}, in group {message.toId}, " +
+                        $"type: {message.messageType}, mid: {message.messageId}, " +
+                        $"attrs: {message.attrs}, message: {message.stringMessage}");
+                else
+                    Debug.Log($"Receive push group binary message: from {message.fromUid}, in group {message.toId}, " +
+                        $"type: {message.messageType}, mid: {message.messageId}, " +
+                        $"attrs: {message.attrs}, message length: {message.binaryMessage.Length}");
+            }
+        }
+        public override void PushRoomMessage(RTMMessage message)
+        {
+            lock (this)
+            {
+                if (message.binaryMessage == null)
+                    Debug.Log($"Receive push room message: from {message.fromUid}, in room {message.toId}, " +
+                        $"type: {message.messageType}, mid: {message.messageId}, " +
+                        $"attrs: {message.attrs}, message: {message.stringMessage}");
+                else
+                    Debug.Log($"Receive push room binary message: from {message.fromUid}, in room {message.toId}, " +
+                        $"type: {message.messageType}, mid: {message.messageId}, " +
+                        $"attrs: {message.attrs}, message length: {message.binaryMessage.Length}");
+            }
+        }
+        public override void PushBroadcastMessage(RTMMessage message)
+        {
+            lock (this)
+            {
+                if (message.binaryMessage == null)
+                    Debug.Log($"Receive push broadcast message: from {message.fromUid}, " +
+                        $"type: {message.messageType}, mid: {message.messageId}, " +
+                        $"attrs: {message.attrs}, message: {message.stringMessage}");
+                else
+                    Debug.Log($"Receive push broadcast binary message: from {message.fromUid}, " +
+                        $"type: {message.messageType}, mid: {message.messageId}, " +
+                        $"attrs: {message.attrs}, message length: {message.binaryMessage.Length}");
+            }
         }
 
-        public void PushGroupMessage(long fromUid, long groupId, byte mtype, long mid, string message, string attrs, long mtime)
+        //-- Chat
+        public override void PushChat(RTMMessage message)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push group message: from {0}, in group {5}, type: {1}, mid: {2}, attrs: {3}, message: {4}",
-                    fromUid, mtype, mid, attrs, message, groupId);
-
             lock (this)
-                Debug.Log(sb.ToString());
+            {
+                Debug.Log($"Receive push chat: from {message.fromUid}, " +
+                    $"mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"from language {message.translatedInfo.sourceLanguage} " +
+                    $"content '{message.translatedInfo.sourceText}' to " +
+                    $"language {message.translatedInfo.targetLanguage} " +
+                    $"content '{message.translatedInfo.targetText}'.");
+            }
+        }
+        public override void PushGroupChat(RTMMessage message)
+        {
+            lock (this)
+            {
+                Debug.Log($"Receive push group chat: from {message.fromUid}, " +
+                    $"in group {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"from language {message.translatedInfo.sourceLanguage} " +
+                    $"content '{message.translatedInfo.sourceText}' to " +
+                    $"language {message.translatedInfo.targetLanguage} " +
+                    $"content '{message.translatedInfo.targetText}'.");
+            }
+        }
+        public override void PushRoomChat(RTMMessage message)
+        {
+            lock (this)
+            {
+                Debug.Log($"Receive push room chat: from {message.fromUid}, " +
+                    $"in room {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"from language {message.translatedInfo.sourceLanguage} " +
+                    $"content '{message.translatedInfo.sourceText}' to " +
+                    $"language {message.translatedInfo.targetLanguage} " +
+                    $"content '{message.translatedInfo.targetText}'.");
+            }
+        }
+        public override void PushBroadcastChat(RTMMessage message)
+        {
+            lock (this)
+            {
+                Debug.Log($"Receive push broadcast chat: from {message.fromUid}, " +
+                    $"mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"from language {message.translatedInfo.sourceLanguage} " +
+                    $"content '{message.translatedInfo.sourceText}' to " +
+                    $"language {message.translatedInfo.targetLanguage} " +
+                    $"content '{message.translatedInfo.targetText}'.");
+            }
         }
 
-        public void PushRoomMessage(long fromUid, long roomId, byte mtype, long mid, string message, string attrs, long mtime)
+        //-- Audio
+        public override void PushAudio(RTMMessage message)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push room message: from {0}, in room {5}, type: {1}, mid: {2}, attrs: {3}, message: {4}",
-                    fromUid, mtype, mid, attrs, message, roomId);
-
             lock (this)
-                Debug.Log(sb.ToString());
+            {
+                if (message.binaryMessage == null)
+                    Debug.Log($"Receive push audio message info: from {message.fromUid}, " +
+                    $"mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"source language {message.audioInfo.sourceLanguage} " +
+                    $"recognized language {message.audioInfo.recognizedLanguage} " +
+                    $"duration {message.audioInfo.duration} " +
+                    $"recognized content '{message.audioInfo.recognizedText}'.");
+                else
+                    Debug.Log($"Receive push audio data: from {message.fromUid}, " +
+                        $"mid: {message.messageId}, attrs: {message.attrs}, " +
+                        $"binary data length: {message.binaryMessage.Length}");
+            }
+        }
+        public override void PushGroupAudio(RTMMessage message)
+        {
+            lock (this)
+            {
+                if (message.binaryMessage == null)
+                    Debug.Log($"Receive push group audio message info: from {message.fromUid}, " +
+                    $"in group {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"source language {message.audioInfo.sourceLanguage} " +
+                    $"recognized language {message.audioInfo.recognizedLanguage} " +
+                    $"duration {message.audioInfo.duration} " +
+                    $"recognized content '{message.audioInfo.recognizedText}'.");
+                else
+                    Debug.Log($"Receive push group audio data: from {message.fromUid}, " +
+                        $"in group {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
+                        $"binary data length: {message.binaryMessage.Length}");
+            }
+        }
+        public override void PushRoomAudio(RTMMessage message)
+        {
+            lock (this)
+            {
+                if (message.binaryMessage == null)
+                    Debug.Log($"Receive push room audio message info: from {message.fromUid}, " +
+                    $"in room {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"source language {message.audioInfo.sourceLanguage} " +
+                    $"recognized language {message.audioInfo.recognizedLanguage} " +
+                    $"duration {message.audioInfo.duration} " +
+                    $"recognized content '{message.audioInfo.recognizedText}'.");
+                else
+                    Debug.Log($"Receive push room audio data: from {message.fromUid}, " +
+                        $"in room {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
+                        $"binary data length: {message.binaryMessage.Length}");
+            }
+        }
+        public override void PushBroadcastAudio(RTMMessage message)
+        {
+            lock (this)
+            {
+                if (message.binaryMessage == null)
+                    Debug.Log($"Receive push broadcast audio message info: from {message.fromUid}, " +
+                    $"mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"source language {message.audioInfo.sourceLanguage} " +
+                    $"recognized language {message.audioInfo.recognizedLanguage} " +
+                    $"duration {message.audioInfo.duration} " +
+                    $"recognized content '{message.audioInfo.recognizedText}'.");
+                else
+                    Debug.Log($"Receive push broadcast audio data: from {message.fromUid}, " +
+                        $"mid: {message.messageId}, attrs: {message.attrs}, " +
+                        $"binary data length: {message.binaryMessage.Length}");
+            }
         }
 
-        public void PushBroadcastMessage(long fromUid, byte mtype, long mid, string message, string attrs, long mtime)
+        //-- Cmd
+        public override void PushCmd(RTMMessage message)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push broadcast message: from {0}, type: {1}, mid: {2}, attrs: {3}, message: {4}",
-                    fromUid, mtype, mid, attrs, message);
-
             lock (this)
-                Debug.Log(sb.ToString());
+            {
+                Debug.Log($"Receive push cmd: from {message.fromUid}, " +
+                    $"mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"message {message.stringMessage}.");
+            }
+        }
+        public override void PushGroupCmd(RTMMessage message)
+        {
+            lock (this)
+            {
+                Debug.Log($"Receive push group cmd: from {message.fromUid}, " +
+                    $"in group {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"message {message.stringMessage}.");
+            }
+        }
+        public override void PushRoomCmd(RTMMessage message)
+        {
+            lock (this)
+            {
+                Debug.Log($"Receive push room cmd: from {message.fromUid}, " +
+                    $"in room {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"message {message.stringMessage}.");
+            }
+        }
+        public override void PushBroadcastCmd(RTMMessage message)
+        {
+            lock (this)
+            {
+                Debug.Log($"Receive push broadcast cmd: from {message.fromUid}, " +
+                    $"mid: {message.messageId}, attrs: {message.attrs}, " +
+                    $"message {message.stringMessage}.");
+            }
         }
 
-
-        //-- message for binary format
-        public void PushMessage(long fromUid, long toUid, byte mtype, long mid, byte[] message, string attrs, long mtime)
+        //-- Files
+        public override void PushFile(RTMMessage message)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push binary message: from {0}, type: {1}, mid: {2}, attrs: {3}, message length: {4}",
-                    fromUid, mtype, mid, attrs, message.Length);
-
             lock (this)
-                Debug.Log(sb.ToString());
+            {
+                Debug.Log($"Receive push file: from {message.fromUid}, " +
+                    $"type: {message.messageType}, mid: {message.messageId}," +
+                    $"attrs: {message.attrs}, url: {message.stringMessage}.");
+            }
         }
-
-        public void PushGroupMessage(long fromUid, long groupId, byte mtype, long mid, byte[] message, string attrs, long mtime)
+        public override void PushGroupFile(RTMMessage message)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push binary group message: from {0}, in group {5}, type: {1}, mid: {2}, attrs: {3}, message length: {4}",
-                    fromUid, mtype, mid, attrs, message.Length, groupId);
-
             lock (this)
-                Debug.Log(sb.ToString());
+            {
+                Debug.Log($"Receive push group file: from {message.fromUid}, in group {message.toId}, " +
+                    $"type: {message.messageType}, mid: {message.messageId}," +
+                    $"attrs: {message.attrs}, url: {message.stringMessage}.");
+            }
         }
-        public void PushRoomMessage(long fromUid, long roomId, byte mtype, long mid, byte[] message, string attrs, long mtime)
+        public override void PushRoomFile(RTMMessage message)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push binary room message: from {0}, in room {5}, type: {1}, mid: {2}, attrs: {3}, message length: {4}",
-                    fromUid, mtype, mid, attrs, message.Length, roomId);
-
             lock (this)
-                Debug.Log(sb.ToString());
+            {
+                Debug.Log($"Receive push room file: from {message.fromUid}, in room {message.toId}, " +
+                    $"type: {message.messageType}, mid: {message.messageId}," +
+                    $"attrs: {message.attrs}, url: {message.stringMessage}.");
+            }
         }
-
-        public void PushBroadcastMessage(long fromUid, byte mtype, long mid, byte[] message, string attrs, long mtime)
+        public override void PushBroadcastFile(RTMMessage message)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push binary broadcast message: from {0}, type: {1}, mid: {2}, attrs: {3}, message length: {4}",
-                    fromUid, mtype, mid, attrs, message.Length);
-
             lock (this)
-                Debug.Log(sb.ToString());
-        }
-
-        public void PushChat(long fromUid, long toUid, long mid, com.fpnn.rtm.TranslatedMessage message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push translated chat: from {0}, mid: {1}, attrs: {2}, from language {3} content {4} to language {5} content {6}",
-                    fromUid, mid, attrs, message.source, message.sourceText, message.target, message.targetText);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushGroupChat(long fromUid, long groupId, long mid, com.fpnn.rtm.TranslatedMessage message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push translated group chat: from {0}, in group {7}, mid: {1}, attrs: {2}, from language {3} content {4} to language {5} content {6}",
-                    fromUid, mid, attrs, message.source, message.sourceText, message.target, message.targetText, groupId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushRoomChat(long fromUid, long roomId, long mid, com.fpnn.rtm.TranslatedMessage message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push translated room chat: from {0}, in room {7}, mid: {1}, attrs: {2}, from language {3} content {4} to language {5} content {6}",
-                    fromUid, mid, attrs, message.source, message.sourceText, message.target, message.targetText, roomId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushBroadcastChat(long fromUid, long mid, com.fpnn.rtm.TranslatedMessage message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push translated broadcast chat: from {0}, mid: {1}, attrs: {2}, from language {3} content {4} to language {5} content {6}",
-                    fromUid, mid, attrs, message.source, message.sourceText, message.target, message.targetText);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-
-        public void PushAudio(long fromUid, long toUid, long mid, byte[] message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push audio: from {0}, mid: {1}, attrs: {2}, audio length: {3}",
-                    fromUid, mid, attrs, message.Length);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushGroupAudio(long fromUid, long groupId, long mid, byte[] message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push binary group audio: from {0}, in group {4}, mid: {1}, attrs: {2}, audio length: {3}",
-                    fromUid, mid, attrs, message.Length, groupId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushRoomAudio(long fromUid, long roomId, long mid, byte[] message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push binary room audio: from {0}, in room {4}, mid: {1}, attrs: {2}, audio length: {3}",
-                    fromUid, mid, attrs, message.Length, roomId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-
-        public void PushBroadcastAudio(long fromUid, long mid, byte[] message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push binary broadcast audio: from {0}, mid: {1}, attrs: {2}, audio length: {3}",
-                    fromUid, mid, attrs, message.Length);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-
-        public void PushCmd(long fromUid, long toUid, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push cmd: from {0}, mid: {1}, attrs: {2}, message: {3}",
-                    fromUid, mid, attrs, message);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushGroupCmd(long fromUid, long groupId, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push group cmd: from {0},in group {4}, mid: {1}, attrs: {2}, message: {3}",
-                    fromUid, mid, attrs, message, groupId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-
-        public void PushRoomCmd(long fromUid, long roomId, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push room cmd: from {0},in room {4}, mid: {1}, attrs: {2}, message: {3}",
-                    fromUid, mid, attrs, message, roomId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushBroadcastCmd(long fromUid, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push broadcast cmd: from {0}, mid: {1}, attrs: {2}, message: {3}",
-                    fromUid, mid, attrs, message);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-
-        public void PushFile(long fromUid, long toUid, byte mtype, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push file: from {0}, mid: {1}, attrs: {2}, url: {3}",
-                    fromUid, mid, attrs, message);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushGroupFile(long fromUid, long groupId, byte mtype, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push group file: from {0},in group {4}, mid: {1}, attrs: {2}, url: {3}",
-                    fromUid, mid, attrs, message, groupId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushRoomFile(long fromUid, long roomId, byte mtype, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push room file: from {0},in room {4}, mid: {1}, attrs: {2}, url: {3}",
-                    fromUid, mid, attrs, message, roomId);
-
-            lock (this)
-                Debug.Log(sb.ToString());
-        }
-        public void PushBroadcastFile(long fromUid, byte mtype, long mid, string message, string attrs, long mtime)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("Receive push broadcast file: from {0}, mid: {1}, attrs: {2}, url: {3}",
-                    fromUid, mid, attrs, message);
-
-            lock (this)
-                Debug.Log(sb.ToString());
+            {
+                Debug.Log($"Receive push broadcast file: from {message.fromUid}, " +
+                    $"type: {message.messageType}, mid: {message.messageId}," +
+                    $"attrs: {message.attrs}, url: {message.stringMessage}.");
+            }
         }
     }
 }

@@ -18,6 +18,12 @@ namespace com.fpnn.rtm
                 if (errorRecorder != null)
                     errorRecorder.RecordError("SendMesage interface require mtype large than 50, current mtype is " + mtype);
 
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
                 return false;
             }
 
@@ -47,6 +53,12 @@ namespace com.fpnn.rtm
                 if (errorRecorder != null)
                     errorRecorder.RecordError("SendGroupMessage interface require mtype large than 50, current mtype is " + mtype);
 
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
                 return false;
             }
 
@@ -75,6 +87,12 @@ namespace com.fpnn.rtm
             {
                 if (errorRecorder != null)
                     errorRecorder.RecordError("SendRoomMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
 
                 return false;
             }
@@ -108,6 +126,12 @@ namespace com.fpnn.rtm
                 if (errorRecorder != null)
                     errorRecorder.RecordError("SendMesage interface require mtype large than 50, current mtype is " + mtype);
 
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
                 return false;
             }
 
@@ -137,6 +161,12 @@ namespace com.fpnn.rtm
                 if (errorRecorder != null)
                     errorRecorder.RecordError("SendGroupMessage interface require mtype large than 50, current mtype is " + mtype);
 
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
                 return false;
             }
 
@@ -165,6 +195,12 @@ namespace com.fpnn.rtm
             {
                 if (errorRecorder != null)
                     errorRecorder.RecordError("SendRoomMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
 
                 return false;
             }
@@ -209,11 +245,11 @@ namespace com.fpnn.rtm
         }
 
         //===========================[ History Messages Utilities ]=========================//
-        private HistoryMessageResult BuildHistoryMessageResult(Answer answer)
+        private HistoryMessageResult BuildHistoryMessageResult(long toId, Answer answer)
         {
             HistoryMessageResult result = new HistoryMessageResult();
             result.count = answer.Want<int>("num");
-            result.lastId = answer.Want<long>("lastid");
+            result.lastCursorId = answer.Want<long>("lastid");
             result.beginMsec = answer.Want<long>("begin");
             result.endMsec = answer.Want<long>("end");
             result.messages = new List<HistoryMessage>();
@@ -226,18 +262,23 @@ namespace com.fpnn.rtm
                     continue;
 
                 HistoryMessage message = new HistoryMessage();
-                message.id = (long)Convert.ChangeType(items[0], TypeCode.Int64);
+                message.cursorId = (long)Convert.ChangeType(items[0], TypeCode.Int64);
                 message.fromUid = (long)Convert.ChangeType(items[1], TypeCode.Int64);
-                message.mtype = (byte)Convert.ChangeType(items[2], TypeCode.Byte);
-                message.mid = (long)Convert.ChangeType(items[3], TypeCode.Int64);
+                message.toId = toId;
+                message.messageType = (byte)Convert.ChangeType(items[2], TypeCode.Byte);
+                message.messageId = (long)Convert.ChangeType(items[3], TypeCode.Int64);
 
-                if (message.mtype == MessageMType_Audio)
+                if (message.messageType == (byte)MessageType.Audio)
                 {
-
                     if (CheckBinaryType(items[5]))
                         message.binaryMessage = (byte[])items[5];
                     else
-                        message.binaryMessage = ConvertStringToByteArray((string)Convert.ChangeType(items[5], TypeCode.String));
+                    {
+                        message.audioInfo = BuildAudioInfo((string)Convert.ChangeType(items[5], TypeCode.String), errorRecorder);
+
+                        if (message.audioInfo != null)
+                            message.stringMessage = message.audioInfo.recognizedText;
+                    }
                 }
                 else
                 {
@@ -248,7 +289,7 @@ namespace com.fpnn.rtm
                 }
 
                 message.attrs = (string)Convert.ChangeType(items[6], TypeCode.String);
-                message.mtime = (long)Convert.ChangeType(items[7], TypeCode.Int64);
+                message.modifiedTime = (long)Convert.ChangeType(items[7], TypeCode.Int64);
 
                 result.messages.Add(message);
             }
@@ -261,9 +302,15 @@ namespace com.fpnn.rtm
             foreach (HistoryMessage hm in result.messages)
             {
                 if (hm.fromUid == 1)
+                {
                     hm.fromUid = selfUid;
+                    hm.toId = peerUid;
+                }
                 else if (hm.fromUid == 2)
+                {
                     hm.fromUid = peerUid;
+                    hm.toId = selfUid;
+                }
             }
         }
 
@@ -273,7 +320,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, 0, 0, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getgroupmsg");
             quest.Param("gid", groupId);
@@ -287,25 +342,33 @@ namespace com.fpnn.rtm
             if (mtypes != null)
                 quest.Param("mtypes", mtypes);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     HistoryMessageResult result;
                     try
                     {
-                        result = BuildHistoryMessageResult(answer);
+                        result = BuildHistoryMessageResult(groupId, answer);
                     }
                     catch (Exception)
                     {
                         errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
                         result = new HistoryMessageResult();
                     }
-                    callback(result.count, result.lastId, result.beginMsec, result.endMsec, result.messages, errorCode);
+                    callback(result.count, result.lastCursorId, result.beginMsec, result.endMsec, result.messages, errorCode);
                 }
                 else
                     callback(0, 0, 0, 0, null, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, 0, 0, 0, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int GetGroupMessage(out HistoryMessageResult result, long groupId, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, List<byte> mtypes = null, int timeout = 0)
@@ -334,7 +397,7 @@ namespace com.fpnn.rtm
 
             try
             {
-                result = BuildHistoryMessageResult(answer);
+                result = BuildHistoryMessageResult(groupId, answer);
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)
@@ -348,7 +411,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, 0, 0, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getroommsg");
             quest.Param("rid", roomId);
@@ -362,25 +433,33 @@ namespace com.fpnn.rtm
             if (mtypes != null)
                 quest.Param("mtypes", mtypes);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     HistoryMessageResult result;
                     try
                     {
-                        result = BuildHistoryMessageResult(answer);
+                        result = BuildHistoryMessageResult(roomId, answer);
                     }
                     catch (Exception)
                     {
                         errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
                         result = new HistoryMessageResult();
                     }
-                    callback(result.count, result.lastId, result.beginMsec, result.endMsec, result.messages, errorCode);
+                    callback(result.count, result.lastCursorId, result.beginMsec, result.endMsec, result.messages, errorCode);
                 }
                 else
                     callback(0, 0, 0, 0, null, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, 0, 0, 0, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int GetRoomMessage(out HistoryMessageResult result, long roomId, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, List<byte> mtypes = null, int timeout = 0)
@@ -409,7 +488,7 @@ namespace com.fpnn.rtm
 
             try
             {
-                result = BuildHistoryMessageResult(answer);
+                result = BuildHistoryMessageResult(roomId, answer);
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)
@@ -423,7 +502,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, 0, 0, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getbroadcastmsg");
             quest.Param("desc", desc);
@@ -436,25 +523,33 @@ namespace com.fpnn.rtm
             if (mtypes != null)
                 quest.Param("mtypes", mtypes);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     HistoryMessageResult result;
                     try
                     {
-                        result = BuildHistoryMessageResult(answer);
+                        result = BuildHistoryMessageResult(0, answer);
                     }
                     catch (Exception)
                     {
                         errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
                         result = new HistoryMessageResult();
                     }
-                    callback(result.count, result.lastId, result.beginMsec, result.endMsec, result.messages, errorCode);
+                    callback(result.count, result.lastCursorId, result.beginMsec, result.endMsec, result.messages, errorCode);
                 }
                 else
                     callback(0, 0, 0, 0, null, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, 0, 0, 0, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int GetBroadcastMessage(out HistoryMessageResult result, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, List<byte> mtypes = null, int timeout = 0)
@@ -482,7 +577,7 @@ namespace com.fpnn.rtm
 
             try
             {
-                result = BuildHistoryMessageResult(answer);
+                result = BuildHistoryMessageResult(0, answer);
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)
@@ -496,7 +591,15 @@ namespace com.fpnn.rtm
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, 0, 0, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getp2pmsg");
             quest.Param("ouid", peerUid);
@@ -510,14 +613,14 @@ namespace com.fpnn.rtm
             if (mtypes != null)
                 quest.Param("mtypes", mtypes);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     HistoryMessageResult result;
                     try
                     {
-                        result = BuildHistoryMessageResult(answer);
+                        result = BuildHistoryMessageResult(0, answer);
                         AdjustHistoryMessageResultForP2PMessage(uid, peerUid, result);
                     }
                     catch (Exception)
@@ -525,11 +628,19 @@ namespace com.fpnn.rtm
                         errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
                         result = new HistoryMessageResult();
                     }
-                    callback(result.count, result.lastId, result.beginMsec, result.endMsec, result.messages, errorCode);
+                    callback(result.count, result.lastCursorId, result.beginMsec, result.endMsec, result.messages, errorCode);
                 }
                 else
                     callback(0, 0, 0, 0, null, errorCode);
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, 0, 0, 0, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
         public int GetP2PMessage(out HistoryMessageResult result, long peerUid, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, List<byte> mtypes = null, int timeout = 0)
@@ -558,7 +669,7 @@ namespace com.fpnn.rtm
 
             try
             {
-                result = BuildHistoryMessageResult(answer);
+                result = BuildHistoryMessageResult(0, answer);
                 AdjustHistoryMessageResultForP2PMessage(uid, peerUid, result);
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
@@ -569,31 +680,60 @@ namespace com.fpnn.rtm
         }
 
         //-------------[ Delete Messages ]---------------------//
-        //-- xid: peer uid, or groupId, or roomId
+        public bool DeleteMessage(DoneDelegate callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0)
+        {
+            return DeleteMessage(callback, fromUid, toId, messageId, (byte)messageCategory, timeout);
+        }
+
+        //-- toId: peer uid, or groupId, or roomId
         //-- type: 1: p2p, 2: group; 3: room
-        public bool DeleteMessage(DoneDelegate callback, long xid, long mid, int type, int timeout = 0)
+        //-- Obsolete in v.2.2.0, will change public to internal.
+        internal bool DeleteMessage(DoneDelegate callback, long fromUid, long toId, long messageId, int type, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("delmsg");
-            quest.Param("mid", mid);
-            quest.Param("xid", xid);
+            quest.Param("from", fromUid);
+            quest.Param("mid", messageId);
+            quest.Param("xid", toId);
             quest.Param("type", type);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
-        public int DeleteMessage(long xid, long mid, int type, int timeout = 0)
+        public int DeleteMessage(long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0)
+        {
+            return DeleteMessage(fromUid, toId, messageId, (byte)messageCategory, timeout);
+        }
+        //-- Obsolete in v.2.2.0, will change public to internal.
+        internal int DeleteMessage(long fromUid, long toId, long messageId, int type, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
             Quest quest = new Quest("delmsg");
-            quest.Param("mid", mid);
-            quest.Param("xid", xid);
+            quest.Param("from", fromUid);
+            quest.Param("mid", messageId);
+            quest.Param("xid", toId);
             quest.Param("type", type);
 
             Answer answer = client.SendQuest(quest, timeout);
@@ -604,14 +744,14 @@ namespace com.fpnn.rtm
         private RetrievedMessage BuildRetrievedMessage(Answer answer)
         {
             RetrievedMessage message = new RetrievedMessage();
-            message.id = answer.Want<long>("id");
-            message.mtype = answer.Want<byte>("mtype");
+            message.cursorId = answer.Want<long>("id");
+            message.messageType = answer.Want<byte>("mtype");
             message.attrs = answer.Want<string>("attrs");
-            message.mtime = answer.Want<long>("mtime");
+            message.modifiedTime = answer.Want<long>("mtime");
 
             object originalMessage = answer.Want("msg");
 
-            if (message.mtype != MessageMType_Audio)
+            if (message.messageType != (byte)MessageType.Audio)
             {
 
                 if (CheckBinaryType(originalMessage))
@@ -630,20 +770,34 @@ namespace com.fpnn.rtm
             return message;
         }
 
-        //-- xid: peer uid, or groupId, or roomId
+        public bool GetMessage(Action<RetrievedMessage, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0)
+        {
+            return GetMessage(callback, fromUid, toId, messageId, (byte)messageCategory, timeout);
+        }
+
+        //-- toId: peer uid, or groupId, or roomId
         //-- type: 1: p2p, 2: group; 3: room
-        public bool GetMessage(Action<RetrievedMessage, int> callback, long xid, long mid, int type, int timeout = 0)
+        internal bool GetMessage(Action<RetrievedMessage, int> callback, long fromUid, long toId, long messageId, int type, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
                 return false;
+            }
 
             Quest quest = new Quest("getmsg");
-            quest.Param("mid", mid);
-            quest.Param("xid", xid);
+            quest.Param("from", fromUid);
+            quest.Param("mid", messageId);
+            quest.Param("xid", toId);
             quest.Param("type", type);
 
-            return client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     RetrievedMessage retrievedMessage = null;
@@ -658,9 +812,21 @@ namespace com.fpnn.rtm
                     callback(retrievedMessage, errorCode);
                 }
             }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
         }
 
-        public int GetMessage(out RetrievedMessage retrievedMessage, long xid, long mid, int type, int timeout = 0)
+        public int GetMessage(out RetrievedMessage retrievedMessage, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0)
+        {
+            return GetMessage(out retrievedMessage, fromUid, toId, messageId, (byte)messageCategory, timeout);
+        }
+        internal int GetMessage(out RetrievedMessage retrievedMessage, long fromUid, long toId, long messageId, int type, int timeout = 0)
         {
             retrievedMessage = null;
 
@@ -669,8 +835,9 @@ namespace com.fpnn.rtm
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
             Quest quest = new Quest("getmsg");
-            quest.Param("mid", mid);
-            quest.Param("xid", xid);
+            quest.Param("from", fromUid);
+            quest.Param("mid", messageId);
+            quest.Param("xid", toId);
             quest.Param("type", type);
 
             Answer answer = client.SendQuest(quest, timeout);

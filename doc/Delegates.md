@@ -6,7 +6,7 @@
 
 ### AuthDelegate
 
-	public delegate void AuthDelegate(long pid, long uid, bool authStatus, int errorCode);
+	public delegate void AuthDelegate(long projectId, long uid, bool successful, int errorCode);
 
 Parameters:
 
@@ -41,15 +41,15 @@ Parameters:
 
 ### ActTimeDelegate
 
-	public delegate void ActTimeDelegate(long mtime, int errorCode);
+	public delegate void ActTimeDelegate(long modifiedTime, int errorCode);
 
 Parameters:
 
-+ `long mtime`
++ `long modifiedTime`
 
-	If action is successful, `mtime` is the action completed time.
+	If action is successful, `modifiedTime` is the action completed time.
 
-	If action is failed, `mtime` is 0.
+	If action is failed, `modifiedTime` is 0.
 
 + `int errorCode`
 
@@ -59,7 +59,7 @@ Parameters:
 
 ### HistoryMessageDelegate
 
-	public delegate void HistoryMessageDelegate(int count, long lastId, long beginMsec, long endMsec, List<HistoryMessage> messages, int errorCode);
+	public delegate void HistoryMessageDelegate(int count, long lastCursorId, long beginMsec, long endMsec, List<HistoryMessage> messages, int errorCode);
 
 Parameters:
 
@@ -67,7 +67,7 @@ Parameters:
 
 	Retrieved messages count.
 
-+ `long lastId`
++ `long lastCursorId`
 
 	When calling history functions for fetching following messsges, using this for corresponding patameter.
 

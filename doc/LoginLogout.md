@@ -78,7 +78,13 @@ Parameters:
 
 ### Close
 
-	public void Close();
+	public void Close(bool waitConnectingCannelled = true);
 
 Without logout, close the current session directly.
+
+Parameters:
+
++ `bool waitConnectingCannelled`
+
+	Waiting for current connecting has been cannelled or not.
 

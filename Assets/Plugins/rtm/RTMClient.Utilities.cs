@@ -6,7 +6,7 @@ namespace com.fpnn.rtm
 {
     public partial class RTMClient
     {
-        internal static string GetTranslatedLanguage(TranslateLanguage language)
+        public static string GetTranslatedLanguage(TranslateLanguage language)
         {
             if (language == TranslateLanguage.None)
                 return "";
@@ -65,6 +65,45 @@ namespace com.fpnn.rtm
                 rev.Add((string)Convert.ChangeType(kvp.Key, TypeCode.String), (string)Convert.ChangeType(kvp.Value, TypeCode.String));
 
             return rev;
+        }
+
+        internal static AudioInfo BuildAudioInfo(string json, common.ErrorRecorder errorRecorder)
+        {
+            try
+            {
+                Dictionary<string, object> jsonData = common.Json.ParseObject(json);
+
+                AudioInfo audioInfo = new AudioInfo();
+
+                if (jsonData.TryGetValue("sl", out object sourceLanguage))
+                    audioInfo.sourceLanguage = (string)sourceLanguage;
+                else
+                    audioInfo.sourceLanguage = "";
+
+                if (jsonData.TryGetValue("rl", out object recognizedLanguage))
+                    audioInfo.recognizedLanguage = (string)recognizedLanguage;
+                else
+                    audioInfo.recognizedLanguage = "";
+
+                if (jsonData.TryGetValue("du", out object duration))
+                    audioInfo.duration = (int)Convert.ChangeType(duration, typeof(int));
+                else
+                    audioInfo.duration = 0;
+
+                if (jsonData.TryGetValue("rt", out object recognizedText))
+                    audioInfo.recognizedText = (string)recognizedText;
+                else
+                    audioInfo.recognizedText = "";
+
+                return audioInfo;
+            }
+            catch (Exception e)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("BuildAudioInfo failed. Json: " + json, e);
+
+                return null;
+            }
         }
     }
 }

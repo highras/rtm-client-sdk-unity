@@ -19,7 +19,7 @@ namespace com.fpnn.rtm
         public const int RTM_EC_PERMISSION_DENIED = 200021;
         public const int RTM_EC_UNAUTHORIZED = 200022;
         public const int RTM_EC_DUPLCATED_AUTH = 200023;
-        public const int RTM_EC_AUTH_DEINED = 200024;
+        public const int RTM_EC_AUTH_DENIED = 200024;
         public const int RTM_EC_ADMIN_LOGIN = 200025;
         public const int RTM_EC_ADMIN_ONLY = 200026;
 
