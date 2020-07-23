@@ -76,6 +76,9 @@ namespace com.fpnn.rtm
         }
 
         public void Init(string lang, string device, IMicrophone micPhone) {
+#if RTM_BUILD_NO_AUDIO
+            throw new Exception("Audio is disabled, please remove the RTM_BUILD_NO_AUDIO define in \"Scripting Define Symbols\"");
+#else
             this.lang = lang;
             if (micPhone != null) {
                 this.micPhone = micPhone;
@@ -92,9 +95,13 @@ namespace com.fpnn.rtm
             lock (selfLocker) {
                 this.device = device;
             }
+#endif
         }
 
         public void StartInput(int maxRecordSeconds = 60) {
+#if RTM_BUILD_NO_AUDIO
+            throw new Exception("Audio is disabled, please remove the RTM_BUILD_NO_AUDIO define in \"Scripting Define Symbols\"");
+#else
             if (micPhone == null) {
                 return;
             }
@@ -109,9 +116,13 @@ namespace com.fpnn.rtm
                 micPhone.Start();
             }
             StartCoroutine("TimeDown");
+#endif
         }
 
         public void FinishInput() {
+#if RTM_BUILD_NO_AUDIO
+            throw new Exception("Audio is disabled, please remove the RTM_BUILD_NO_AUDIO define in \"Scripting Define Symbols\"");
+#else
             if (micPhone == null) {
                 return;
             }
@@ -133,6 +144,7 @@ namespace com.fpnn.rtm
                     micPhone.OnRecord(GetAudioData(clipRecord));
                 }
             }
+#endif
         }
 
         private RTMAudioData GetAudioData(AudioClip clip) {
