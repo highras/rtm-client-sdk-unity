@@ -76,6 +76,9 @@ namespace com.fpnn.rtm
         }
 
         public void Init(string lang, string device, IMicrophone micPhone) {
+            position = 0;
+            isRecording = false;
+            this.lang = lang;
 #if RTM_BUILD_NO_AUDIO
             throw new Exception("Audio is disabled, please remove the RTM_BUILD_NO_AUDIO define in \"Scripting Define Symbols\"");
 #else
