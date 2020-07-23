@@ -4,6 +4,9 @@
 
 [TOC]
 
+## Remove Audio-Related Features
+* You can remove the audio-related features by add a symbols named: "RTM_BUILD_NO_AUDIO" into "Player Settings => Other Settings => Configuration => Scripting Define Symbols"
+
 ## Audio Record Example
 
 
