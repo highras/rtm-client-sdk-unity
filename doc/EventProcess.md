@@ -4,46 +4,50 @@
 
 [TOC]
 
-## Interface IRTMQuestProcessor
+## Class RTMQuestProcessor
 
-    public interface IRTMQuestProcessor
+    public class RTMQuestProcessor
     {
-        void SessionClosed(int ClosedByErrorCode);        //-- com.fpnn.ErrorCode & com.fpnn.rtm.ErrorCode
+        //----------------[ System Events ]-----------------//
+        public virtual void SessionClosed(int ClosedByErrorCode) { }    //-- ErrorCode: com.fpnn.ErrorCode & com.fpnn.rtm.ErrorCode
 
-        void Kickout();
-        void KickoutRoom(long roomId);
+        //-- Return true for starting relogin, false for stopping relogin.
+        public virtual bool ReloginWillStart(int lastErrorCode, int retriedCount) { return true; }
+        public virtual void ReloginCompleted(bool successful, bool retryAgain, int errorCode, int retriedCount) { }
 
-        //-- message for string format
-        void PushMessage(long fromUid, long toUid, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushGroupMessage(long fromUid, long groupId, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushRoomMessage(long fromUid, long roomId, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushBroadcastMessage(long fromUid, byte mtype, long mid, string message, string attrs, long mtime);
+        public virtual void Kickout() { }
+        public virtual void KickoutRoom(long roomId) { }
 
-        //-- message for binary format
-        void PushMessage(long fromUid, long toUid, byte mtype, long mid, byte[] message, string attrs, long mtime);
-        void PushGroupMessage(long fromUid, long groupId, byte mtype, long mid, byte[] message, string attrs, long mtime);
-        void PushRoomMessage(long fromUid, long roomId, byte mtype, long mid, byte[] message, string attrs, long mtime);
-        void PushBroadcastMessage(long fromUid, byte mtype, long mid, byte[] message, string attrs, long mtime);
+        //----------------[ Message Interfaces ]-----------------//
+        //-- Messages
+        public virtual void PushMessage(RTMMessage message) { }
+        public virtual void PushGroupMessage(RTMMessage message) { }
+        public virtual void PushRoomMessage(RTMMessage message) { }
+        public virtual void PushBroadcastMessage(RTMMessage message) { }
 
-        void PushChat(long fromUid, long toUid, long mid, TranslatedMessage message, string attrs, long mtime);
-        void PushGroupChat(long fromUid, long groupId, long mid, TranslatedMessage message, string attrs, long mtime);
-        void PushRoomChat(long fromUid, long roomId, long mid, TranslatedMessage message, string attrs, long mtime);
-        void PushBroadcastChat(long fromUid, long mid, TranslatedMessage message, string attrs, long mtime);
+        //-- Chat
+        public virtual void PushChat(RTMMessage message) { }
+        public virtual void PushGroupChat(RTMMessage message) { }
+        public virtual void PushRoomChat(RTMMessage message) { }
+        public virtual void PushBroadcastChat(RTMMessage message) { }
 
-        void PushAudio(long fromUid, long toUid, long mid, byte[] message, string attrs, long mtime);
-        void PushGroupAudio(long fromUid, long groupId, long mid, byte[] message, string attrs, long mtime);
-        void PushRoomAudio(long fromUid, long roomId, long mid, byte[] message, string attrs, long mtime);
-        void PushBroadcastAudio(long fromUid, long mid, byte[] message, string attrs, long mtime);
+        //-- Audio
+        public virtual void PushAudio(RTMMessage message) { }
+        public virtual void PushGroupAudio(RTMMessage message) { }
+        public virtual void PushRoomAudio(RTMMessage message) { }
+        public virtual void PushBroadcastAudio(RTMMessage message) { }
 
-        void PushCmd(long fromUid, long toUid, long mid, string message, string attrs, long mtime);
-        void PushGroupCmd(long fromUid, long groupId, long mid, string message, string attrs, long mtime);
-        void PushRoomCmd(long fromUid, long roomId, long mid, string message, string attrs, long mtime);
-        void PushBroadcastCmd(long fromUid, long mid, string message, string attrs, long mtime);
+        //-- Cmd
+        public virtual void PushCmd(RTMMessage message) { }
+        public virtual void PushGroupCmd(RTMMessage message) { }
+        public virtual void PushRoomCmd(RTMMessage message) { }
+        public virtual void PushBroadcastCmd(RTMMessage message) { }
 
-        void PushFile(long fromUid, long toUid, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushGroupFile(long fromUid, long groupId, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushRoomFile(long fromUid, long roomId, byte mtype, long mid, string message, string attrs, long mtime);
-        void PushBroadcastFile(long fromUid, byte mtype, long mid, string message, string attrs, long mtime);
+        //-- Files
+        public virtual void PushFile(RTMMessage message) { }
+        public virtual void PushGroupFile(RTMMessage message) { }
+        public virtual void PushRoomFile(RTMMessage message) { }
+        public virtual void PushBroadcastFile(RTMMessage message) { }
     }
 
 ### Session Close Event
@@ -71,3 +75,7 @@ The session is closed by RTM SDK automatically before the method is called.
 #### Push Files Methods
 
 The parameter `message` is the URL of file in CDN.
+
+#### ReloginWillStart & ReloginCompleted
+
+    Reserved in this version.
