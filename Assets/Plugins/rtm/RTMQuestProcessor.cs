@@ -121,6 +121,24 @@ namespace com.fpnn.rtm
             RTMControlCenter.UnregisterSession(connectionId);
         }
 
+        public bool ReloginWillStart(int lastErrorCode, int retriedCount)
+        {
+            bool startRelogin = true;
+            if (questProcessor != null)
+                startRelogin = questProcessor.ReloginWillStart(lastErrorCode, retriedCount);
+
+            if (startRelogin)       //-- if startRelogin == false, will call SessionClosed(), the UnregisterSession() will be called in SessionClosed().
+                RTMControlCenter.UnregisterSession(connectionId);
+
+            return startRelogin;
+        }
+
+        public void ReloginCompleted(bool successful, bool retryAgain, int errorCode, int retriedCount)
+        {
+            if (questProcessor != null)
+                questProcessor.ReloginCompleted(successful, retryAgain, errorCode, retriedCount);
+        }
+
         //----------------------[ RTM Operations ]-------------------//
         public Answer Ping(Int64 connectionId, string endpoint, Quest quest)
         {

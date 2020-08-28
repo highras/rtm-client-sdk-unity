@@ -6,7 +6,7 @@
 
 ## Current Version
 
-	public static readonly string com.fpnn.rtm.RTMConfig.SDKVersion = "2.2.0";
+	public static readonly string com.fpnn.rtm.RTMConfig.SDKVersion = "2.2.2";
 
 ## Init & Config SDK
 
@@ -28,7 +28,7 @@ PLease refer：[Init & Config FPNN SDK & RTM SDK](Init.md)
 
 ### Constructors
 
-	public RTMClient(string endpoint, long pid, long uid, IRTMQuestProcessor serverPushProcessor)
+	public RTMClient(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
 
 * endpoint:
 
@@ -44,9 +44,13 @@ PLease refer：[Init & Config FPNN SDK & RTM SDK](Init.md)
 
 * serverPushProcessor:
 
-	Instance of events processor implemented com.fpnn.rtm.IRTMQuestProcessor.
+	Instance of events processor inheriting com.fpnn.rtm.RTMQuestProcessor.
 
 	Please refer [Event Process](EventProcess.md)
+
+* autoRelogin:
+
+	Enable auto-relogin when connection lost after **first successful login** if user's token is available and user isn't forbidden.
 
 ### Properties
 

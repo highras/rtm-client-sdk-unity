@@ -11,7 +11,9 @@ namespace com.fpnn.rtm
     public static class RTMControlCenter
     {
         private static object interLocker = new object();
+        private static volatile bool networkReachable = true;
         private static Dictionary<Int64, RTMClient> rtmClients = new Dictionary<long, RTMClient>();
+        private static Dictionary<RTMClient, Int64> reloginClients = new Dictionary<RTMClient, Int64>();
 
         private static Dictionary<string, Dictionary<TCPClient, long>> fileClients = new Dictionary<string, Dictionary<TCPClient, long>>();
 
@@ -53,6 +55,74 @@ namespace com.fpnn.rtm
 
             if (client != null)
                 client.Close();
+        }
+
+        //===========================[ Relogin Functions ]=========================//
+        internal static void DelayRelogin(RTMClient client, long triggeredMs)
+        {
+            CheckRoutineInit();
+
+            lock (interLocker)
+            {
+                try
+                {
+                    reloginClients.Add(client, triggeredMs);
+                }
+                catch (ArgumentException)
+                {
+                     //-- Do nothing.
+                }
+            }
+        }
+
+        private static void ReloginCheck()
+        {
+            if (!networkReachable)
+                return;
+
+            HashSet<RTMClient> clients = new HashSet<RTMClient>();
+            long now = ClientEngine.GetCurrentMilliseconds();
+
+            lock (interLocker)
+            {
+                foreach (KeyValuePair<RTMClient, Int64> kvp in reloginClients)
+                {
+                    if (kvp.Value <= now)
+                        clients.Add(kvp.Key);
+                }
+
+                foreach (RTMClient client in clients)
+                    reloginClients.Remove(client);
+            }
+
+            foreach (RTMClient client in clients)
+            {
+                ClientEngine.RunTask(() => {
+                    client.StartRelogin();
+                });
+            }
+        }
+
+        internal static void NetworkReachableChanged(bool reachable)
+        {
+            if (reachable != networkReachable)
+            {
+                networkReachable = reachable;
+                if (reachable)
+                {
+                    long now = ClientEngine.GetCurrentMilliseconds();
+
+                    Dictionary<RTMClient, Int64> clients = new Dictionary<RTMClient, Int64>();
+
+                    lock (interLocker)
+                    {
+                        foreach (KeyValuePair<RTMClient, Int64> kvp in reloginClients)
+                            clients.Add(kvp.Key, now);
+
+                        reloginClients = clients;
+                    }
+                }
+            }
         }
 
         //===========================[ File Gate Client Functions ]=========================//
@@ -132,6 +202,10 @@ namespace com.fpnn.rtm
 
         public static void Init(RTMConfig config)
         {
+#if UNITY_2017_1_OR_NEWER
+            StatusMonitor.Instance.Init();
+#endif
+
             if (config == null)
                 return;
 
@@ -188,9 +262,10 @@ namespace com.fpnn.rtm
 
                 foreach (RTMClient client in clients)
                     if (client.ConnectionIsAlive() == false)
-                        client.Close();
+                        client.Close(false, true);
 
                 CheckFileGateClients();
+                ReloginCheck();
             }
         }
 

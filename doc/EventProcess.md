@@ -78,4 +78,4 @@ The parameter `message` is the URL of file in CDN.
 
 #### ReloginWillStart & ReloginCompleted
 
-    Reserved in this version.
+Will triggered when connection lost after **first successful login** if user's token is available and user isn't forbidden.

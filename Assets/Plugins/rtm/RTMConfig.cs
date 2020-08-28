@@ -1,9 +1,16 @@
 ﻿using System;
 namespace com.fpnn.rtm
 {
+    public class RegressiveStrategy
+    {
+        public int startConnectFailedCount = 3;                //-- 连接失败多少次后，开始退行性处理
+        public int maxIntervalSeconds = 8;                     //-- 退行性重连最大时间间隔
+        public int linearRegressiveCount = 4;                  //-- 从第一次退行性连接开始，到最大链接时间，允许尝试几次连接，每次时间间隔都会增大
+    }
+
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "2.2.1";
+        public static readonly string SDKVersion = "2.2.2";
         public static readonly string InterfaceVersion = "2.2.1";
 
         internal static int lostConnectionAfterLastPingInSeconds = 120;
@@ -12,6 +19,7 @@ namespace com.fpnn.rtm
         internal static int fileGateClientHoldingSeconds = 150;
         internal static common.ErrorRecorder errorRecorder = null;
         internal static bool triggerCallbackIfAsyncMethodReturnFalse = false;
+        internal static RegressiveStrategy globalRegressiveStrategy = new RegressiveStrategy();
 
         public int maxPingInterval;
         public int globalConnectTimeout;
@@ -19,6 +27,7 @@ namespace com.fpnn.rtm
         public int fileClientHoldingSeconds;
         public common.ErrorRecorder defaultErrorRecorder;
         public bool forceTriggerCallbackWhenAsyncMethodReturnFalse;
+        public RegressiveStrategy regressiveStrategy;
 
         public RTMConfig()
         {
@@ -27,6 +36,8 @@ namespace com.fpnn.rtm
             globalQuestTimeout = 30;
             fileClientHoldingSeconds = 150;
             forceTriggerCallbackWhenAsyncMethodReturnFalse = false;
+
+            regressiveStrategy = new RegressiveStrategy();
         }
 
         internal static void Config(RTMConfig config)
@@ -37,6 +48,8 @@ namespace com.fpnn.rtm
             fileGateClientHoldingSeconds = config.fileClientHoldingSeconds;
             errorRecorder = config.defaultErrorRecorder;
             triggerCallbackIfAsyncMethodReturnFalse = config.forceTriggerCallbackWhenAsyncMethodReturnFalse;
+
+            globalRegressiveStrategy = config.regressiveStrategy;
         }
     }
 

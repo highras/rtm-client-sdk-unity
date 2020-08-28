@@ -40,7 +40,7 @@ Encryption Capability, depending on FPNN C# SDK.
 
 ### Create
 
-	RTMClient client = new RTMClient(string endpoint, long pid, long uid, IRTMQuestProcessor serverPushProcessor);
+	RTMClient client = new RTMClient(string endpoint, long pid, long uid, RTMQuestProcessor serverPushProcessor);
 
 Please get your project params from RTM Console.
 

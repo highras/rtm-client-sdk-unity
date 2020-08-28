@@ -16,6 +16,48 @@ namespace com.fpnn.rtm
 
         //-------------[ Private class for Login ]--------------------------//
 
+        private class AutoReloginInfo
+        {
+            public bool disabled = true;
+            public bool canRelogin = false;
+            public int reloginCount = 0;
+            public int lastErrorCode = 0;
+            public long lastReloginMS = 0;
+
+            public string token;
+            public Dictionary<string, string> attr;
+            public string lang;
+
+            public void Login()
+            {
+                if (disabled)
+                {
+                    disabled = false;
+                    reloginCount = 0;
+                    lastErrorCode = 0;
+                }
+                else if (canRelogin)
+                {
+                    reloginCount += 1;
+                }
+
+                lastReloginMS = ClientEngine.GetCurrentMilliseconds();
+            }
+
+            public void LoginSuccessful()
+            {
+                canRelogin = true;
+                reloginCount = 0;
+                lastErrorCode = 0;
+            }
+
+            public void Disable()
+            {
+                disabled = true;
+                canRelogin = false;
+            }
+        }
+
         private class AuthStatusInfo
         {
             public AuthDelegate authCallback;
@@ -55,6 +97,21 @@ namespace com.fpnn.rtm
             }
         }
 
+        //-------------[ Static Fields ]--------------------------//
+        private static HashSet<int> reloginStopCodes = new HashSet<int>
+        {
+            fpnn.ErrorCode.FPNN_EC_CORE_FORBIDDEN,
+
+            ErrorCode.RTM_EC_INVALID_PID_OR_UID,
+            ErrorCode.RTM_EC_INVALID_PID_OR_SIGN,
+            ErrorCode.RTM_EC_PERMISSION_DENIED,
+            ErrorCode.RTM_EC_AUTH_DENIED,
+            ErrorCode.RTM_EC_ADMIN_LOGIN,
+            ErrorCode.RTM_EC_ADMIN_ONLY,
+            ErrorCode.RTM_EC_INVALID_AUTH_TOEKN,
+            ErrorCode.RTM_EC_BLOCKED_USER,
+        };
+
         //-------------[ Fields ]--------------------------//
         private object interLocker;
         private readonly long projectId;
@@ -74,11 +131,13 @@ namespace com.fpnn.rtm
         private Int64 reservedRtmGateConnectionId;
 
         private AuthStatusInfo authStatsInfo;
+        private AutoReloginInfo autoReloginInfo;
+        private RegressiveStrategy regressiveStrategy;
         private common.ErrorRecorder errorRecorder;
 
         //-- Obsolete in v.2.2.0
         [Obsolete("Constructor with interface IRTMQuestProcessor is deprecated, please use Constructor with class RTMQuestProcessor instead.")]
-        public RTMClient(string endpoint, long projectId, long uid, IRTMQuestProcessor serverPushProcessor)
+        public RTMClient(string endpoint, long projectId, long uid, IRTMQuestProcessor serverPushProcessor, bool autoRelogin = false)
         {
             interLocker = new object();
             this.projectId = projectId;
@@ -101,9 +160,15 @@ namespace com.fpnn.rtm
                 processor.SetErrorRecorder(errorRecorder);
                 dispatch.SetErrorRecorder(errorRecorder);
             }
+
+            if (autoRelogin)
+            {
+                autoReloginInfo = new AutoReloginInfo();
+                regressiveStrategy = RTMConfig.globalRegressiveStrategy;
+            }
         }
 
-        public RTMClient(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor)
+        public RTMClient(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
         {
             interLocker = new object();
             this.projectId = projectId;
@@ -125,6 +190,12 @@ namespace com.fpnn.rtm
             {
                 processor.SetErrorRecorder(errorRecorder);
                 dispatch.SetErrorRecorder(errorRecorder);
+            }
+
+            if (autoRelogin)
+            {
+                autoReloginInfo = new AutoReloginInfo();
+                regressiveStrategy = RTMConfig.globalRegressiveStrategy;
             }
         }
 
@@ -184,6 +255,11 @@ namespace com.fpnn.rtm
         public bool ConnectionIsAlive()
         {
             return processor.ConnectionIsAlive();
+        }
+
+        public void SetRegressiveStrategy(RegressiveStrategy strategy)
+        {
+            regressiveStrategy = strategy;
         }
 
         private TCPClient GetCoreClient()
@@ -253,6 +329,7 @@ namespace com.fpnn.rtm
         {
             AuthStatusInfo currInfo;
             long currUid;
+            bool isRelogin = false;
 
             lock (interLocker)
             {
@@ -272,6 +349,21 @@ namespace com.fpnn.rtm
                     //-- Reserving rtmGate without closing for quick relogin.
                 }
 
+                if (autoReloginInfo != null)
+                {
+                    isRelogin = autoReloginInfo.canRelogin;
+
+                    if (authStatsInfo != null)
+                    {
+                        autoReloginInfo.token = authStatsInfo.token;
+                        autoReloginInfo.attr = authStatsInfo.attr;
+                        autoReloginInfo.lang = authStatsInfo.lang;
+                    }
+
+                    if (authStatus && !autoReloginInfo.canRelogin)
+                        autoReloginInfo.LoginSuccessful();
+                }
+
                 currInfo = authStatsInfo;
                 authStatsInfo = null;
                 currUid = uid;
@@ -279,11 +371,19 @@ namespace com.fpnn.rtm
                 syncConnectingEvent.Set();
             }
 
-            if (currInfo != null)
+            if (!isRelogin && currInfo != null)
+            {
+                //-- Futuer TODO:
+                //-- 如果初始连接（第一次连接）也需要自动重连/自动重试的话，在这里处理。
+                //-- 但需要注意：这将会打断/破坏对登录超时的控制，需要进行额外的修复，或者在用户手册中说明。
                 currInfo.authCallback(projectId, currUid, authStatus, errorCode);
+            }
 
             if (reservedRtmGateConnectionId != 0)
                 RTMControlCenter.UnregisterSession(reservedRtmGateConnectionId);
+
+            if (isRelogin && currInfo != null)
+                currInfo.authCallback(projectId, currUid, authStatus, errorCode);
         }
 
         private bool AdjustAuthRemainedTimeout()
@@ -315,6 +415,7 @@ namespace com.fpnn.rtm
 
                 bool trigger = false;
                 bool isConnecting = false;
+                bool startRelogin = false;
                 lock (interLocker)
                 {
                     trigger = rtmGateConnectionId == connectionId;
@@ -325,6 +426,12 @@ namespace com.fpnn.rtm
                         else
                             status = ClientStatus.Closed;
                     }
+
+                    if (autoReloginInfo != null)
+                    {
+                        startRelogin = (autoReloginInfo.disabled == false && autoReloginInfo.canRelogin);
+                        autoReloginInfo.lastErrorCode = (causedByError ? fpnn.ErrorCode.FPNN_EC_CORE_CONNECTION_CLOSED : fpnn.ErrorCode.FPNN_EC_OK);
+                    }
                 }
 
                 if (trigger)
@@ -332,7 +439,12 @@ namespace com.fpnn.rtm
                     if (isConnecting)
                         AuthFinish(false, com.fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                     else
-                        processor.SessionClosed(causedByError ? com.fpnn.ErrorCode.FPNN_EC_CORE_UNKNOWN_ERROR : com.fpnn.ErrorCode.FPNN_EC_OK);
+                    {
+                        if (startRelogin)
+                            StartRelogin();
+                        else
+                            processor.SessionClosed(causedByError ? com.fpnn.ErrorCode.FPNN_EC_CORE_UNKNOWN_ERROR : com.fpnn.ErrorCode.FPNN_EC_OK);
+                    }
                 }
             });
         }
@@ -572,7 +684,7 @@ namespace com.fpnn.rtm
          */
         public bool Login(AuthDelegate callback, string token, Dictionary<string, string> attr, TranslateLanguage language = TranslateLanguage.None, int timeout = 0)
         {
-            return Login(callback, token, null, GetTranslatedLanguage(language), timeout);
+            return Login(callback, token, attr, GetTranslatedLanguage(language), timeout);
         }
 
         /**
@@ -601,6 +713,9 @@ namespace com.fpnn.rtm
                 syncConnectingEvent.Reset();
 
                 requireClose = false;
+
+                if (autoReloginInfo != null)
+                    autoReloginInfo.Login();
 
                 if (rtmGate != null)
                 {
@@ -701,7 +816,7 @@ namespace com.fpnn.rtm
 
         public int Login(out bool ok, string token, Dictionary<string, string> attr, TranslateLanguage language = TranslateLanguage.None, int timeout = 0)
         {
-            return Login(out ok, token, null, GetTranslatedLanguage(language), timeout);
+            return Login(out ok, token, attr, GetTranslatedLanguage(language), timeout);
         }
 
         private int Login(out bool ok, string token, Dictionary<string, string> attr, string lang = "", int timeout = 0)
@@ -739,7 +854,109 @@ namespace com.fpnn.rtm
             }
         }
 
-        public void Close(bool waitConnectingCannelled = true)
+        //-------------[ Relogin interfaces ]--------------------------//
+        private void StartNextRelogin()
+        {
+            if (autoReloginInfo.reloginCount <= regressiveStrategy.startConnectFailedCount)
+            {
+                StartRelogin();
+                return;
+            }
+
+            int regressiveCount = autoReloginInfo.reloginCount - regressiveStrategy.startConnectFailedCount;
+            long interval = regressiveStrategy.maxIntervalSeconds * 1000;
+            if (regressiveCount < regressiveStrategy.linearRegressiveCount)
+            {
+                interval = interval * regressiveCount / regressiveStrategy.linearRegressiveCount;
+            }
+
+            RTMControlCenter.DelayRelogin(this, ClientEngine.GetCurrentMilliseconds() + interval);
+        }
+
+        internal void StartRelogin()
+        {
+            bool launch = processor.ReloginWillStart(autoReloginInfo.lastErrorCode, autoReloginInfo.reloginCount);
+            if (!launch)
+            {
+                processor.SessionClosed(autoReloginInfo.lastErrorCode);
+                return;
+            }
+
+            bool startLogin = Login((long projectId, long uid, bool successful, int errorCode) =>
+            {
+                if (successful)
+                {
+                    processor.ReloginCompleted(true, false, errorCode, autoReloginInfo.reloginCount);
+                    autoReloginInfo.LoginSuccessful();
+                    return;
+                }
+                else
+                {
+                    bool connected = false;
+                    lock (interLocker)
+                    {
+                        if (status == ClientStatus.Connected)
+                            connected = true;
+                    }
+
+                    if (connected || errorCode == ErrorCode.RTM_EC_DUPLCATED_AUTH)
+                    {
+                        processor.ReloginCompleted(true, false, fpnn.ErrorCode.FPNN_EC_OK, autoReloginInfo.reloginCount);
+                        autoReloginInfo.LoginSuccessful();
+                        return;
+                    }
+
+                    if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                    {
+                        processor.ReloginCompleted(false, false, ErrorCode.RTM_EC_INVALID_AUTH_TOEKN, autoReloginInfo.reloginCount);
+                        autoReloginInfo.Disable();
+                        processor.SessionClosed(ErrorCode.RTM_EC_INVALID_AUTH_TOEKN);
+                        return;
+                    }
+
+                    bool stopRetry = reloginStopCodes.Contains(errorCode);
+
+                    processor.ReloginCompleted(false, !stopRetry, errorCode, autoReloginInfo.reloginCount);
+                    if (stopRetry)
+                    {
+                        autoReloginInfo.Disable();
+                        processor.SessionClosed(errorCode);
+                        return;
+                    }
+
+                    StartNextRelogin();
+                }
+            },
+            autoReloginInfo.token, autoReloginInfo.attr, autoReloginInfo.lang);
+
+            if (!startLogin && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse == false)
+            {
+                ClientStatus connStatus;
+                lock (interLocker)
+                {
+                    connStatus = status;
+                }
+
+                if (connStatus == ClientStatus.Connected)
+                {
+                    processor.ReloginCompleted(true, false, fpnn.ErrorCode.FPNN_EC_OK, autoReloginInfo.reloginCount);
+                    autoReloginInfo.LoginSuccessful();
+                    return;
+                }
+                else
+                {
+                    int errorCode = fpnn.ErrorCode.FPNN_EC_CORE_CONNECTION_CLOSED;
+                    if (connStatus == ClientStatus.Connecting)
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_UNKNOWN_ERROR;
+
+                    processor.ReloginCompleted(false, true, errorCode, autoReloginInfo.reloginCount);
+                    StartNextRelogin();
+                }
+            }
+        }
+
+        //-------------[ Close interfaces ]--------------------------//
+        internal void Close(bool disableRelogin, bool waitConnectingCannelled)
         {
             HashSet<TCPClient> clients = new HashSet<TCPClient>();
             clients.Add(dispatch);
@@ -752,6 +969,9 @@ namespace com.fpnn.rtm
                     return;
 
                 requireClose = true;
+
+                if (disableRelogin && autoReloginInfo != null)
+                    autoReloginInfo.Disable();
 
                 if (status == ClientStatus.Connecting)
                 {
@@ -772,6 +992,11 @@ namespace com.fpnn.rtm
 
             if (isConnecting && waitConnectingCannelled)
                 syncConnectingEvent.WaitOne();
+        }
+
+        public void Close(bool waitConnectingCannelled = true)
+        {
+            Close(true, waitConnectingCannelled);
         }
     }
 }

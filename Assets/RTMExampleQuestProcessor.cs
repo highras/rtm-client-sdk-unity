@@ -34,7 +34,7 @@ namespace example.common
                     Debug.Log("Relogin Completed. Relogin succeeded, total relogin count is " + retriedCount);
                 else
                     Debug.Log($"Relogin Completed. Relogin failed, error code: {errorCode}, will"
-                        + (retryAgain ? "" : " not") + " retry again. Total relogin count is {retriedCount}.");
+                        + (retryAgain ? "" : " not") + $" retry again. Total relogin count is {retriedCount}.");
             }
         }
 

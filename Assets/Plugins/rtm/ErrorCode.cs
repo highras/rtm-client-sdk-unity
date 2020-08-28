@@ -10,6 +10,7 @@ namespace com.fpnn.rtm
         public const int RTM_EC_INVALID_MTYPE = 200005;
         public const int RTM_EC_SAME_SIGN = 200006;
         public const int RTM_EC_INVALID_FILE_MTYPE = 200007;
+        public const int RTM_EC_INVALID_SERFVER_TIME = 200008;
 
         public const int RTM_EC_FREQUENCY_LIMITED = 200010;
         public const int RTM_EC_REFRESH_SCREEN_LIMITED = 200011;
@@ -22,12 +23,14 @@ namespace com.fpnn.rtm
         public const int RTM_EC_AUTH_DENIED = 200024;
         public const int RTM_EC_ADMIN_LOGIN = 200025;
         public const int RTM_EC_ADMIN_ONLY = 200026;
+        public const int RTM_EC_INVALID_AUTH_TOEKN = 200027;
 
         public const int RTM_EC_LARGE_MESSAGE_OR_ATTRS = 200030;
         public const int RTM_EC_LARGE_FILE_OR_ATTRS = 200031;
         public const int RTM_EC_TOO_MANY_ITEMS_IN_PARAMETERS = 200032;
         public const int RTM_EC_EMPTY_PARAMETER = 200033;
-        
+        public const int RTM_EC_INVALID_PARAMETER = 200034;
+
         public const int RTM_EC_NOT_IN_ROOM = 200040;
         public const int RTM_EC_NOT_GROUP_MEMBER = 200041;
         public const int RTM_EC_MAX_GROUP_MEMBER_COUNT = 200042;
@@ -37,6 +40,7 @@ namespace com.fpnn.rtm
         public const int RTM_EC_EMPTY_GROUP = 200046;
         public const int RTM_EC_MAX_ROOM_COUNT = 200047;
         public const int RTM_EC_MAX_FRIEND_COUNT = 200048;
+        public const int RTM_EC_BLOCKED_USER = 200049;
 
         public const int RTM_EC_UNSUPPORTED_LANGUAGE = 200050;
         public const int RTM_EC_EMPTY_TRANSLATION = 200051;
