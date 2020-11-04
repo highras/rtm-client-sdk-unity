@@ -11,7 +11,7 @@ namespace com.fpnn.rtm
         /**
          * mtype MUST large than 50, else this interface will return false.
          */
-        public bool SendMessage(ActTimeDelegate callback, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
+        public bool SendMessage(MessageIdDelegate callback, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
         {
             if (mtype <= 50)
             {
@@ -30,9 +30,9 @@ namespace com.fpnn.rtm
             return InternalSendMessage(uid, mtype, message, attrs, callback, timeout);
         }
 
-        public int SendMessage(out long mtime, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
+        public int SendMessage(out long messageId, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
         {
-            mtime = 0;
+            messageId = 0;
 
             if (mtype <= 50)
             {
@@ -42,11 +42,11 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendMessage(out mtime, uid, mtype, message, attrs, timeout);
+            return InternalSendMessage(out messageId, uid, mtype, message, attrs, timeout);
         }
 
 
-        public bool SendGroupMessage(ActTimeDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
+        public bool SendGroupMessage(MessageIdDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
         {
             if (mtype <= 50)
             {
@@ -65,9 +65,9 @@ namespace com.fpnn.rtm
             return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, timeout);
         }
 
-        public int SendGroupMessage(out long mtime, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
+        public int SendGroupMessage(out long messageId, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
         {
-            mtime = 0;
+            messageId = 0;
 
             if (mtype <= 50)
             {
@@ -77,11 +77,11 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendGroupMessage(out mtime, groupId, mtype, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, groupId, mtype, message, attrs, timeout);
         }
 
 
-        public bool SendRoomMessage(ActTimeDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
+        public bool SendRoomMessage(MessageIdDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
         {
             if (mtype <= 50)
             {
@@ -100,9 +100,9 @@ namespace com.fpnn.rtm
             return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, timeout);
         }
 
-        public int SendRoomMessage(out long mtime, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
+        public int SendRoomMessage(out long messageId, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
         {
-            mtime = 0;
+            messageId = 0;
 
             if (mtype <= 50)
             {
@@ -112,14 +112,14 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendRoomMessage(out mtime, roomId, mtype, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, roomId, mtype, message, attrs, timeout);
         }
 
         //===========================[ Sending Binary Messages ]=========================//
         /**
          * mtype MUST large than 50, else this interface will return false.
          */
-        public bool SendMessage(ActTimeDelegate callback, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        public bool SendMessage(MessageIdDelegate callback, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
         {
             if (mtype <= 50)
             {
@@ -138,9 +138,9 @@ namespace com.fpnn.rtm
             return InternalSendMessage(uid, mtype, message, attrs, callback, timeout);
         }
 
-        public int SendMessage(out long mtime, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        public int SendMessage(out long messageId, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
         {
-            mtime = 0;
+            messageId = 0;
 
             if (mtype <= 50)
             {
@@ -150,11 +150,11 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendMessage(out mtime, uid, mtype, message, attrs, timeout);
+            return InternalSendMessage(out messageId, uid, mtype, message, attrs, timeout);
         }
 
 
-        public bool SendGroupMessage(ActTimeDelegate callback, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        public bool SendGroupMessage(MessageIdDelegate callback, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
         {
             if (mtype <= 50)
             {
@@ -173,9 +173,9 @@ namespace com.fpnn.rtm
             return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, timeout);
         }
 
-        public int SendGroupMessage(out long mtime, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        public int SendGroupMessage(out long messageId, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
         {
-            mtime = 0;
+            messageId = 0;
 
             if (mtype <= 50)
             {
@@ -185,11 +185,11 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendGroupMessage(out mtime, groupId, mtype, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, groupId, mtype, message, attrs, timeout);
         }
 
 
-        public bool SendRoomMessage(ActTimeDelegate callback, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        public bool SendRoomMessage(MessageIdDelegate callback, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
         {
             if (mtype <= 50)
             {
@@ -208,9 +208,9 @@ namespace com.fpnn.rtm
             return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, timeout);
         }
 
-        public int SendRoomMessage(out long mtime, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        public int SendRoomMessage(out long messageId, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
         {
-            mtime = 0;
+            messageId = 0;
 
             if (mtype <= 50)
             {
@@ -220,7 +220,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendRoomMessage(out mtime, roomId, mtype, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, roomId, mtype, message, attrs, timeout);
         }
 
         //===========================[ Messages Utilities ]=========================//
@@ -236,6 +236,7 @@ namespace com.fpnn.rtm
             return typeFullName == "System.Byte[]";
         }
 
+        /*
         internal static byte[] ConvertStringToByteArray(string data)
         {
             //-- Please refer com.fpnn.msgpack.MsgPacker::UnpackString(...)
@@ -243,6 +244,7 @@ namespace com.fpnn.rtm
             UTF8Encoding utf8Encoding = new UTF8Encoding(false, true);     //-- NO BOM.
             return utf8Encoding.GetBytes(data);
         }
+        */
 
         //===========================[ History Messages Utilities ]=========================//
         private HistoryMessageResult BuildHistoryMessageResult(long toId, Answer answer)
@@ -268,28 +270,16 @@ namespace com.fpnn.rtm
                 message.messageType = (byte)Convert.ChangeType(items[2], TypeCode.Byte);
                 message.messageId = (long)Convert.ChangeType(items[3], TypeCode.Int64);
 
-                if (message.messageType == (byte)MessageType.Audio)
-                {
-                    if (CheckBinaryType(items[5]))
-                        message.binaryMessage = (byte[])items[5];
-                    else
-                    {
-                        message.audioInfo = BuildAudioInfo((string)Convert.ChangeType(items[5], TypeCode.String), errorRecorder);
-
-                        if (message.audioInfo != null)
-                            message.stringMessage = message.audioInfo.recognizedText;
-                    }
-                }
+                if (!CheckBinaryType(items[5]))
+                    message.stringMessage = (string)Convert.ChangeType(items[5], TypeCode.String);
                 else
-                {
-                    if (!CheckBinaryType(items[5]))
-                        message.stringMessage = (string)Convert.ChangeType(items[5], TypeCode.String);
-                    else
-                        message.binaryMessage = (byte[])items[5];
-                }
+                    message.binaryMessage = (byte[])items[5];
 
                 message.attrs = (string)Convert.ChangeType(items[6], TypeCode.String);
                 message.modifiedTime = (long)Convert.ChangeType(items[7], TypeCode.Int64);
+
+                if (message.messageType >= 40 && message.messageType <= 50)
+                    RTMClient.BuildFileInfo(message, errorRecorder);
 
                 result.messages.Add(message);
             }
@@ -751,21 +741,13 @@ namespace com.fpnn.rtm
 
             object originalMessage = answer.Want("msg");
 
-            if (message.messageType != (byte)MessageType.Audio)
-            {
-
-                if (CheckBinaryType(originalMessage))
-                    message.binaryMessage = (byte[])originalMessage;
-                else
-                    message.binaryMessage = ConvertStringToByteArray((string)Convert.ChangeType(originalMessage, TypeCode.String));
-            }
+            if (!CheckBinaryType(originalMessage))
+                message.stringMessage = (string)Convert.ChangeType(originalMessage, TypeCode.String);
             else
-            {
-                if (!CheckBinaryType(originalMessage))
-                    message.stringMessage = (string)Convert.ChangeType(originalMessage, TypeCode.String);
-                else
-                    message.binaryMessage = (byte[])originalMessage;
-            }
+                message.binaryMessage = (byte[])originalMessage;
+
+            if (message.messageType >= 40 && message.messageType <= 50)
+                RTMClient.BuildFileInfo(message, errorRecorder);
 
             return message;
         }

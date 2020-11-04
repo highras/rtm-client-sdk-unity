@@ -87,14 +87,6 @@ namespace com.fpnn.rtm
                 this.micPhone = micPhone;
             }
 
-            if (Microphone.devices.Length == 0) {
-                return;
-            }
-
-            if (device == null) {
-                device = Microphone.devices[0];
-            }
-
             lock (selfLocker) {
                 this.device = device;
             }
@@ -109,7 +101,15 @@ namespace com.fpnn.rtm
                 return;
             }
 
+            if (Microphone.devices.Length == 0) {
+                return;
+            }
+
             lock (selfLocker) {
+                if (device == null) {
+                    device = Microphone.devices[0];
+                }
+
                 if (isRecording) {
                     return;
                 }
@@ -166,24 +166,15 @@ namespace com.fpnn.rtm
             
             newClip.SetData(newData, 0);
             long duration = (long)(newClip.length * 1000);
-
-            RTMAudioHeader rtmAudioHeader = new RTMAudioHeader(RTMAudioHeader.CurrentVersion, RTMAudioHeader.ContainerType.CodecInherent, RTMAudioHeader.CodecType.AmrWb, lang, duration, RECORD_SAMPLE_RATE);
-
-            return new RTMAudioData(rtmAudioHeader, GetRtmAudioData(rtmAudioHeader, newClip, duration), newData, duration, newClip.samples, RECORD_SAMPLE_RATE);
+            return new RTMAudioData(GetRtmAudioData(newClip, duration), newData, RTMAudioData.DefaultCodec, lang, duration, newClip.samples, RECORD_SAMPLE_RATE);
         }
 
-        private byte[] GetRtmAudioData(RTMAudioHeader rtmAudioHeader, AudioClip clip, long duration)
+        private byte[] GetRtmAudioData(AudioClip clip, long duration)
         {
             MemoryStream amrStream = new MemoryStream();
             ConvertAndWriteWav(amrStream, clip);
             WriteWavHeader(amrStream, clip);
-            byte[] amrArray = AudioConvert.ConvertToAmrwb(amrStream.ToArray());
-
-            MemoryStream audioStream = new MemoryStream();
-            byte[] rtmHeader = rtmAudioHeader.HeaderArray;
-            audioStream.Write(rtmHeader, 0, rtmHeader.Length);
-            audioStream.Write(amrArray, 0, amrArray.Length);
-            return audioStream.ToArray();
+            return AudioConvert.ConvertToAmrwb(amrStream.ToArray());
         }
 
         private void ConvertAndWriteWav(MemoryStream stream, AudioClip clip) {

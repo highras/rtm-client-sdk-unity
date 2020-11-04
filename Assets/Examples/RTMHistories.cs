@@ -96,15 +96,28 @@ class Histories : Main.ITestCase
             if (hm.binaryMessage != null)
             {
                 StringBuilder sb = new StringBuilder();
-                sb.AppendFormat("-- Fetched: ID: {0}, from {1}, mtype {2}, mid {3}, binary message length {4}, attrs {5}, mtime {6}",
+                sb.AppendFormat("-- [Binary message] Fetched: ID: {0}, from {1}, mtype {2}, mid {3}, binary message length {4}, attrs {5}, mtime {6}",
                     hm.cursorId, hm.fromUid, hm.messageType, hm.messageId, hm.binaryMessage.Length, hm.attrs, hm.modifiedTime);
+
+                Debug.Log(sb.ToString());
+            }
+            else if (hm.messageId >= 40 && hm.messageId <= 50)
+            {
+                StringBuilder sb = new StringBuilder();
+
+                if (hm.fileInfo.isRTMAudio)
+                    sb.AppendFormat("-- [RTM Audio message] Fetched: ID: {0}, from {1}, mtype {2}, mid {3}, url {4}, size (5), attrs {6}, mtime {7}, language {8}, duration: {9}ms",
+                            hm.cursorId, hm.fromUid, hm.messageType, hm.messageId, hm.fileInfo.url, hm.fileInfo.size, hm.attrs, hm.modifiedTime, hm.fileInfo.language, hm.fileInfo.duration);
+                else
+                    sb.AppendFormat("-- [File message] Fetched: ID: {0}, from {1}, mtype {2}, mid {3}, url {4}, size (5), attrs {6}, mtime {7}",
+                        hm.cursorId, hm.fromUid, hm.messageType, hm.messageId, hm.fileInfo.url, hm.fileInfo.size, hm.attrs, hm.modifiedTime);
 
                 Debug.Log(sb.ToString());
             }
             else
             {
                 StringBuilder sb = new StringBuilder();
-                sb.AppendFormat("-- Fetched: ID: {0}, from {1}, mtype {2}, mid {3}, message {4}, attrs {5}, mtime {6}",
+                sb.AppendFormat("-- [String message] Fetched: ID: {0}, from {1}, mtype {2}, mid {3}, message {4}, attrs {5}, mtime {6}",
                     hm.cursorId, hm.fromUid, hm.messageType, hm.messageId, hm.stringMessage, hm.attrs, hm.modifiedTime);
 
                 Debug.Log(sb.ToString());

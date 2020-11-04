@@ -10,8 +10,8 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "2.2.2";
-        public static readonly string InterfaceVersion = "2.2.1";
+        public static readonly string SDKVersion = "2.3.0";
+        public static readonly string InterfaceVersion = "2.3.0";
 
         internal static int lostConnectionAfterLastPingInSeconds = 120;
         internal static int globalConnectTimeoutSeconds = 30;
@@ -86,7 +86,6 @@ namespace com.fpnn.rtm
         GEO = 2,
         MultiLogin = 7,
         Chat = 30,
-        Audio = 31,
         Cmd = 32,
         RealAudio = 35,
         RealVideo = 36,

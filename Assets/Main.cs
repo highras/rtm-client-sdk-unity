@@ -40,6 +40,12 @@ public class Main : MonoBehaviour
             IsBackground = true
         };
         testThread.Start();
+
+        /*
+            This is a temporary version of the test code, because the audio-related functions require running on the main thread, so add it here
+        */
+        // tester = new Audios();
+        // tester.Start(rtmServerEndpoint, pid, uid, token);
     }
 
     void TestMain()

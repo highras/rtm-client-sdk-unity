@@ -282,3 +282,49 @@ Return Values:
 	Others are the reason for calling failed.
 
 
+### Get Rooms Public Infos
+
+	//-- Async Method
+	public bool GetRoomsPublicInfo(Action<Dictionary<string, string>, int> callback, HashSet<long> roomIds, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetRoomsPublicInfo(out Dictionary<string, string> publicInfos, HashSet<long> roomIds, int timeout = 0);
+
+Get rooms' public infos.
+
+Parameters:
+
++ `Action<Dictionary<string, string>, int> callbackk`
+
+	Callabck for async method.  
+	First `Dictionary<string, string>` is gotten rooms' public infos. Key is room id in string type, value is the public info;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `out Dictionary<string, string> publicInfos`
+
+	The gotten rooms' public infos. Key is room id in string type, value is the public info.
+
++ `HashSet<long> roomIds`
+
+	Rooms' ids. Max 100 rooms for each calling.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+

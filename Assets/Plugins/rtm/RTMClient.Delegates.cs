@@ -3,35 +3,45 @@ namespace com.fpnn.rtm
 {
     public delegate void AuthDelegate(long projectId, long uid, bool successful, int errorCode);
     public delegate void DoneDelegate(int errorCode);
-    public delegate void ActTimeDelegate(long modifiedTime, int errorCode);
+    public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-    //-- Obsolete in v.2.2.0
-    [System.Obsolete("TranslatedMessage is deprecated, please use RTMMessage instead.")]
-    public class TranslatedMessage
+    public class CheckResult
     {
-        public string source;
-        public string target;
-        public string sourceText;
-        public string targetText;
+        public int result;
+        public List<int> tags;
     }
 
-    public class RetrievedMessage
+    public class TextCheckResult : CheckResult
     {
-        public long cursorId;
+        public string text;
+        public List<string> wlist;
+    }
+
+    public class FileInfo
+    {
+        //-- Common
+        public string url;          //-- File url
+        public int size = 0;        //-- File size
+
+        //-- For image type
+        public string surl;         //-- Thumb url, only for image type.
+
+        //-- For RTM audio
+        public bool isRTMAudio = false;
+        public string language;
+        public int duration = 0;
+    }
+
+    public class BaseMessage
+    {
         public byte messageType;
         public string stringMessage = null;
         public byte[] binaryMessage = null;
         public string attrs;
         public long modifiedTime;
+        public FileInfo fileInfo = null;
 
         //-- Compatible with version 2.1.4 and before.
-        [System.Obsolete("Field id is deprecated, please use cursorId instead.")]
-        public long id
-        {
-            get { return cursorId; }
-            set { cursorId = value; }
-        }
-
         [System.Obsolete("Field mtype is deprecated, please use messageType instead.")]
         public byte mtype
         {
@@ -47,12 +57,17 @@ namespace com.fpnn.rtm
         }
     }
 
-    public class AudioInfo
+    public class RetrievedMessage : BaseMessage
     {
-        public string sourceLanguage;
-        public string recognizedLanguage;
-        public string recognizedText;
-        public int duration;
+        public long cursorId;
+
+        //-- Compatible with version 2.1.4 and before.
+        [System.Obsolete("Field id is deprecated, please use cursorId instead.")]
+        public long id
+        {
+            get { return cursorId; }
+            set { cursorId = value; }
+        }
     }
 
     public class TranslatedInfo
@@ -63,39 +78,19 @@ namespace com.fpnn.rtm
         public string targetText;
     }
 
-    public class RTMMessage
+    public class RTMMessage : BaseMessage
     {
         public long fromUid;
         public long toId;                   //-- xid
-        public byte messageType;
         public long messageId;
-        public string stringMessage = null;
-        public byte[] binaryMessage = null;
-        public string attrs;
-        public long modifiedTime;
-        public AudioInfo audioInfo = null;
         public TranslatedInfo translatedInfo = null;
 
         //-- Compatible with version 2.1.4 and before.
-        [System.Obsolete("Field mtype is deprecated, please use messageType instead.")]
-        public byte mtype
-        {
-            get { return messageType;  }
-            set { messageType = value; }
-        }
-
         [System.Obsolete("Field mid is deprecated, please use messageId instead.")]
         public long mid
         {
             get { return messageId; }
             set { messageId = value; }
-        }
-
-        [System.Obsolete("Field mtime is deprecated, please use modifiedTime instead.")]
-        public long mtime
-        {
-            get { return modifiedTime; }
-            set { modifiedTime = value; }
         }
     }
 

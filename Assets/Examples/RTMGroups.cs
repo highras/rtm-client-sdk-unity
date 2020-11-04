@@ -74,6 +74,8 @@ class Groups : Main.ITestCase
 
         GetGroupInfos(client, groupId);
 
+        GetGroupsPublicInfo(client, new HashSet<long>() { 223344, 334455, 445566, 667788, 778899 });
+
         Debug.Log("============== Demo completed ================");
     }
 
@@ -165,6 +167,20 @@ class Groups : Main.ITestCase
             Debug.Log("Get group infos in sync successed.");
             Debug.Log("Public info: " + (publicInfos ?? "null"));
             Debug.Log("Private info: " + (privateInfos ?? "null"));
+        }
+    }
+
+    static void GetGroupsPublicInfo(RTMClient client, HashSet<long> groupIds)
+    {
+        int errorCode = client.GetGroupsPublicInfo(out Dictionary<string, string> publicInfos, groupIds);
+
+        if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
+            Debug.Log("Get groups' info in sync failed, error code is " + errorCode);
+        else
+        {
+            Debug.Log("Get groups' info in sync success");
+            foreach (var kvp in publicInfos)
+                Debug.Log("-- group id: " + kvp.Key + " info: [" + kvp.Value + "]");
         }
     }
 }

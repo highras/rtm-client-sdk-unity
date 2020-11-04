@@ -7,100 +7,39 @@ namespace com.fpnn.rtm
     public class RTMAudioData
     {
 
-        private RTMAudioHeader rtmAudioHeader;
-
-        private readonly byte[] audio;  // Processed audio data with rtm-header
+        public static string DefaultCodec = "amr-wb";
+        private string codecType;
+        private string lang;
+        private readonly byte[] audio;  // Current is AMR-WB
         private float[] pcmData;  // Original PCM data
         private long duration;   // Duration in ms
         private int frequency;
-        private int samples;
+        private int lengthSamples;
 
-        public RTMAudioData(RTMAudioHeader rtmAudioHeader, byte[] audio, float[] pcmData, long duration, int samples, int frequency)
+        public RTMAudioData(byte[] audio, float[] pcmData, string codecType, string lang, long duration, int lengthSamples, int frequency)
         {
-            this.rtmAudioHeader = rtmAudioHeader;
             this.audio = audio;
             this.pcmData = pcmData;
+            this.codecType = codecType;
+            this.lang = lang;
             this.duration = duration;
-            this.samples = samples;
+            this.lengthSamples = lengthSamples;
             this.frequency = frequency;
         }
 
-        public RTMAudioData(byte[] audio)
+        public RTMAudioData(byte[] audio, FileInfo fileInfo)
         {
+            codecType = DefaultCodec;
+            lang = fileInfo.language;
+            duration = fileInfo.duration;
             this.audio = audio;
-            ParseAudioHeader();
-        }
-
-        private void ParseAudioHeader()
-        {
-            rtmAudioHeader = new RTMAudioHeader();
-
-            int offset = 0;
-            if (audio.Length < 4)
-                return;
-            rtmAudioHeader.version = audio[0];
-            rtmAudioHeader.containerType = (RTMAudioHeader.ContainerType)audio[1];
-            rtmAudioHeader.codecType = (RTMAudioHeader.CodecType)audio[2];
-
-            byte infoDataCount = audio[3];
-
-            offset += 4;
-
-            for (byte i = 0; i < infoDataCount; i++) {
-                int sectionLength = BitConverter.ToInt32(audio, offset);
-                offset += 4;
-
-                Dictionary<Object, Object> infoData = MsgUnpacker.Unpack(audio, offset, sectionLength);
-                object value;
-                if (infoData.TryGetValue("lang", out value))
-                {
-                    rtmAudioHeader.lang = (string)value;
-                }
-                if (infoData.TryGetValue("dur", out value))
-                {
-                    rtmAudioHeader.duration = Convert.ToInt64(value);
-                    duration = rtmAudioHeader.duration;
-                }
-                if (infoData.TryGetValue("srate", out value))
-                {
-                    rtmAudioHeader.sampleRate = Convert.ToInt32(value);
-                    frequency = rtmAudioHeader.sampleRate;
-                }
-                if (infoData.TryGetValue("rtext", out value))
-                {
-                    rtmAudioHeader.rtext = (string)value;
-                }
-                if (infoData.TryGetValue("rlang", out value))
-                {
-                    rtmAudioHeader.rlang = (string)value;
-                }
-
-                offset += sectionLength;
-            }
+            frequency = AudioRecorder.RECORD_SAMPLE_RATE;
+            ParseAudioData();
         }
 
         private void ParseAudioData()
         {
-            int offset = 0;
-            if (audio.Length < 4)
-                return;
-            
-            byte infoDataCount = audio[3];
-
-            offset += 4;
-
-            for (byte i = 0; i < infoDataCount; i++) {
-                int sectionLength = BitConverter.ToInt32(audio, offset);
-                offset += 4;
-                offset += sectionLength;
-            }
-            if (offset >= audio.Length) {
-                return;
-            }
-
-            byte[] amrBuffer = new byte[audio.Length - offset];
-            Array.Copy(audio, offset, amrBuffer, 0, audio.Length - offset);
-            byte[] wavBuffer = AudioConvert.ConvertToWav(amrBuffer);
+            byte[] wavBuffer = AudioConvert.ConvertToWav(audio);
             
             int channelCount = wavBuffer[22];
             
@@ -113,9 +52,9 @@ namespace com.fpnn.rtm
             }
             pos += 8;
             
-            samples = (wavBuffer.Length - pos) /2 ;
+            lengthSamples = (wavBuffer.Length - pos) /2 ;
             
-            pcmData = new float[samples];
+            pcmData = new float[lengthSamples];
             
             int idx = 0;
             while (pos < wavBuffer.Length) {
@@ -142,8 +81,6 @@ namespace com.fpnn.rtm
         {
             get
             {
-                if (pcmData == null)
-                    ParseAudioData();
                 return pcmData;
             }
         }
@@ -156,11 +93,27 @@ namespace com.fpnn.rtm
             }
         }
 
-        public int Samples
+        public string Language
         {
             get
             {
-                return samples;
+                return lang;
+            }
+        }
+
+        public string CodecType
+        {
+            get
+            {
+                return codecType;
+            }
+        }
+
+        public int LengthSamples
+        {
+            get
+            {
+                return lengthSamples;
             }
         }
 
@@ -171,30 +124,5 @@ namespace com.fpnn.rtm
                 return frequency;
             }
         }
-
-        public RTMAudioHeader RtmAudioHeader
-        {
-            get
-            {
-                return rtmAudioHeader;
-            }
-        }
-
-        public string RecognitionText
-        {
-            get
-            {
-                return rtmAudioHeader.rtext;
-            }
-        }
-
-        public string RecognitionLang
-        {
-            get
-            {
-                return rtmAudioHeader.rlang;
-            }
-        }
-        
     }
 }

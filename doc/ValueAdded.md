@@ -118,13 +118,15 @@ Return Values:
 
 	Others are the reason for calling failed.
 
-### Profanity
+### Profanity (Deprecated)
 
 	//-- Async Method
 	public bool Profanity(Action<string, List<string>, int> callback, string text, bool classify = false, int timeout = 0);
 	
 	//-- Sync Method
 	public int Profanity(out string resultText, out List<string> classification, string text, bool classify = false, int timeout = 0);
+
+**`Profanity` is deprecated, please use TCheck instead.**
 
 Sensitive words detected and filter.
 
@@ -176,23 +178,17 @@ Return Values:
 	Others are the reason for calling failed.
 
 
-### Transcribe
+### SpeechToText
 
 	//-- Async Method
-	public bool Transcribe(Action<string, string, int> callback, byte[] audio, int timeout = 120);
-	public bool Transcribe(Action<string, string, int> callback, byte[] audio, bool filterProfanity, int timeout = 120);
-
-	public bool Transcribe(Action<string, string, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 120);
-	public bool Transcribe(Action<string, string, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, bool filterProfanity, int timeout = 120);
+	public bool SpeechToText(Action<string, string, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120);
+	public bool SpeechToText(Action<string, string, int> callback, byte[] audioBinaryContent, string language, string codec = null, int sampleRate = 0, int timeout = 120);
 	
 	//-- Sync Method
-	public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, int timeout = 120);
-	public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, bool filterProfanity, int timeout = 120);
+	public int SpeechToText(out string resultText, out string resultLanguage, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120);
+	public int SpeechToText(out string resultText, out string resultLanguage, byte[] audioBinaryContent, string language, string codec = null, int sampleRate = 0, int timeout = 120);
 
-	public int Transcribe(out string resultText, out string resultLanguage, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 120);
-	public int Transcribe(out string resultText, out string resultLanguage, long fromUid, long toId, long messageId, MessageCategory messageCategory, bool filterProfanity, int timeout = 120);
-
-Speech Recognition.
+Speech Recognition, convert speech to text.
 
 Parameters:
 
@@ -211,37 +207,256 @@ Parameters:
 
 	The recognized language.
 
-+ `byte[] audio`
++ `string audioUrl`
 
-	Speech data.
+	Http/https url for speech binary.
 
-+ `fromUid`
++ `byte[] audioBinaryContent`
 
-	Uid of the message sender, which message is wanted to be transcribed.
+	Speech binary data.
 
-+ `toId`
++ `language`
 
-	Receiver id of the message.
+	Speech language when recording. Available language please refer the documents in [https://www.ilivedata.com/](https://docs.ilivedata.com/stt/production/).
 
-	If the message is P2P message, `toId` means the uid of receiver;  
-	If the message is group message, `toId` means the `groupId`;  
-	If the message is room message, `toId` means the `roomId`;  
-	If the message is broadcast message, `toId` is `0`.
+	[Current Chinese document](https://docs.ilivedata.com/stt/production/)
+
++ `codec`
+
+	Codec for speech binary. If codec is `null` means `AMR_WB`.
+
++ `sampleRate`
+
+	Sample rate for speech binary. If `0` means 16000.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
 
 
-+ `messageId`
+Return Values:
 
-	Message id for the message which wanted to be transcribed.
++ bool for Async
 
-+ `messageCategory`
+	* true: Async calling is start.
+	* false: Start async calling is failed.
 
-	MessageCategory enumeration.
++ int for Sync
 
-	Can be MessageCategory.P2PMessage, MessageCategory.GroupMessage, MessageCategory.RoomMessage, MessageCategory.BroadcastMessage.
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
 
-+ `filterProfanity`
+	Others are the reason for calling failed.
 
-	Enable or disable sensitive words detected and filter.
+
+### TextCheck
+
+	//-- Async Method
+	public bool TextCheck(Action<TextCheckResult, int> callback, string text, int timeout = 120);
+	
+	//-- Sync Method
+	public int TextCheck(out TextCheckResult result, string text, int timeout = 120);
+
+Text moderation.
+
+Parameters:
+
++ `Action<TextCheckResult, int> callback`
+
+	Callabck for async method.  
+	First `TextCheckResult` is the result for text moderation;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.  
+	`TextCheckResult` can be refered [TextCheckResult](Structures.md#TextCheckResult).
+
++ `out TextCheckResult result`
+
+	The result for text moderation. Please refer [TextCheckResult](Structures.md#TextCheckResult).
+
++ `string text`
+
+	The text need to be audited.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### ImageCheck
+
+	//-- Async Method
+	public bool ImageCheck(Action<CheckResult, int> callback, string imageUrl, int timeout = 120);
+	public bool ImageCheck(Action<CheckResult, int> callback, byte[] imageContent, int timeout = 120);
+	
+	//-- Sync Method
+	public int ImageCheck(out CheckResult result, string imageUrl, int timeout = 120);
+	public int ImageCheck(out CheckResult result, byte[] imageContent, int timeout = 120);
+
+Image review.
+
+Parameters:
+
++ `Action<CheckResult, int> callback`
+
+	Callabck for async method.  
+	First `CheckResult` is the result for image review;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.  
+	`CheckResult` can be refered [CheckResult](Structures.md#CheckResult).
+
++ `out CheckResult result`
+
+	The result for image review. Please refer [CheckResult](Structures.md#CheckResult).
+
++ `string imageUrl`
+
+	Image's http/https url for auditing.
+
++ `byte[] imageContent`
+
+	Image binary data for auditing.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### AudioCheck
+
+	//-- Async Method
+	public bool AudioCheck(Action<CheckResult, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120);
+	public bool AudioCheck(Action<CheckResult, int> callback, byte[] audioContent, string language, string codec = null, int sampleRate = 0, int timeout = 120);
+	
+	//-- Sync Method
+	public int AudioCheck(out CheckResult result, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120);
+	public int AudioCheck(out CheckResult result, byte[] audioContent, string language, string codec = null, int sampleRate = 0, int timeout = 120);
+
+Audio check.
+
+Parameters:
+
++ `Action<CheckResult, int> callback`
+
+	Callabck for async method.  
+	First `CheckResult` is the result for audio checking;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.  
+	`CheckResult` can be refered [CheckResult](Structures.md#CheckResult).
+
++ `out CheckResult result`
+
+	The result for audio checking. Please refer [CheckResult](Structures.md#CheckResult).
+
++ `string audioUrl`
+
+	Http/https url for speech binary to be checking.
+
++ `byte[] audioContent`
+
+	Audio binary data for checking.
+
++ `language`
+
+	Audio language when recording. Available language please refer the documents in [https://www.ilivedata.com/](https://docs.ilivedata.com/stt/production/).
+
+	[Current Chinese document](https://docs.ilivedata.com/audiocheck/techdoc/submit/)
+	[Current Chinese document (live audio)](https://docs.ilivedata.com/audiocheck/livetechdoc/livesubmit/)
+
++ `codec`
+
+	Codec for audio content. If codec is `null` means `AMR_WB`.
+
++ `sampleRate`
+
+	Sample rate for audio content. If `0` means 16000.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### VideoCheck
+
+	//-- Async Method
+	public bool VideoCheck(Action<CheckResult, int> callback, string videoUrl, string videoName, int timeout = 120);
+	public bool VideoCheck(Action<CheckResult, int> callback, byte[] videoContent, string videoName, int timeout = 120);
+	
+	//-- Sync Method
+	public int VideoCheck(out CheckResult result, string videoUrl, string videoName, int timeout = 120);
+	public int VideoCheck(out CheckResult result, byte[] videoContent, string videoName, int timeout = 120);
+
+Video review.
+
+Parameters:
+
++ `Action<CheckResult, int> callback`
+
+	Callabck for async method.  
+	First `CheckResult` is the result for video review;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.  
+	`CheckResult` can be refered [CheckResult](Structures.md#CheckResult).
+
++ `out CheckResult result`
+
+	The result for video review. Please refer [CheckResult](Structures.md#CheckResult).
+
++ `string videoUrl`
+
+	Video's http/https url for auditing.
+
++ `byte[] videoContent`
+
+	Video binary data for auditing.
+
++ `string videoName`
+
+	Video name.
 
 + `int timeout`
 

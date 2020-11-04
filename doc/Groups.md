@@ -334,3 +334,50 @@ Return Values:
 	Others are the reason for calling failed.
 
 
+### Get Groups Public Infos
+
+	//-- Async Method
+	public bool GetGroupsPublicInfo(Action<Dictionary<string, string>, int> callback, HashSet<long> groupIds, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetGroupsPublicInfo(out Dictionary<string, string> publicInfos, HashSet<long> groupIds, int timeout = 0);
+
+Get groups' public infos.
+
+Parameters:
+
++ `Action<Dictionary<string, string>, int> callbackk`
+
+	Callabck for async method.  
+	First `Dictionary<string, string>` is gotten groups' public infos. Key is group id in string type, value is the public info;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `out Dictionary<string, string> publicInfos`
+
+	The gotten groups' public infos. Key is group id in string type, value is the public info.
+
++ `HashSet<long> groupIds`
+
+	Groups' ids. Max 100 groups for each calling.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+

@@ -18,8 +18,11 @@ namespace com.fpnn.common
             return parser.ParseObject();
         }
 
-        //-- Placeholder: Maybe implemented in futuer
-        //-- public static string ToString(object obj) { return ""; }
+        public static string ToString(object obj)
+        {
+            JsonStringify js = new JsonStringify();
+            return js.Stringify(obj);
+        }
     }
 
     //============================[ Exception ]============================//

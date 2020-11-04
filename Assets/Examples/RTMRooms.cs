@@ -69,6 +69,8 @@ class Rooms : Main.ITestCase
 
         GetRoomInfos(client, roomId);
 
+        GetRoomsPublicInfo(client, new HashSet<long>() { 556677, 778899, 445566, 334455, 1234 });
+
         Debug.Log("============== Demo completed ================");
     }
 
@@ -144,6 +146,20 @@ class Rooms : Main.ITestCase
             Debug.Log("Get room infos in sync successed.");
             Debug.Log("Public info: " + (publicInfos ?? "null"));
             Debug.Log("Private info: " + (privateInfos ?? "null"));
+        }
+    }
+
+    static void GetRoomsPublicInfo(RTMClient client, HashSet<long> roomIds)
+    {
+        int errorCode = client.GetRoomsPublicInfo(out Dictionary<string, string> publicInfos, roomIds);
+
+        if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
+            Debug.Log("Get rooms' info in sync failed, error code is " + errorCode);
+        else
+        {
+            Debug.Log("Get rooms' info in sync success");
+            foreach (var kvp in publicInfos)
+                Debug.Log("-- room id: " + kvp.Key + " info: [" + kvp.Value + "]");
         }
     }
 }

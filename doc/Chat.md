@@ -7,24 +7,24 @@
 ### Send P2P Chat
 
 	//-- Async Method
-	public bool SendChat(ActTimeDelegate callback, long uid, string message, string attrs = "", int timeout = 0);
+	public bool SendChat(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0);
 	
 	//-- Sync Method
-	public int SendChat(out long mtime, long uid, string message, string attrs = "", int timeout = 0);
+	public int SendChat(out long messageId, long uid, string message, string attrs = "", int timeout = 0);
 
 Send P2P text message.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long uid`
 
@@ -62,24 +62,24 @@ Return Values:
 ### Send Group Chat
 
 	//-- Async Method
-	public bool SendGroupChat(ActTimeDelegate callback, long groupId, string message, string attrs = "", int timeout = 0);
+	public bool SendGroupChat(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0);
 	
 	//-- Sync Method
-	public int SendGroupChat(out long mtime, long groupId, string message, string attrs = "", int timeout = 0);
+	public int SendGroupChat(out long messageId, long groupId, string message, string attrs = "", int timeout = 0);
 
 Send text message in group.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long groupId`
 
@@ -117,24 +117,24 @@ Return Values:
 ### Send Room Chat
 
 	//-- Async Method
-	public bool SendRoomChat(ActTimeDelegate callback, long roomId, string message, string attrs = "", int timeout = 0);
+	public bool SendRoomChat(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0);
 	
 	//-- Sync Method
-	public int SendRoomChat(out long mtime, long roomId, string message, string attrs = "", int timeout = 0);
+	public int SendRoomChat(out long messageId, long roomId, string message, string attrs = "", int timeout = 0);
 
 Send text message in room.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long roomId`
 
@@ -172,24 +172,24 @@ Return Values:
 ### Send P2P Cmd
 
 	//-- Async Method
-	public bool SendCmd(ActTimeDelegate callback, long uid, string message, string attrs = "", int timeout = 0);
+	public bool SendCmd(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0);
 	
 	//-- Sync Method
-	public int SendCmd(out long mtime, long uid, string message, string attrs = "", int timeout = 0);
+	public int SendCmd(out long messageId, long uid, string message, string attrs = "", int timeout = 0);
 
 Send P2P text cmd.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long uid`
 
@@ -227,24 +227,24 @@ Return Values:
 ### Send Group Cmd
 
 	//-- Async Method
-	public bool SendGroupCmd(ActTimeDelegate callback, long groupId, string message, string attrs = "", int timeout = 0);
+	public bool SendGroupCmd(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0);
 	
 	//-- Sync Method
-	public int SendGroupCmd(out long mtime, long groupId, string message, string attrs = "", int timeout = 0);
+	public int SendGroupCmd(out long messageId, long groupId, string message, string attrs = "", int timeout = 0);
 
 Send text cmd in group.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long groupId`
 
@@ -282,24 +282,24 @@ Return Values:
 ### Send Room Cmd
 
 	//-- Async Method
-	public bool SendRoomCmd(ActTimeDelegate callback, long roomId, string message, string attrs = "", int timeout = 0);
+	public bool SendRoomCmd(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0);
 	
 	//-- Sync Method
-	public int SendRoomCmd(out long mtime, long roomId, string message, string attrs = "", int timeout = 0);
+	public int SendRoomCmd(out long messageId, long roomId, string message, string attrs = "", int timeout = 0);
 
 Send text cmd in room.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long roomId`
 
@@ -334,171 +334,6 @@ Return Values:
 	Others are the reason for sending failed.
 
 
-### Send P2P Audio
-
-	//-- Async Method
-	public bool SendAudio(ActTimeDelegate callback, long uid, byte[] message, string attrs = "", int timeout = 0);
-	
-	//-- Sync Method
-	public int SendAudio(out long mtime, long uid, byte[] message, string attrs = "", int timeout = 0);
-
-Send P2P binary audio data.
-
-Parameters:
-
-+ `ActTimeDelegate callback`
-
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
-
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
-
-+ `out long mtime`
-
-	Sending completed time.
-
-+ `long uid`
-
-	Receiver user id.
-
-+ `byte[] message`
-
-	RTM audio data.  
-
-+ `string attrs`
-
-	Audio data attributes in Json.
-
-+ `int timeout`
-
-	Timeout in second.
-
-	0 means using default setting.
-
-
-Return Values:
-
-+ bool for Async
-
-	* true: Async sending is start.
-	* false: Start async sending is failed.
-
-+ int for Sync
-
-	0 or com.fpnn.ErrorCode.FPNN_EC_OK means sending successed.
-
-	Others are the reason for sending failed.
-
-
-### Send Group Audio
-
-	//-- Async Method
-	public bool SendGroupAudio(ActTimeDelegate callback, long groupId, byte[] message, string attrs = "", int timeout = 0);
-	
-	//-- Sync Method
-	public int SendGroupAudio(out long mtime, long groupId, byte[] message, string attrs = "", int timeout = 0);
-
-Send binary audio data in group.
-
-Parameters:
-
-+ `ActTimeDelegate callback`
-
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
-
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
-
-+ `out long mtime`
-
-	Sending completed time.
-
-+ `long groupId`
-
-	Group id.
-
-+ `byte[] message`
-
-	RTM audio data.  
-
-+ `string attrs`
-
-	Audio data attributes in Json.
-
-+ `int timeout`
-
-	Timeout in second.
-
-	0 means using default setting.
-
-
-Return Values:
-
-+ bool for Async
-
-	* true: Async sending is start.
-	* false: Start async sending is failed.
-
-+ int for Sync
-
-	0 or com.fpnn.ErrorCode.FPNN_EC_OK means sending successed.
-
-	Others are the reason for sending failed.
-
-
-### Send Room Audio
-
-	//-- Async Method
-	public bool SendRoomAudio(ActTimeDelegate callback, long roomId, byte[] message, string attrs = "", int timeout = 0);
-	
-	//-- Sync Method
-	public int SendRoomAudio(out long mtime, long roomId, byte[] message, string attrs = "", int timeout = 0);
-
-Send binary audio data in room.
-
-Parameters:
-
-+ `ActTimeDelegate callback`
-
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
-
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
-
-+ `out long mtime`
-
-	Sending completed time.
-
-+ `long roomId`
-
-	Room id.
-
-+ `byte[] message`
-
-	RTM audio data.  
-
-+ `string attrs`
-
-	Audio data attributes in Json.
-
-+ `int timeout`
-
-	Timeout in second.
-
-	0 means using default setting.
-
-
-Return Values:
-
-+ bool for Async
-
-	* true: Async sending is start.
-	* false: Start async sending is failed.
-
-+ int for Sync
-
-	0 or com.fpnn.ErrorCode.FPNN_EC_OK means sending successed.
-
-	Others are the reason for sending failed.
-
-
 ### Get P2P Chat
 
 	//-- Async Method
@@ -507,7 +342,7 @@ Return Values:
 	//-- Sync Method
 	public int GetP2PChat(out HistoryMessageResult result, long peerUid, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0);
 
-Get history data for P2P chat, including text chat, text cmd and binary audio.
+Get history data for P2P chat, including text chat, text cmd and file message.
 
 Parameters:
 
@@ -576,7 +411,7 @@ Return Values:
 	//-- Sync Method
 	public int GetGroupChat(out HistoryMessageResult result, long groupId, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0);
 
-Get history data for group chat, including text chat, text cmd and binary audio.
+Get history data for group chat, including text chat, text cmd and file message.
 
 Parameters:
 
@@ -644,7 +479,7 @@ Return Values:
 	//-- Sync Method
 	public int GetRoomChat(out HistoryMessageResult result, long roomId, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0);
 
-Get history data for room chat, including text chat, text cmd and binary audio.
+Get history data for room chat, including text chat, text cmd and file message.
 
 Parameters:
 
@@ -712,7 +547,7 @@ Return Values:
 	//-- Sync Method
 	public int GetBroadcastChat(out HistoryMessageResult result, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0);
 
-Get history data for broadcast chat, including text chat, text cmd and binary audio.
+Get history data for broadcast chat, including text chat, text cmd and file message.
 
 Parameters:
 

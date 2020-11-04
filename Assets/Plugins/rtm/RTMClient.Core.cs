@@ -135,39 +135,6 @@ namespace com.fpnn.rtm
         private RegressiveStrategy regressiveStrategy;
         private common.ErrorRecorder errorRecorder;
 
-        //-- Obsolete in v.2.2.0
-        [Obsolete("Constructor with interface IRTMQuestProcessor is deprecated, please use Constructor with class RTMQuestProcessor instead.")]
-        public RTMClient(string endpoint, long projectId, long uid, IRTMQuestProcessor serverPushProcessor, bool autoRelogin = false)
-        {
-            interLocker = new object();
-            this.projectId = projectId;
-            this.uid = uid;
-            status = ClientStatus.Closed;
-            requireClose = false;
-            syncConnectingEvent = new ManualResetEvent(false);
-
-            ConnectTimeout = 0;
-            QuestTimeout = 0;
-
-            RTMMasterProcessorV1 processorV1 = new RTMMasterProcessorV1();
-            processorV1.SetProcessor(serverPushProcessor);
-            processor = processorV1;
-
-            dispatch = TCPClient.Create(endpoint, true);
-            errorRecorder = RTMConfig.errorRecorder;
-            if (errorRecorder != null)
-            {
-                processor.SetErrorRecorder(errorRecorder);
-                dispatch.SetErrorRecorder(errorRecorder);
-            }
-
-            if (autoRelogin)
-            {
-                autoReloginInfo = new AutoReloginInfo();
-                regressiveStrategy = RTMConfig.globalRegressiveStrategy;
-            }
-        }
-
         public RTMClient(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
         {
             interLocker = new object();

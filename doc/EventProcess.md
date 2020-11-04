@@ -31,12 +31,6 @@
         public virtual void PushRoomChat(RTMMessage message) { }
         public virtual void PushBroadcastChat(RTMMessage message) { }
 
-        //-- Audio
-        public virtual void PushAudio(RTMMessage message) { }
-        public virtual void PushGroupAudio(RTMMessage message) { }
-        public virtual void PushRoomAudio(RTMMessage message) { }
-        public virtual void PushBroadcastAudio(RTMMessage message) { }
-
         //-- Cmd
         public virtual void PushCmd(RTMMessage message) { }
         public virtual void PushGroupCmd(RTMMessage message) { }

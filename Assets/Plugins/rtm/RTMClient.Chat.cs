@@ -7,106 +7,81 @@ namespace com.fpnn.rtm
     public partial class RTMClient
     {
         //===========================[ Sending Chat ]=========================//
-        public bool SendChat(ActTimeDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
+        public bool SendChat(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
         {
             return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, timeout);
         }
 
-        public int SendChat(out long mtime, long uid, string message, string attrs = "", int timeout = 0)
+        public int SendChat(out long messageId, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out mtime, uid, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendMessage(out messageId, uid, (byte)MessageType.Chat, message, attrs, timeout);
         }
 
 
-        public bool SendGroupChat(ActTimeDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
+        public bool SendGroupChat(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
             return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, timeout);
         }
 
-        public int SendGroupChat(out long mtime, long groupId, string message, string attrs = "", int timeout = 0)
+        public int SendGroupChat(out long messageId, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out mtime, groupId, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, groupId, (byte)MessageType.Chat, message, attrs, timeout);
         }
 
 
-        public bool SendRoomChat(ActTimeDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
+        public bool SendRoomChat(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
             return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, timeout);
         }
 
-        public int SendRoomChat(out long mtime, long roomId, string message, string attrs = "", int timeout = 0)
+        public int SendRoomChat(out long messageId, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out mtime, roomId, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, roomId, (byte)MessageType.Chat, message, attrs, timeout);
         }
 
         //===========================[ Sending Cmd ]=========================//
-        public bool SendCmd(ActTimeDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
+        public bool SendCmd(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
         {
             return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, timeout);
         }
 
-        public int SendCmd(out long mtime, long uid, string message, string attrs = "", int timeout = 0)
+        public int SendCmd(out long messageId, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out mtime, uid, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendMessage(out messageId, uid, (byte)MessageType.Cmd, message, attrs, timeout);
         }
 
 
-        public bool SendGroupCmd(ActTimeDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
+        public bool SendGroupCmd(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
             return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, timeout);
         }
 
-        public int SendGroupCmd(out long mtime, long groupId, string message, string attrs = "", int timeout = 0)
+        public int SendGroupCmd(out long messageId, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out mtime, groupId, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, groupId, (byte)MessageType.Cmd, message, attrs, timeout);
         }
 
 
-        public bool SendRoomCmd(ActTimeDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
+        public bool SendRoomCmd(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
             return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, timeout);
         }
 
-        public int SendRoomCmd(out long mtime, long roomId, string message, string attrs = "", int timeout = 0)
+        public int SendRoomCmd(out long messageId, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out mtime, roomId, (byte)MessageType.Cmd, message, attrs, timeout);
-        }
-
-        //===========================[ Sending Audio ]=========================//
-        public bool SendAudio(ActTimeDelegate callback, long uid, byte[] message, string attrs = "", int timeout = 0)
-        {
-            return InternalSendMessage(uid, (byte)MessageType.Audio, message, attrs, callback, timeout);
-        }
-
-        public int SendAudio(out long mtime, long uid, byte[] message, string attrs = "", int timeout = 0)
-        {
-            return InternalSendMessage(out mtime, uid, (byte)MessageType.Audio, message, attrs, timeout);
-        }
-
-
-        public bool SendGroupAudio(ActTimeDelegate callback, long groupId, byte[] message, string attrs = "", int timeout = 0)
-        {
-            return InternalSendGroupMessage(groupId, (byte)MessageType.Audio, message, attrs, callback, timeout);
-        }
-
-        public int SendGroupAudio(out long mtime, long groupId, byte[] message, string attrs = "", int timeout = 0)
-        {
-            return InternalSendGroupMessage(out mtime, groupId, (byte)MessageType.Audio, message, attrs, timeout);
-        }
-
-
-        public bool SendRoomAudio(ActTimeDelegate callback, long roomId, byte[] message, string attrs = "", int timeout = 0)
-        {
-            return InternalSendRoomMessage(roomId, (byte)MessageType.Audio, message, attrs, callback, timeout);
-        }
-
-        public int SendRoomAudio(out long mtime, long roomId, byte[] message, string attrs = "", int timeout = 0)
-        {
-            return InternalSendRoomMessage(out mtime, roomId, (byte)MessageType.Audio, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, roomId, (byte)MessageType.Cmd, message, attrs, timeout);
         }
 
         //===========================[ History Chat (Chat & Cmd & Audio) ]=========================//
-        private static readonly List<byte> chatMTypes = new List<byte> { (byte)MessageType.Chat, (byte)MessageType.Audio, (byte)MessageType.Cmd };
+        private static readonly List<byte> chatMTypes = new List<byte>
+        {
+            (byte)MessageType.Chat,
+            (byte)MessageType.Cmd,
+            (byte)MessageType.ImageFile,
+            (byte)MessageType.AudioFile,
+            (byte)MessageType.VideoFile,
+            (byte)MessageType.NormalFile,
+        };
 
         public bool GetGroupChat(HistoryMessageDelegate callback, long groupId, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0)
         {
@@ -343,25 +318,9 @@ namespace com.fpnn.rtm
 
         //===========================[ Delete Chat ]=========================//
         //-- toId: peer uid, or groupId, or roomId
-        //-- type: 1: p2p, 2: group; 3: room
-
-        //-- Obsolete in v.2.2.0
-        [System.Obsolete("TranslatedMessage is deprecated, please use RTMMessage instead.")]
-        public bool DeleteChat(DoneDelegate callback, long fromUid, long toId, long messageId, int type, int timeout = 0)
-        {
-            return DeleteMessage(callback, fromUid, toId, messageId, type, timeout);
-        }
-
         public bool DeleteChat(DoneDelegate callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0)
         {
             return DeleteMessage(callback, fromUid, toId, messageId, (byte)messageCategory, timeout);
-        }
-
-        //-- Obsolete in v.2.2.0
-        [System.Obsolete("TranslatedMessage is deprecated, please use RTMMessage instead.")]
-        public int DeleteChat(long fromUid, long toId, long messageId, int type, int timeout = 0)
-        {
-            return DeleteMessage(fromUid, toId, messageId, type, timeout);
         }
 
         public int DeleteChat(long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0)
@@ -371,25 +330,9 @@ namespace com.fpnn.rtm
 
         //===========================[ Get Chat ]=========================//
         //-- toId: peer uid, or groupId, or roomId
-        //-- type: 1: p2p, 2: group; 3: room
-
-        //-- Obsolete in v.2.2.0
-        [System.Obsolete("TranslatedMessage is deprecated, please use RTMMessage instead.")]
-        public bool GetChat(Action<RetrievedMessage, int> callback, long fromUid, long toId, long messageId, int type, int timeout = 0)
-        {
-            return GetMessage(callback, fromUid, toId, messageId, type, timeout);
-        }
-
         public bool GetChat(Action<RetrievedMessage, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0)
         {
             return GetMessage(callback, fromUid, toId, messageId, (byte)messageCategory, timeout);
-        }
-
-        //-- Obsolete in v.2.2.0
-        [System.Obsolete("TranslatedMessage is deprecated, please use RTMMessage instead.")]
-        public int GetChat(out RetrievedMessage retrievedMessage, long fromUid, long toId, long messageId, int type, int timeout = 0)
-        {
-            return GetMessage(out retrievedMessage, fromUid, toId, messageId, type, timeout);
         }
 
         public int GetChat(out RetrievedMessage retrievedMessage, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 0)
@@ -458,28 +401,6 @@ namespace com.fpnn.rtm
             Off,
             Stop,
             Censor
-        }
-
-        //-- Obsolete in v.2.2.0
-        //-- Action<TranslatedMessage, errorCode>
-        [Obsolete("Translate with TranslatedMessage is deprecated, please use Translate with TranslatedInfo instead.")]
-        public bool Translate(Action<TranslatedMessage, int> callback, string text,
-            TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
-            TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
-            int timeout = 0)
-        {
-            return Translate((TranslatedInfo translatedinfo, int errorCode) => {
-                TranslatedMessage translatedMessage = new TranslatedMessage
-                {
-                    source = translatedinfo.sourceLanguage,
-                    target = translatedinfo.targetLanguage,
-                    sourceText = translatedinfo.sourceText,
-                    targetText = translatedinfo.targetText
-                };
-
-                callback(translatedMessage, errorCode);
-            }, text, GetTranslatedLanguage(destinationLanguage),
-                GetTranslatedLanguage(sourceLanguage), type, profanity, timeout);
         }
 
         //-- Action<TranslatedInfo, errorCode>
@@ -560,32 +481,6 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        //-- Obsolete in v.2.2.0
-        [Obsolete("Translate with TranslatedMessage is deprecated, please use Translate with TranslatedInfo instead.")]
-        public int Translate(out TranslatedMessage translatedMessage, string text,
-            TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
-            TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
-            int timeout = 0)
-        {
-            int errorCode = Translate(out TranslatedInfo translatedinfo, text, GetTranslatedLanguage(destinationLanguage),
-                GetTranslatedLanguage(sourceLanguage), type, profanity, timeout);
-
-            if (translatedinfo != null)
-            {
-                translatedMessage = new TranslatedMessage
-                {
-                    source = translatedinfo.sourceLanguage,
-                    target = translatedinfo.targetLanguage,
-                    sourceText = translatedinfo.sourceText,
-                    targetText = translatedinfo.targetText
-                };
-            }
-            else
-                translatedMessage = null;
-
-            return errorCode;
-        }
-
         public int Translate(out TranslatedInfo translatedinfo, string text,
             TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
@@ -650,6 +545,7 @@ namespace com.fpnn.rtm
 
         //===========================[ Profanity ]=========================//
         //-- Action<string text, List<string> classification, errorCode>
+        [System.Obsolete("Profanity is deprecated, please use TCheck instead.")]
         public bool Profanity(Action<string, List<string>, int> callback, string text, bool classify = false, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
@@ -697,6 +593,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
+        [System.Obsolete("Profanity is deprecated, please use TCheck instead.")]
         public int Profanity(out string resultText, out List<string> classification, string text, bool classify = false, int timeout = 0)
         {
             resultText = "";
@@ -728,33 +625,11 @@ namespace com.fpnn.rtm
             }
         }
 
-        //===========================[ Transcribe ]=========================//
+        //===========================[ SpeechToText ]=========================//
+        //-------- url version ----------//
         //-- Action<string text, string language, errorCode>
-        public bool Transcribe(Action<string, string, int> callback, byte[] audio, int timeout = 120)
+        public bool SpeechToText(Action<string, string, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
         {
-            return TranscribeInternal(callback, audio, null, timeout);
-        }
-
-        public bool Transcribe(Action<string, string, int> callback, byte[] audio, bool filterProfanity, int timeout = 120)
-        {
-            return TranscribeInternal(callback, audio, filterProfanity, timeout);
-        }
-
-        private bool TranscribeInternal(Action<string, string, int> callback, byte[] audio, bool? filterProfanity, int timeout = 120)
-        {
-#if UNITY_2017_1_OR_NEWER
-            RTMAudioData audioData = new RTMAudioData(audio);
-            string cacheText = audioData.RecognitionText;
-            string cacheLanguage = audioData.RecognitionLang;
-            if (cacheText != "" && cacheLanguage != "")
-            {
-                ClientEngine.RunTask(() => {
-                    callback(cacheText, cacheLanguage, fpnn.ErrorCode.FPNN_EC_OK);
-                });
-                return true;
-            }
-#endif
-
             TCPClient client = GetCoreClient();
             if (client == null)
             {
@@ -767,21 +642,27 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            Quest quest = new Quest("transcribe");
-            quest.Param("audio", audio);
-            if (filterProfanity.HasValue)
-                quest.Param("profanityFilter", filterProfanity.Value);
+            Quest quest = new Quest("speech2text");
+            quest.Param("audio", audioUrl);
+            quest.Param("type", 1);
+            quest.Param("lang", language);
+
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
-                string resultText = "";
+                string text = "";
                 string resultLanguage = "";
 
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     try
                     {
-                        resultText = answer.Want<string>("text");
+                        text = answer.Want<string>("text");
                         resultLanguage = answer.Want<string>("lang");
                     }
                     catch (Exception)
@@ -789,7 +670,7 @@ namespace com.fpnn.rtm
                         errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
                     }
                 }
-                callback(resultText, resultLanguage, errorCode);
+                callback(text, resultLanguage, errorCode);
             }, timeout);
 
             if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
@@ -801,41 +682,25 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, int timeout = 120)
+        public int SpeechToText(out string resultText, out string resultLanguage, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
         {
-            return TranscribeInternal(out resultText, out resultLanguage, audio, null, timeout);
-        }
-
-        public int Transcribe(out string resultText, out string resultLanguage, byte[] audio, bool filterProfanity, int timeout = 120)
-        {
-            return TranscribeInternal(out resultText, out resultLanguage, audio, filterProfanity, timeout);
-        }
-
-        private int TranscribeInternal(out string resultText, out string resultLanguage, byte[] audio, bool? filterProfanity, int timeout = 120)
-        {
-#if UNITY_2017_1_OR_NEWER
-            RTMAudioData audioData = new RTMAudioData(audio);
-            string cacheText = audioData.RecognitionText;
-            string cacheLanguage = audioData.RecognitionLang;
-            if (cacheText != "" && cacheLanguage != "")
-            {
-                resultText = cacheText;
-                resultLanguage = cacheLanguage;
-                return fpnn.ErrorCode.FPNN_EC_OK;
-            }
-#endif
-
             resultText = "";
-            resultLanguage = null;
+            resultLanguage = "";
 
             TCPClient client = GetCoreClient();
             if (client == null)
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
-            Quest quest = new Quest("transcribe");
-            quest.Param("audio", audio);
-            if (filterProfanity.HasValue)
-                quest.Param("profanityFilter", filterProfanity.Value);
+            Quest quest = new Quest("speech2text");
+            quest.Param("audio", audioUrl);
+            quest.Param("type", 1);
+            quest.Param("lang", language);
+
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -855,19 +720,9 @@ namespace com.fpnn.rtm
             }
         }
 
-        //===========================[ sTranscribe ]=========================//
-        //-- Action<string text, string language, errorCode>
-        public bool Transcribe(Action<string, string, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 120)
-        {
-            return TranscribeInternal(callback, fromUid, toId, messageId, messageCategory, null, timeout);
-        }
+        //-------- binary version ----------//
 
-        public bool Transcribe(Action<string, string, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, bool filterProfanity, int timeout = 120)
-        {
-            return TranscribeInternal(callback, fromUid, toId, messageId, messageCategory, filterProfanity, timeout);
-        }
-
-        private bool TranscribeInternal(Action<string, string, int> callback, long fromUid, long toId, long messageId, MessageCategory messageCategory, bool? filterProfanity, int timeout = 120)
+        public bool SpeechToText(Action<string, string, int> callback, byte[] audioBinaryContent, string language, string codec = null, int sampleRate = 0, int timeout = 120)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -881,25 +736,27 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            Quest quest = new Quest("stranscribe");
-            quest.Param("from", fromUid);
-            quest.Param("xid", toId);
-            quest.Param("mid", messageId);
-            quest.Param("type", (byte)messageCategory);
+            Quest quest = new Quest("speech2text");
+            quest.Param("audio", audioBinaryContent);
+            quest.Param("type", 2);
+            quest.Param("lang", language);
 
-            if (filterProfanity.HasValue)
-                quest.Param("profanityFilter", filterProfanity.Value);
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
-                string resultText = "";
+                string text = "";
                 string resultLanguage = "";
 
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     try
                     {
-                        resultText = answer.Want<string>("text");
+                        text = answer.Want<string>("text");
                         resultLanguage = answer.Want<string>("lang");
                     }
                     catch (Exception)
@@ -907,7 +764,7 @@ namespace com.fpnn.rtm
                         errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
                     }
                 }
-                callback(resultText, resultLanguage, errorCode);
+                callback(text, resultLanguage, errorCode);
             }, timeout);
 
             if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
@@ -919,33 +776,25 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int Transcribe(out string resultText, out string resultLanguage, long fromUid, long toId, long messageId, MessageCategory messageCategory, int timeout = 120)
-        {
-            return TranscribeInternal(out resultText, out resultLanguage, fromUid, toId, messageId, messageCategory, null, timeout);
-        }
-
-        public int Transcribe(out string resultText, out string resultLanguage, long fromUid, long toId, long messageId, MessageCategory messageCategory, bool filterProfanity, int timeout = 120)
-        {
-            return TranscribeInternal(out resultText, out resultLanguage, fromUid, toId, messageId, messageCategory, filterProfanity, timeout);
-        }
-
-        private int TranscribeInternal(out string resultText, out string resultLanguage, long fromUid, long toId, long messageId, MessageCategory messageCategory, bool? filterProfanity, int timeout = 120)
+        public int SpeechToText(out string resultText, out string resultLanguage, byte[] audioBinaryContent, string language, string codec = null, int sampleRate = 0, int timeout = 120)
         {
             resultText = "";
-            resultLanguage = null;
+            resultLanguage = "";
 
             TCPClient client = GetCoreClient();
             if (client == null)
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
-            Quest quest = new Quest("stranscribe");
-            quest.Param("from", fromUid);
-            quest.Param("xid", toId);
-            quest.Param("mid", messageId);
-            quest.Param("type", (byte)messageCategory);
+            Quest quest = new Quest("speech2text");
+            quest.Param("audio", audioBinaryContent);
+            quest.Param("type", 2);
+            quest.Param("lang", language);
 
-            if (filterProfanity.HasValue)
-                quest.Param("profanityFilter", filterProfanity.Value);
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -956,6 +805,586 @@ namespace com.fpnn.rtm
             {
                 resultText = answer.Want<string>("text");
                 resultLanguage = answer.Want<string>("lang");
+
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //===========================[ TextCheck ]=========================//
+        //-- Action<TextCheckResult result, errorCode>
+        public bool TextCheck(Action<TextCheckResult, int> callback, string text, int timeout = 120)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(new TextCheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("tcheck");
+            quest.Param("text", text);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                TextCheckResult result = new TextCheckResult();
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        result.result = answer.Want<int>("result");
+                        result.text = answer.Get<string>("text", null);
+                        result.tags = GetIntList(answer, "tags");
+                        result.wlist = GetStringList(answer, "wlist");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(result, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(new TextCheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int TextCheck(out TextCheckResult result, string text, int timeout = 120)
+        {
+            result = new TextCheckResult();
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("tcheck");
+            quest.Param("text", text);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                result.result = answer.Want<int>("result");
+                result.text = answer.Get<string>("text", null);
+                result.tags = GetIntList(answer, "tags");
+                result.wlist = GetStringList(answer, "wlist");
+
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+
+        //===========================[ ImageCheck ]=========================//
+        //-------- url version ----------//
+        public bool ImageCheck(Action<CheckResult, int> callback, string imageUrl, int timeout = 120)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("icheck");
+            quest.Param("image", imageUrl);
+            quest.Param("type", 1);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                CheckResult result = new CheckResult();
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        result.result = answer.Want<int>("result");
+                        result.tags = GetIntList(answer, "tags");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(result, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int ImageCheck(out CheckResult result, string imageUrl, int timeout = 120)
+        {
+            result = new CheckResult();
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("icheck");
+            quest.Param("image", imageUrl);
+            quest.Param("type", 1);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                result.result = answer.Want<int>("result");
+                result.tags = GetIntList(answer, "tags");
+
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //-------- binary version ----------//
+        public bool ImageCheck(Action<CheckResult, int> callback, byte[] imageContent, int timeout = 120)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("icheck");
+            quest.Param("image", imageContent);
+            quest.Param("type", 2);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                CheckResult result = new CheckResult();
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        result.result = answer.Want<int>("result");
+                        result.tags = GetIntList(answer, "tags");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(result, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int ImageCheck(out CheckResult result, byte[] imageContent, int timeout = 120)
+        {
+            result = new CheckResult();
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("icheck");
+            quest.Param("image", imageContent);
+            quest.Param("type", 2);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                result.result = answer.Want<int>("result");
+                result.tags = GetIntList(answer, "tags");
+
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //===========================[ AudioCheck ]=========================//
+
+        //-------- url version ----------//
+        public bool AudioCheck(Action<CheckResult, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("acheck");
+            quest.Param("audio", audioUrl);
+            quest.Param("type", 1);
+            quest.Param("lang", language);
+
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                CheckResult result = new CheckResult();
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        result.result = answer.Want<int>("result");
+                        result.tags = GetIntList(answer, "tags");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(result, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int AudioCheck(out CheckResult result, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        {
+            result = new CheckResult();
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("acheck");
+            quest.Param("audio", audioUrl);
+            quest.Param("type", 1);
+            quest.Param("lang", language);
+
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                result.result = answer.Want<int>("result");
+                result.tags = GetIntList(answer, "tags");
+
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //-------- binary version ----------//
+        public bool AudioCheck(Action<CheckResult, int> callback, byte[] audioContent, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("acheck");
+            quest.Param("audio", audioContent);
+            quest.Param("type", 2);
+            quest.Param("lang", language);
+
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                CheckResult result = new CheckResult();
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        result.result = answer.Want<int>("result");
+                        result.tags = GetIntList(answer, "tags");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(result, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int AudioCheck(out CheckResult result, byte[] audioContent, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        {
+            result = new CheckResult();
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("acheck");
+            quest.Param("audio", audioContent);
+            quest.Param("type", 2);
+            quest.Param("lang", language);
+
+            if (codec != null && codec.Length > 0)
+                quest.Param("codec", codec);
+
+            if (sampleRate > 0)
+                quest.Param("srate", sampleRate);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                result.result = answer.Want<int>("result");
+                result.tags = GetIntList(answer, "tags");
+
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //===========================[ VideoCheck ]=========================//
+
+        //-------- url version ----------//
+        public bool VideoCheck(Action<CheckResult, int> callback, string videoUrl, string videoName, int timeout = 120)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("vcheck");
+            quest.Param("video", videoUrl);
+            quest.Param("type", 1);
+            quest.Param("videoName", videoName);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                CheckResult result = new CheckResult();
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        result.result = answer.Want<int>("result");
+                        result.tags = GetIntList(answer, "tags");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(result, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int VideoCheck(out CheckResult result, string videoUrl, string videoName, int timeout = 120)
+        {
+            result = new CheckResult();
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("vcheck");
+            quest.Param("video", videoUrl);
+            quest.Param("type", 1);
+            quest.Param("videoName", videoName);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                result.result = answer.Want<int>("result");
+                result.tags = GetIntList(answer, "tags");
+
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //-------- binary version ----------//
+        public bool VideoCheck(Action<CheckResult, int> callback, byte[] videoContent, string videoName, int timeout = 120)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("vcheck");
+            quest.Param("video", videoContent);
+            quest.Param("type", 2);
+            quest.Param("videoName", videoName);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                CheckResult result = new CheckResult();
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        result.result = answer.Want<int>("result");
+                        result.tags = GetIntList(answer, "tags");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(result, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(new CheckResult(), fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int VideoCheck(out CheckResult result, byte[] videoContent, string videoName, int timeout = 120)
+        {
+            result = new CheckResult();
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("vcheck");
+            quest.Param("video", videoContent);
+            quest.Param("type", 2);
+            quest.Param("videoName", videoName);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                result.result = answer.Want<int>("result");
+                result.tags = GetIntList(answer, "tags");
 
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }

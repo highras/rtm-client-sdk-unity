@@ -7,26 +7,26 @@
 ### Send P2P Message
 
 	//-- Async Method
-	public bool SendMessage(ActTimeDelegate callback, long uid, byte mtype, string message, string attrs = "", int timeout = 0);
-	public bool SendMessage(ActTimeDelegate callback, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0);
+	public bool SendMessage(MessageIdDelegate callback, long uid, byte mtype, string message, string attrs = "", int timeout = 0);
+	public bool SendMessage(MessageIdDelegate callback, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0);
 	
 	//-- Sync Method
-	public int SendMessage(out long mtime, long uid, byte mtype, string message, string attrs = "", int timeout = 0);
-	public int SendMessage(out long mtime, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0);
+	public int SendMessage(out long messageId, long uid, byte mtype, string message, string attrs = "", int timeout = 0);
+	public int SendMessage(out long messageId, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0);
 
 Send P2P message.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long uid`
 
@@ -72,26 +72,26 @@ Return Values:
 ### Send Group Messsage
 
 	//-- Async Method
-	public bool SendGroupMessage(ActTimeDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0);
-	public bool SendGroupMessage(ActTimeDelegate callback, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0);
+	public bool SendGroupMessage(MessageIdDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0);
+	public bool SendGroupMessage(MessageIdDelegate callback, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0);
 	
 	//-- Sync Method
-	public int SendGroupMessage(out long mtime, long groupId, byte mtype, string message, string attrs = "", int timeout = 0);
-	public int SendGroupMessage(out long mtime, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0);
+	public int SendGroupMessage(out long messageId, long groupId, byte mtype, string message, string attrs = "", int timeout = 0);
+	public int SendGroupMessage(out long messageId, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0);
 
 Send message in group.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long groupId`
 
@@ -137,26 +137,26 @@ Return Values:
 ### Send Room Message
 
 	//-- Async Method
-	public bool SendRoomMessage(ActTimeDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0);
-	public bool SendRoomMessage(ActTimeDelegate callback, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0);
+	public bool SendRoomMessage(MessageIdDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0);
+	public bool SendRoomMessage(MessageIdDelegate callback, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0);
 	
 	//-- Sync Method
-	public int SendRoomMessage(out long mtime, long roomId, byte mtype, string message, string attrs = "", int timeout = 0);
-	public int SendRoomMessage(out long mtime, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0);
+	public int SendRoomMessage(out long messageId, long roomId, byte mtype, string message, string attrs = "", int timeout = 0);
+	public int SendRoomMessage(out long messageId, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0);
 
 Send message in room.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long roomId`
 

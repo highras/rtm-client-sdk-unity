@@ -67,27 +67,27 @@ Please get your project params from RTM Console.
 * Send P2P Message
 
 		//-- Async interface
-		public bool SendMessage(ActTimeDelegate callback, long uid, byte mtype, string message, string attrs = "", int timeout = 0);
+		public bool SendMessage(MessageIdDelegate callback, long uid, byte mtype, string message, string attrs = "", int timeout = 0);
 
 		//-- Sync interface
-		public int SendMessage(out long mtime, long uid, byte mtype, string message, string attrs = "", int timeout = 0);
+		public int SendMessage(out long messageId, long uid, byte mtype, string message, string attrs = "", int timeout = 0);
 
 
 * Send Group Message
 	
 		//-- Async interface
-		public bool SendGroupMessage(ActTimeDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0);
+		public bool SendGroupMessage(MessageIdDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0);
 
 		//-- Sync interface
-		public int SendGroupMessage(out long mtime, long groupId, byte mtype, string message, string attrs = "", int timeout = 0);
+		public int SendGroupMessage(out long messageId, long groupId, byte mtype, string message, string attrs = "", int timeout = 0);
 
 * Send Room Message
 
 		//-- Async interface
-		public bool SendRoomMessage(ActTimeDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0);
+		public bool SendRoomMessage(MessageIdDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0);
 
 		//-- Sync interface
-		public int SendRoomMessage(out long mtime, long roomId, byte mtype, string message, string attrs = "", int timeout = 0);
+		public int SendRoomMessage(out long messageId, long roomId, byte mtype, string message, string attrs = "", int timeout = 0);
 
 
 ### Send chat
@@ -95,27 +95,27 @@ Please get your project params from RTM Console.
 * Send P2P Chat
 
 		//-- Async interface
-		public bool SendChat(ActTimeDelegate callback, long uid, string message, string attrs = "", int timeout = 0);
+		public bool SendChat(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0);
 
 		//-- Sync interface
-		public int SendChat(out long mtime, long uid, string message, string attrs = "", int timeout = 0);
+		public int SendChat(out long messageId, long uid, string message, string attrs = "", int timeout = 0);
 
 
 * Send Group Chat
 	
 		//-- Async interface
-		public bool SendGroupChat(ActTimeDelegate callback, long groupId, string message, string attrs = "", int timeout = 0);
+		public bool SendGroupChat(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0);
 
 		//-- Sync interface
-		public int SendGroupChat(out long mtime, long groupId, string message, string attrs = "", int timeout = 0);
+		public int SendGroupChat(out long messageId, long groupId, string message, string attrs = "", int timeout = 0);
 
 * Send Room Chat
 
 		//-- Async interface
-		public bool SendRoomChat(ActTimeDelegate callback, long roomId, string message, string attrs = "", int timeout = 0);
+		public bool SendRoomChat(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0);
 
 		//-- Sync interface
-		public int SendRoomChat(out long mtime, long roomId, string message, string attrs = "", int timeout = 0);
+		public int SendRoomChat(out long messageId, long roomId, string message, string attrs = "", int timeout = 0);
 
 ### SDK Version
 

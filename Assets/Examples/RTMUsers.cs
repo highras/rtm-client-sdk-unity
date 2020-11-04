@@ -48,6 +48,8 @@ class Users : Main.ITestCase
 
         GetUserInfos(client);
 
+        GetUsersInfos(client, new HashSet<long>() { 99688848, 123456, 234567, 345678, 456789 });
+
         Debug.Log("============== Demo completed ================");
     }
 
@@ -106,6 +108,20 @@ class Users : Main.ITestCase
             Debug.Log("Get user infos in sync successed.");
             Debug.Log("Public info: " + (publicInfos ?? "null"));
             Debug.Log("Private info: " + (privateInfos ?? "null"));
+        }
+    }
+
+    static void GetUsersInfos(RTMClient client, HashSet<long> uids)
+    {
+        int errorCode = client.GetUserPublicInfo(out Dictionary<string, string> publicInfos, uids);
+
+        if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
+            Debug.Log("Get users' info in sync failed, error code is " + errorCode);
+        else
+        {
+            Debug.Log("Get users' info in sync success");
+            foreach (var kvp in publicInfos)
+                Debug.Log("-- uid: " + kvp.Key + " info: [" + kvp.Value + "]");
         }
     }
 }

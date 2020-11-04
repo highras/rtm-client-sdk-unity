@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using com.fpnn.proto;
+using com.fpnn.common;
 
 namespace com.fpnn.rtm
 {
@@ -42,6 +43,20 @@ namespace com.fpnn.rtm
             return rev;
         }
 
+        private List<int> GetIntList(Message message, string key)
+        {
+            List<int> rev = new List<int>();
+
+            List<object> originalList = (List<object>)message.Get(key);
+            if (originalList == null)
+                return null;
+
+            foreach (object obj in originalList)
+                rev.Add((int)Convert.ChangeType(obj, TypeCode.Int32));
+
+            return rev;
+        }
+
         private List<string> GetStringList(Message message, string key)
         {
             List<string> rev = new List<string>();
@@ -67,43 +82,97 @@ namespace com.fpnn.rtm
             return rev;
         }
 
-        internal static AudioInfo BuildAudioInfo(string json, common.ErrorRecorder errorRecorder)
+        internal static void ParseFileMessage(BaseMessage baseMessage, ErrorRecorder errorRecorder)
         {
             try
             {
-                Dictionary<string, object> jsonData = common.Json.ParseObject(json);
+                Dictionary<string, object> infoDict = Json.ParseObject(baseMessage.stringMessage);
+                if (infoDict != null)
+                {
+                    if (infoDict.TryGetValue("url", out object urlText))
+                        baseMessage.fileInfo.url = (string)urlText;
 
-                AudioInfo audioInfo = new AudioInfo();
+                    if (infoDict.TryGetValue("size", out object sizeInt))
+                        baseMessage.fileInfo.size = (Int32)Convert.ChangeType(sizeInt, TypeCode.Int32);
 
-                if (jsonData.TryGetValue("sl", out object sourceLanguage))
-                    audioInfo.sourceLanguage = (string)sourceLanguage;
-                else
-                    audioInfo.sourceLanguage = "";
-
-                if (jsonData.TryGetValue("rl", out object recognizedLanguage))
-                    audioInfo.recognizedLanguage = (string)recognizedLanguage;
-                else
-                    audioInfo.recognizedLanguage = "";
-
-                if (jsonData.TryGetValue("du", out object duration))
-                    audioInfo.duration = (int)Convert.ChangeType(duration, typeof(int));
-                else
-                    audioInfo.duration = 0;
-
-                if (jsonData.TryGetValue("rt", out object recognizedText))
-                    audioInfo.recognizedText = (string)recognizedText;
-                else
-                    audioInfo.recognizedText = "";
-
-                return audioInfo;
+                    if (baseMessage.messageType == (byte)MessageType.ImageFile)
+                    {
+                        if (infoDict.TryGetValue("surl", out object surlText))
+                            baseMessage.fileInfo.surl = (string)surlText;
+                    }
+                }
             }
-            catch (Exception e)
+            catch (JsonException e)
             {
                 if (errorRecorder != null)
-                    errorRecorder.RecordError("BuildAudioInfo failed. Json: " + json, e);
-
-                return null;
+                    errorRecorder.RecordError("Parse file msg error. Full msg: " + baseMessage.stringMessage, e);
             }
+        }
+
+        internal static void ParseFileAttrs(BaseMessage baseMessage, ErrorRecorder errorRecorder)
+        {
+            try
+            {
+                Dictionary<string, object> attrsDict = Json.ParseObject(baseMessage.attrs);
+                if (attrsDict != null)
+                {
+                    if (attrsDict.TryGetValue("rtm", out object rtmAttrs))
+                    {
+                        Dictionary<string, object> rtmAttrsDict = (Dictionary<string, object>)rtmAttrs;
+                        if (rtmAttrsDict.TryGetValue("type", out object typeText))
+                        {
+                            string typeStr = (string)typeText;
+                            if (typeStr.Equals("audiomsg"))
+                                baseMessage.fileInfo.isRTMAudio = true;
+                        }
+
+                        if (baseMessage.fileInfo.isRTMAudio)
+                        {
+                            if (rtmAttrsDict.TryGetValue("lang", out object languageText))
+                                baseMessage.fileInfo.language = (string)languageText;
+
+                            if (rtmAttrsDict.TryGetValue("duration", out object durationInt))
+                                baseMessage.fileInfo.duration = (Int32)Convert.ChangeType(durationInt, TypeCode.Int32);
+                        }
+                    }
+
+                    if (attrsDict.TryGetValue("custom", out object attrsInfo))
+                    {
+                        try
+                        {
+                            Dictionary<string, object> userAttrsDict = (Dictionary<string, object>)attrsInfo;
+                            baseMessage.attrs = Json.ToString(userAttrsDict);
+                            return;
+                        }
+                        catch (Exception)
+                        {
+                            try
+                            {
+                                string userAttrs = (string)attrsInfo;
+                                baseMessage.attrs = userAttrs;
+                                return;
+                            }
+                            catch (Exception ex)
+                            {
+                                if (errorRecorder != null)
+                                    errorRecorder.RecordError("Convert user attrs to string type for file attrs error. Full attrs: " + baseMessage.attrs, ex);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (JsonException e)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("Parse file attrs error. Full attrs: " + baseMessage.attrs, e);
+            }
+        }
+
+        internal static void BuildFileInfo(BaseMessage baseMessage, ErrorRecorder errorRecorder)
+        {
+            baseMessage.fileInfo = new FileInfo();
+            ParseFileMessage(baseMessage, errorRecorder);
+            ParseFileAttrs(baseMessage, errorRecorder);
         }
     }
 }

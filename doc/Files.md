@@ -7,38 +7,32 @@
 ### Send P2P File
 
 	//-- Async Method
-	public bool SendFile(ActTimeDelegate callback, long peerUid, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
-	public bool SendFile(ActTimeDelegate callback, long peerUid, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public bool SendFile(MessageIdDelegate callback, long peerUid, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120);
 	
 	//-- Sync Method
-	public int SendFile(out long mtime, long peerUid, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
-	public int SendFile(out long mtime, long peerUid, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public int SendFile(out long messageId, long peerUid, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120);
 
 Send P2P file.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long peerUid`
 
 	Receiver user id.
 
-+ `byte mtype`
++ `MessageType type`
 
-	Message type for file. MUST in the range: [40 - 50].
-	* 50: Generic file. Server maybe change this value to more suitable values.
-	* 40: Pictures.
-	* 41: Audio.
-	* 42: Video.
+	Message type for file.
 
 + `byte[] fileContent`
 
@@ -51,6 +45,10 @@ Parameters:
 + `string fileExtension`
 
 	File extension.
+
++ `string attrs`
+
+	Text file attributes in Json.
 
 + `int timeout`
 
@@ -76,38 +74,32 @@ Return Values:
 ### Send Group File
 
 	//-- Async Method
-	public bool SendGroupFile(ActTimeDelegate callback, long groupId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
-	public bool SendGroupFile(ActTimeDelegate callback, long groupId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public bool SendGroupFile(MessageIdDelegate callback, long groupId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120);
 	
 	//-- Sync Method
-	public int SendGroupFile(out long mtime, long groupId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
-	public int SendGroupFile(out long mtime, long groupId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public int SendGroupFile(out long messageId, long groupId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120);
 
 Send file in group.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long groupId`
 
 	Group id.
 
-+ `byte mtype`
++ `MessageType type`
 
-	Message type for file. MUST in the range: [40 - 50].
-	* 50: Generic file. Server maybe change this value to more suitable values.
-	* 40: Pictures.
-	* 41: Audio.
-	* 42: Video.
+	Message type for file.
 
 + `byte[] fileContent`
 
@@ -120,6 +112,10 @@ Parameters:
 + `string fileExtension`
 
 	File extension.
+
++ `string attrs`
+
+	Text file attributes in Json.
 
 + `int timeout`
 
@@ -145,38 +141,32 @@ Return Values:
 ### Send Room File
 
 	//-- Async Method
-	public bool SendRoomFile(ActTimeDelegate callback, long roomId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
-	public bool SendRoomFile(ActTimeDelegate callback, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public bool SendRoomFile(MessageIdDelegate callback, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120);
 	
 	//-- Sync Method
-	public int SendRoomFile(out long mtime, long roomId, byte mtype, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
-	public int SendRoomFile(out long mtime, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", int timeout = 120);
+	public int SendRoomFile(out long messageId, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120);
 
 Send file in room.
 
 Parameters:
 
-+ `ActTimeDelegate callback`
++ `MessageIdDelegate callback`
 
-		public delegate void ActTimeDelegate(long mtime, int errorCode);
+		public delegate void MessageIdDelegate(long messageId, int errorCode);
 
-	Callabck for async method. Please refer [ActTimeDelegate](Delegates.md#ActTimeDelegate).
+	Callabck for async method. Please refer [MessageIdDelegate](Delegates.md#MessageIdDelegate).
 
-+ `out long mtime`
++ `out long messageId`
 
-	Sending completed time.
+	Sent message id.
 
 + `long roomId`
 
 	Room id.
 
-+ `byte mtype`
++ `MessageType type`
 
-	Message type for file. MUST in the range: [40 - 50].
-	* 50: Generic file. Server maybe change this value to more suitable values.
-	* 40: Pictures.
-	* 41: Audio.
-	* 42: Video.
+	Message type for file.
 
 + `byte[] fileContent`
 
@@ -189,6 +179,10 @@ Parameters:
 + `string fileExtension`
 
 	File extension.
+
++ `string attrs`
+
+	Text file attributes in Json.
 
 + `int timeout`
 

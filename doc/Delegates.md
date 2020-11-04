@@ -39,17 +39,17 @@ Parameters:
 
 	Others are the reason for failed.
 
-### ActTimeDelegate
+### MessageIdDelegate
 
-	public delegate void ActTimeDelegate(long modifiedTime, int errorCode);
+	public delegate void MessageIdDelegate(long messageId, int errorCode);
 
 Parameters:
 
-+ `long modifiedTime`
++ `long messageId`
 
-	If action is successful, `modifiedTime` is the action completed time.
+	If action is successful, `messageId` is the sent message id.
 
-	If action is failed, `modifiedTime` is 0.
+	If action is failed, `messageId` is 0.
 
 + `int errorCode`
 

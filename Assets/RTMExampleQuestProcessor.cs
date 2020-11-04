@@ -160,76 +160,6 @@ namespace example.common
             }
         }
 
-        //-- Audio
-        public override void PushAudio(RTMMessage message)
-        {
-            lock (this)
-            {
-                if (message.binaryMessage == null)
-                    Debug.Log($"Receive push audio message info: from {message.fromUid}, " +
-                    $"mid: {message.messageId}, attrs: {message.attrs}, " +
-                    $"source language {message.audioInfo.sourceLanguage} " +
-                    $"recognized language {message.audioInfo.recognizedLanguage} " +
-                    $"duration {message.audioInfo.duration} " +
-                    $"recognized content '{message.audioInfo.recognizedText}'.");
-                else
-                    Debug.Log($"Receive push audio data: from {message.fromUid}, " +
-                        $"mid: {message.messageId}, attrs: {message.attrs}, " +
-                        $"binary data length: {message.binaryMessage.Length}");
-            }
-        }
-        public override void PushGroupAudio(RTMMessage message)
-        {
-            lock (this)
-            {
-                if (message.binaryMessage == null)
-                    Debug.Log($"Receive push group audio message info: from {message.fromUid}, " +
-                    $"in group {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
-                    $"source language {message.audioInfo.sourceLanguage} " +
-                    $"recognized language {message.audioInfo.recognizedLanguage} " +
-                    $"duration {message.audioInfo.duration} " +
-                    $"recognized content '{message.audioInfo.recognizedText}'.");
-                else
-                    Debug.Log($"Receive push group audio data: from {message.fromUid}, " +
-                        $"in group {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
-                        $"binary data length: {message.binaryMessage.Length}");
-            }
-        }
-        public override void PushRoomAudio(RTMMessage message)
-        {
-            lock (this)
-            {
-                if (message.binaryMessage == null)
-                    Debug.Log($"Receive push room audio message info: from {message.fromUid}, " +
-                    $"in room {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
-                    $"source language {message.audioInfo.sourceLanguage} " +
-                    $"recognized language {message.audioInfo.recognizedLanguage} " +
-                    $"duration {message.audioInfo.duration} " +
-                    $"recognized content '{message.audioInfo.recognizedText}'.");
-                else
-                    Debug.Log($"Receive push room audio data: from {message.fromUid}, " +
-                        $"in room {message.toId}, mid: {message.messageId}, attrs: {message.attrs}, " +
-                        $"binary data length: {message.binaryMessage.Length}");
-            }
-        }
-        public override void PushBroadcastAudio(RTMMessage message)
-        {
-            lock (this)
-            {
-                if (message.binaryMessage == null)
-                    Debug.Log($"Receive push broadcast audio message info: from {message.fromUid}, " +
-                    $"mid: {message.messageId}, attrs: {message.attrs}, " +
-                    $"source language {message.audioInfo.sourceLanguage} " +
-                    $"recognized language {message.audioInfo.recognizedLanguage} " +
-                    $"duration {message.audioInfo.duration} " +
-                    $"recognized content '{message.audioInfo.recognizedText}'.");
-                else
-                    Debug.Log($"Receive push broadcast audio data: from {message.fromUid}, " +
-                        $"mid: {message.messageId}, attrs: {message.attrs}, " +
-                        $"binary data length: {message.binaryMessage.Length}");
-            }
-        }
-
         //-- Cmd
         public override void PushCmd(RTMMessage message)
         {
@@ -275,7 +205,10 @@ namespace example.common
             {
                 Debug.Log($"Receive push file: from {message.fromUid}, " +
                     $"type: {message.messageType}, mid: {message.messageId}," +
-                    $"attrs: {message.attrs}, url: {message.stringMessage}.");
+                    $"attrs: {message.attrs}, url: {message.fileInfo.url}, size: {message.fileInfo.size}.");
+
+                if (message.fileInfo.isRTMAudio)
+                    Console.WriteLine($" -- [RTM Audio] language: {message.fileInfo.language}, duration: {message.fileInfo.duration}");
             }
         }
         public override void PushGroupFile(RTMMessage message)
@@ -284,7 +217,10 @@ namespace example.common
             {
                 Debug.Log($"Receive push group file: from {message.fromUid}, in group {message.toId}, " +
                     $"type: {message.messageType}, mid: {message.messageId}," +
-                    $"attrs: {message.attrs}, url: {message.stringMessage}.");
+                    $"attrs: {message.attrs}, url: {message.fileInfo.url}, size: {message.fileInfo.size}.");
+
+                if (message.fileInfo.isRTMAudio)
+                    Console.WriteLine($" -- [RTM Audio] language: {message.fileInfo.language}, duration: {message.fileInfo.duration}");
             }
         }
         public override void PushRoomFile(RTMMessage message)
@@ -293,7 +229,10 @@ namespace example.common
             {
                 Debug.Log($"Receive push room file: from {message.fromUid}, in room {message.toId}, " +
                     $"type: {message.messageType}, mid: {message.messageId}," +
-                    $"attrs: {message.attrs}, url: {message.stringMessage}.");
+                    $"attrs: {message.attrs}, url: {message.fileInfo.url}, size: {message.fileInfo.size}.");
+
+                if (message.fileInfo.isRTMAudio)
+                    Console.WriteLine($" -- [RTM Audio] language: {message.fileInfo.language}, duration: {message.fileInfo.duration}");
             }
         }
         public override void PushBroadcastFile(RTMMessage message)
@@ -302,7 +241,10 @@ namespace example.common
             {
                 Debug.Log($"Receive push broadcast file: from {message.fromUid}, " +
                     $"type: {message.messageType}, mid: {message.messageId}," +
-                    $"attrs: {message.attrs}, url: {message.stringMessage}.");
+                    $"attrs: {message.attrs}, url: {message.fileInfo.url}, size: {message.fileInfo.size}.");
+
+                if (message.fileInfo.isRTMAudio)
+                    Console.WriteLine($" -- [RTM Audio] language: {message.fileInfo.language}, duration: {message.fileInfo.duration}");
             }
         }
     }

@@ -72,9 +72,9 @@ class Messages: Main.ITestCase
 
     static void SendP2PMessageInAsync(RTMClient client, long peerUid, byte mtype)
     {
-        bool status = client.SendMessage((long mtime, int errorCode) => {
+        bool status = client.SendMessage((long messageId, int errorCode) => {
             if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-                Debug.Log("Send text message to user " + peerUid + " in sync successed, mtime is " + mtime);
+                Debug.Log("Send text message to user " + peerUid + " in sync successed, messageId is " + messageId);
             else
                 Debug.Log("Send text message to user " + peerUid + " in sync failed, errorCode is " + errorCode);
         }, peerUid, mtype, textMessage);
@@ -84,9 +84,9 @@ class Messages: Main.ITestCase
         else
             Thread.Sleep(1000);     //-- Waiting callback desipay result info
 
-        status = client.SendMessage((long mtime, int errorCode) => {
+        status = client.SendMessage((long messageId, int errorCode) => {
             if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-                Debug.Log("Send binary message to user " + peerUid + " in sync successed, mtime is " + mtime);
+                Debug.Log("Send binary message to user " + peerUid + " in sync successed, messageId is " + messageId);
             else
                 Debug.Log("Send binary message to user " + peerUid + " in sync failed, errorCode is " + errorCode);
         }, peerUid, mtype, binaryMessage);
@@ -99,27 +99,27 @@ class Messages: Main.ITestCase
 
     static void SendP2PMessageInSync(RTMClient client, long peerUid, byte mtype)
     {
-        long mtime;
-        int errorCode = client.SendMessage(out mtime, peerUid, mtype, textMessage);
+        long messageId;
+        int errorCode = client.SendMessage(out messageId, peerUid, mtype, textMessage);
 
         if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-            Debug.Log("Send text message to user " + peerUid + " in sync successed, mtime is " + mtime);
+            Debug.Log("Send text message to user " + peerUid + " in sync successed, messageId is " + messageId);
         else
             Debug.Log("Send text message to user " + peerUid + " in sync failed.");
 
-        errorCode = client.SendMessage(out mtime, peerUid, mtype, binaryMessage);
+        errorCode = client.SendMessage(out messageId, peerUid, mtype, binaryMessage);
 
         if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-            Debug.Log("Send binary message to user " + peerUid + " in sync successed, mtime is " + mtime);
+            Debug.Log("Send binary message to user " + peerUid + " in sync successed, messageId is " + messageId);
         else
             Debug.Log("Send binary message to user " + peerUid + " in sync failed.");
     }
 
     static void SendGroupMessageInAsync(RTMClient client, long groupId, byte mtype)
     {
-        bool status = client.SendGroupMessage((long mtime, int errorCode) => {
+        bool status = client.SendGroupMessage((long messageId, int errorCode) => {
             if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-                Debug.Log("Send text message to group " + groupId + " in sync successed, mtime is " + mtime);
+                Debug.Log("Send text message to group " + groupId + " in sync successed, messageId is " + messageId);
             else
                 Debug.Log("Send text message to group " + groupId + " in sync failed, errorCode is " + errorCode);
         }, groupId, mtype, textMessage);
@@ -129,9 +129,9 @@ class Messages: Main.ITestCase
         else
             Thread.Sleep(1000);     //-- Waiting callback desipay result info
 
-        status = client.SendGroupMessage((long mtime, int errorCode) => {
+        status = client.SendGroupMessage((long messageId, int errorCode) => {
             if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-                Debug.Log("Send binary message to group " + groupId + " in sync successed, mtime is " + mtime);
+                Debug.Log("Send binary message to group " + groupId + " in sync successed, messageId is " + messageId);
             else
                 Debug.Log("Send binary message to group " + groupId + " in sync failed, errorCode is " + errorCode);
         }, groupId, mtype, binaryMessage);
@@ -144,27 +144,27 @@ class Messages: Main.ITestCase
 
     static void SendGroupMessageInSync(RTMClient client, long groupId, byte mtype)
     {
-        long mtime;
-        int errorCode = client.SendGroupMessage(out mtime, groupId, mtype, textMessage);
+        long messageId;
+        int errorCode = client.SendGroupMessage(out messageId, groupId, mtype, textMessage);
 
         if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-            Debug.Log("Send text message to group " + groupId + " in sync successed, mtime is " + mtime);
+            Debug.Log("Send text message to group " + groupId + " in sync successed, messageId is " + messageId);
         else
             Debug.Log("Send text message to group " + groupId + " in sync failed.");
 
-        errorCode = client.SendGroupMessage(out mtime, groupId, mtype, binaryMessage);
+        errorCode = client.SendGroupMessage(out messageId, groupId, mtype, binaryMessage);
 
         if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-            Debug.Log("Send binary message to group " + groupId + " in sync successed, mtime is " + mtime);
+            Debug.Log("Send binary message to group " + groupId + " in sync successed, messageId is " + messageId);
         else
             Debug.Log("Send binary message to group " + groupId + " in sync failed.");
     }
 
     static void SendRoomMessageInAsync(RTMClient client, long roomId, byte mtype)
     {
-        bool status = client.SendRoomMessage((long mtime, int errorCode) => {
+        bool status = client.SendRoomMessage((long messageId, int errorCode) => {
             if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-                Debug.Log("Send text message to room " + roomId + " in sync successed, mtime is " + mtime);
+                Debug.Log("Send text message to room " + roomId + " in sync successed, messageId is " + messageId);
             else
                 Debug.Log("Send text message to room " + roomId + " in sync failed, errorCode is " + errorCode);
         }, roomId, mtype, textMessage);
@@ -174,9 +174,9 @@ class Messages: Main.ITestCase
         else
             Thread.Sleep(1000);     //-- Waiting callback desipay result info
 
-        status = client.SendRoomMessage((long mtime, int errorCode) => {
+        status = client.SendRoomMessage((long messageId, int errorCode) => {
             if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-                Debug.Log("Send binary message to room " + roomId + " in sync successed, mtime is " + mtime);
+                Debug.Log("Send binary message to room " + roomId + " in sync successed, messageId is " + messageId);
             else
                 Debug.Log("Send binary message to room " + roomId + " in sync failed, errorCode is " + errorCode);
         }, roomId, mtype, binaryMessage);
@@ -189,18 +189,18 @@ class Messages: Main.ITestCase
 
     static void SendRoomMessageInSync(RTMClient client, long roomId, byte mtype)
     {
-        long mtime;
-        int errorCode = client.SendRoomMessage(out mtime, roomId, mtype, textMessage);
+        long messageId;
+        int errorCode = client.SendRoomMessage(out messageId, roomId, mtype, textMessage);
 
         if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-            Debug.Log("Send text message to room " + roomId + " in sync successed, mtime is " + mtime);
+            Debug.Log("Send text message to room " + roomId + " in sync successed, messageId is " + messageId);
         else
             Debug.Log("Send text message to room " + roomId + " in sync failed.");
 
-        errorCode = client.SendRoomMessage(out mtime, roomId, mtype, binaryMessage);
+        errorCode = client.SendRoomMessage(out messageId, roomId, mtype, binaryMessage);
 
         if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
-            Debug.Log("Send binary message to room " + roomId + " in sync successed, mtime is " + mtime);
+            Debug.Log("Send binary message to room " + roomId + " in sync successed, messageId is " + messageId);
         else
             Debug.Log("Send binary message to room " + roomId + " in sync failed.");
     }
