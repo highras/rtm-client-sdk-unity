@@ -586,7 +586,7 @@ namespace com.fpnn.rtm
 
         public int SendRoomFile(out long messageId, long roomId, RTMAudioData audioData, string attrs = "", int timeout = 120)
         {
-            return RealSendFile(out messageId, FileTokenType.Room, roomId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, null, timeout);
+            return RealSendFile(out messageId, FileTokenType.Room, roomId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
         }
     }
 }
