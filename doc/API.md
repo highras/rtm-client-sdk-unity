@@ -157,3 +157,8 @@ Please refer [Users Functions](Users.md)
 #### Data Functions
 
 Please refer [Data Functions](Data.md)
+
+### Error Codes
+
+[RTM SDK Error Codes](https://github.com/highras/rtm-client-sdk-unity/blob/master/Assets/Plugins/rtm/ErrorCode.cs)
+[FPNN SDK (Transport Layer) Error Codes](https://github.com/highras/rtm-client-sdk-unity/blob/master/Assets/Plugins/fpnn/ErrorCode.cs)
