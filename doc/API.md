@@ -86,9 +86,9 @@ PLease refer：[Init & Config FPNN SDK & RTM SDK](Init.md)
 
 	Values:
 
-		+ ClientStatus.Closed
-		+ ClientStatus.Connecting
-		+ ClientStatus.Connected
+	+ ClientStatus.Closed
+	+ ClientStatus.Connecting
+	+ ClientStatus.Connected
 
 * **public com.fpnn.common.ErrorRecorder ErrorRecorder**
 

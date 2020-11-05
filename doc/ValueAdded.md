@@ -126,7 +126,7 @@ Return Values:
 	//-- Sync Method
 	public int Profanity(out string resultText, out List<string> classification, string text, bool classify = false, int timeout = 0);
 
-**`Profanity` is deprecated, please use TCheck instead.**
+**`Profanity` is deprecated, please use [TextCheck](#TextCheck)  instead.**
 
 Sensitive words detected and filter.
 
@@ -389,7 +389,7 @@ Parameters:
 
 	Audio language when recording. Available language please refer the documents in [https://www.ilivedata.com/](https://docs.ilivedata.com/stt/production/).
 
-	[Current Chinese document](https://docs.ilivedata.com/audiocheck/techdoc/submit/)
+	[Current Chinese document](https://docs.ilivedata.com/audiocheck/techdoc/submit/)  
 	[Current Chinese document (live audio)](https://docs.ilivedata.com/audiocheck/livetechdoc/livesubmit/)
 
 + `codec`
