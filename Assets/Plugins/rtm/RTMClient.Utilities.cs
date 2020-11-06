@@ -100,6 +100,8 @@ namespace com.fpnn.rtm
                         if (infoDict.TryGetValue("surl", out object surlText))
                             baseMessage.fileInfo.surl = (string)surlText;
                     }
+
+                    baseMessage.stringMessage = null;
                 }
             }
             catch (JsonException e)

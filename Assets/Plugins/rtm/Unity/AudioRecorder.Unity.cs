@@ -17,14 +17,18 @@ namespace com.fpnn.rtm
         }
 
         public static int RECORD_SAMPLE_RATE = 16000;
-        private int maxRecordSeconds = 60;
+        private int LOUDNESS_SAMPLE_WINDOW = 128;
+        private int UPDATE_LOUDNESS_MS = 50;
 
+        private int maxRecordSeconds = 60;
         private bool isPause;
         private bool isFocus;
 
         private string lang;
         private string device;
         private bool isRecording;
+        private float loudness;
+        private long lastUpdateLoudnessTime = 0;
 
         private int position;
         private AudioClip clipRecord;
@@ -38,12 +42,12 @@ namespace com.fpnn.rtm
 
         void OnDisable() {
             StopAllCoroutines();
-            FinishInput();
+            CancelInput();
         }
 
         void OnApplicationPause() {
             if (!this.isPause) {
-                FinishInput();
+                CancelInput();
             } else {
                 this.isFocus = true;
             }
@@ -62,9 +66,46 @@ namespace com.fpnn.rtm
             }
         }
 
+        void Update() {
+            lock (selfLocker) {
+                if (!isRecording)
+                    return;
+                
+                long now = ClientEngine.GetCurrentMilliseconds();
+                if (now - lastUpdateLoudnessTime > UPDATE_LOUDNESS_MS) {
+                    lastUpdateLoudnessTime = now;
+                    UpdateLoudness();
+                }
+            }
+        }
+
+        void UpdateLoudness() {
+            if (micPhone == null) {
+                return;
+            }
+
+            float levelMax = 0;
+            float[] data = new float[LOUDNESS_SAMPLE_WINDOW];
+            int pos = Microphone.GetPosition(device) - (LOUDNESS_SAMPLE_WINDOW + 1);
+
+            if (pos < 0) {
+                return;
+            }
+
+            clipRecord.GetData(data, pos);
+
+            for (int i = 0; i < LOUDNESS_SAMPLE_WINDOW; i++) {
+                float wavePeak = data[i] * data[i];
+                if (levelMax < wavePeak) {
+                    levelMax = wavePeak;
+                }
+            }
+            loudness = levelMax;
+        }
+
         private IEnumerator TimeDown() {
             int time = 0;
-            while (++time < this.maxRecordSeconds) {
+            while (++time <= this.maxRecordSeconds) {
                 lock (selfLocker) {
                     if (!isRecording) {
                         yield return 0;
@@ -82,7 +123,6 @@ namespace com.fpnn.rtm
 #if RTM_BUILD_NO_AUDIO
             throw new Exception("Audio is disabled, please remove the RTM_BUILD_NO_AUDIO define in \"Scripting Define Symbols\"");
 #else
-            this.lang = lang;
             if (micPhone != null) {
                 this.micPhone = micPhone;
             }
@@ -91,6 +131,21 @@ namespace com.fpnn.rtm
                 this.device = device;
             }
 #endif
+        }
+
+        public void SetLanguage(string lang) {
+            this.lang = lang;
+        }
+
+        public int GetRelativeLoudness(float maxLoudness) {
+            float loudnessNormalized = loudness;
+            if (loudnessNormalized > maxLoudness)
+                loudnessNormalized = maxLoudness;
+            return (int)(loudnessNormalized / maxLoudness * 100);
+        }
+
+        public float GetAbsoluteLoudness() {
+            return loudness;
         }
 
         public void StartInput(int maxRecordSeconds = 60) {
@@ -136,6 +191,7 @@ namespace com.fpnn.rtm
                     timeDown = true;
                     isRecording = false;
                     position = Microphone.GetPosition(device);
+                    Microphone.End(device);
                     micPhone.End();
                 }
             }
@@ -144,13 +200,39 @@ namespace com.fpnn.rtm
                 StopCoroutine("TimeDown");
 
                 if (micPhone != null && clipRecord != null) {
-                    micPhone.OnRecord(GetAudioData(clipRecord));
+                    GetAudioData(clipRecord);
                 }
             }
 #endif
+            loudness = 0;
         }
 
-        private RTMAudioData GetAudioData(AudioClip clip) {
+        public void CancelInput() {
+#if RTM_BUILD_NO_AUDIO
+            throw new Exception("Audio is disabled, please remove the RTM_BUILD_NO_AUDIO define in \"Scripting Define Symbols\"");
+#else
+            if (micPhone == null) {
+                return;
+            }
+
+            bool timeDown = false;
+            lock (selfLocker) {
+                if (isRecording) {
+                    timeDown = true;
+                    isRecording = false;
+                    Microphone.End(device);
+                    micPhone.End();
+                }
+            }
+
+            if (timeDown) {
+                StopCoroutine("TimeDown");
+            }
+#endif
+            loudness = 0;
+        }
+
+        private void GetAudioData(AudioClip clip) {
             var soundData = new float[clip.samples * clip.channels];
             clip.GetData(soundData, 0);
             var newData = new float[position * clip.channels];
@@ -166,15 +248,15 @@ namespace com.fpnn.rtm
             
             newClip.SetData(newData, 0);
             long duration = (long)(newClip.length * 1000);
-            return new RTMAudioData(GetRtmAudioData(newClip, duration), newData, RTMAudioData.DefaultCodec, lang, duration, newClip.samples, RECORD_SAMPLE_RATE);
-        }
 
-        private byte[] GetRtmAudioData(AudioClip clip, long duration)
-        {
             MemoryStream amrStream = new MemoryStream();
-            ConvertAndWriteWav(amrStream, clip);
-            WriteWavHeader(amrStream, clip);
-            return AudioConvert.ConvertToAmrwb(amrStream.ToArray());
+            ConvertAndWriteWav(amrStream, newClip);
+            WriteWavHeader(amrStream, newClip);
+            int lengthSamples = newClip.samples;
+
+            ClientEngine.RunTask(() => {
+                micPhone.OnRecord(new RTMAudioData(AudioConvert.ConvertToAmrwb(amrStream.ToArray()), newData, RTMAudioData.DefaultCodec, lang, duration, lengthSamples, RECORD_SAMPLE_RATE));
+            });
         }
 
         private void ConvertAndWriteWav(MemoryStream stream, AudioClip clip) {
@@ -245,7 +327,6 @@ namespace com.fpnn.rtm
             Byte[] subChunk2 = BitConverter.GetBytes(samples * channels * 2);
             stream.Write(subChunk2, 0, 4);
         }
-
     }
 }
 

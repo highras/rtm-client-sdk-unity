@@ -57,7 +57,7 @@ class MyAudioRecorder : AudioRecorder.IMicrophone {
     }
 }
 
-AudioRecorder.Instance.Init(RTMClient.GetTranslatedLanguage(TranslateLanguage.zh_cn), null, new MyAudioRecorder());  // init AudioRecorder
+AudioRecorder.Instance.Init("zh-CN", null, new MyAudioRecorder());  // init AudioRecorder
 AudioRecorder.Instance.StartInput();  // start record
 AudioRecorder.Instance.FinishInput(); // finish record
 
@@ -101,3 +101,88 @@ public override void PushFile(RTMMessage message) {
 
 
 ```
+
+## Api
+
+### AudioRecorder Init
+
+	public void Init(string lang, string device, IMicrophone micPhone)
+
+Init the Singleton AudioRecorder.
+
+Parameters:
+
++ `string lang`
+
+	Supported language . Please refer [Supported Language](https://docs.ilivedata.com/stt/production/).
+
++ `string device`
+
+	Microphone device, default is null.
+
++ `IMicrophone micPhone`
+
+	Instance of AudioRecorder.IMicrophone.
+
+### SetLanguage
+
+	public void SetLanguage(string lang)
+
+Change the language after AudioRecorder is Init.
+
+Parameters:
+
++ `string lang`
+
+	Supported language . Please refer [Supported Language](https://docs.ilivedata.com/stt/production/).
+
+
+### Get Relative Loudness
+
+	public int GetRelativeLoudness(float maxLoudness)
+
+Init the Singleton AudioRecorder.
+
+Parameters:
+
++ `float maxLoudness`
+
+	The max loudness for calculate the relative loudness
+
+Return:
+
+A int value in 0-100
+
+### Get Absolute Loudness
+
+	public float GetAbsoluteLoudness()
+
+Init the Singleton AudioRecorder.
+
+Return:
+
+A float value for loudness
+
+### Start Record
+
+	public void StartInput(int maxRecordSeconds = 60)
+
+Start Record.
+
+Parameters:
+
++ `int maxRecordSeconds`
+
+	Max record seconds limited.
+
+### Finish Record
+
+	public void FinishInput()
+
+Finish Record.
+
+### Cancel Input
+
+	public void CancelInput()
+
+Cancel Record.

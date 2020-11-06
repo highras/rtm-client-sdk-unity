@@ -43,7 +43,7 @@ class Audios : Main.ITestCase
 
         Debug.Log("======== Start Recording, please speak now, will stop after 10 seconds =========");
 
-        AudioRecorder.Instance.Init(RTMClient.GetTranslatedLanguage(TranslateLanguage.zh_cn), null, new MyAudioRecorder());
+        AudioRecorder.Instance.Init("zh-CN", null, new MyAudioRecorder());
         AudioRecorder.Instance.StartInput();
 
         System.Threading.Thread.Sleep(10 * 1000);
