@@ -126,6 +126,9 @@ Please get your project params from RTM Console.
 
 Please refer: [API docs](doc/API.md)
 
+## Package release docs
+
+Please refer: [Package release docs](doc/PackageRelease.md)
 
 ## Directory structure
 
