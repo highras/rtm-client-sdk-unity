@@ -22,10 +22,12 @@ namespace com.fpnn.rtm
 
         private const int expireSeconds = 20 * 60;
         private Dictionary<MessageIdUnit, long> midCache;
+        private object interLocker;
 
         public DuplicatedMessageFilter()
         {
             midCache = new Dictionary<MessageIdUnit, long>();
+            interLocker = new object();
         }
 
         public bool CheckP2PMessage(long uid, long mid)
@@ -36,19 +38,7 @@ namespace com.fpnn.rtm
             unit.uid = uid;
             unit.mid = mid;
 
-            long now = ClientEngine.GetCurrentSeconds();
-
-            if (midCache.ContainsKey(unit))
-            {
-                midCache[unit] = now;
-                return false;
-            }
-            else
-            {
-                midCache.Add(unit, now);
-                ClearExpired(now);
-                return true;
-            }
+            return CheckMessageIdUnit(unit);
         }
 
         public bool CheckGroupMessage(long groupId, long uid, long mid)
@@ -59,19 +49,7 @@ namespace com.fpnn.rtm
             unit.uid = uid;
             unit.mid = mid;
 
-            long now = ClientEngine.GetCurrentSeconds();
-
-            if (midCache.ContainsKey(unit))
-            {
-                midCache[unit] = now;
-                return false;
-            }
-            else
-            {
-                midCache.Add(unit, now);
-                ClearExpired(now);
-                return true;
-            }
+            return CheckMessageIdUnit(unit);
         }
 
         public bool CheckRoomMessage(long roomId, long uid, long mid)
@@ -82,19 +60,7 @@ namespace com.fpnn.rtm
             unit.uid = uid;
             unit.mid = mid;
 
-            long now = ClientEngine.GetCurrentSeconds();
-
-            if (midCache.ContainsKey(unit))
-            {
-                midCache[unit] = now;
-                return false;
-            }
-            else
-            {
-                midCache.Add(unit, now);
-                ClearExpired(now);
-                return true;
-            }
+            return CheckMessageIdUnit(unit);
         }
 
         public bool CheckBroadcastMessage(long uid, long mid)
@@ -105,18 +71,26 @@ namespace com.fpnn.rtm
             unit.uid = uid;
             unit.mid = mid;
 
+            return CheckMessageIdUnit(unit);
+        }
+
+        private bool CheckMessageIdUnit(MessageIdUnit unit)
+        {
             long now = ClientEngine.GetCurrentSeconds();
 
-            if (midCache.ContainsKey(unit))
+            lock (interLocker)
             {
-                midCache[unit] = now;
-                return false;
-            }
-            else
-            {
-                midCache.Add(unit, now);
-                ClearExpired(now);
-                return true;
+                if (midCache.ContainsKey(unit))
+                {
+                    midCache[unit] = now;
+                    return false;
+                }
+                else
+                {
+                    midCache.Add(unit, now);
+                    ClearExpired(now);
+                    return true;
+                }
             }
         }
 

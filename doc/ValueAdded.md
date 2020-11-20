@@ -49,14 +49,14 @@ Return Values:
 ### Translate
 
 	//-- Async Method
-	public bool Translate(Action<TranslatedInfo, int> callback, string text,
-            TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
+    public bool Translate(Action<TranslatedInfo, int> callback, string text,
+            string destinationLanguage, string sourceLanguage = "",
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
             int timeout = 0);
 	
 	//-- Sync Method
-	public int Translate(out TranslatedInfo translatedinfo, string text,
-            TranslateLanguage destinationLanguage, TranslateLanguage sourceLanguage = TranslateLanguage.None,
+    public int Translate(out TranslatedInfo translatedinfo, string text,
+            string destinationLanguage, string sourceLanguage = "",
             TranslateType type = TranslateType.Chat, ProfanityType profanity = ProfanityType.Off,
             int timeout = 0);
 
@@ -78,13 +78,13 @@ Parameters:
 
 	The text need to be translated.
 
-+ `TranslateLanguage destinationLanguage`
++ `string destinationLanguage`
 
-	Target language enum.
+	Target language. Please refer the 'Language support' section in [document](https://docs.ilivedata.com/stt/production/) for language value.
 
-+ `TranslateLanguage sourceLanguage`
++ `string sourceLanguage`
 
-	Source language enum. Value `TranslateLanguage.None` means automatic recognition.
+	Source language. Empty string means automatic recognition. Please refer the 'Language support' section in [document](https://docs.ilivedata.com/stt/production/) for language value.
 
 + `TranslateType type`
 
