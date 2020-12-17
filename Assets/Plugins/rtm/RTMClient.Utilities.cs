@@ -71,6 +71,7 @@ namespace com.fpnn.rtm
             return rev;
         }
 
+        [System.Obsolete("WantStringDictionary will be deprecated, except another function using it.")]
         private Dictionary<string, string> WantStringDictionary(Message message, string key)
         {
             Dictionary<string, string> rev = new Dictionary<string, string>();
@@ -78,6 +79,17 @@ namespace com.fpnn.rtm
             Dictionary<object, object> originalDict = (Dictionary<object, object>)message.Want(key);
             foreach (KeyValuePair<object, object> kvp in originalDict)
                 rev.Add((string)Convert.ChangeType(kvp.Key, TypeCode.String), (string)Convert.ChangeType(kvp.Value, TypeCode.String));
+
+            return rev;
+        }
+
+        private Dictionary<long, string> WantLongStringDictionary(Message message, string key)
+        {
+            Dictionary<long, string> rev = new Dictionary<long, string>();
+
+            Dictionary<object, object> originalDict = (Dictionary<object, object>)message.Want(key);
+            foreach (KeyValuePair<object, object> kvp in originalDict)
+                rev.Add((long)Convert.ChangeType(kvp.Key, TypeCode.Int64), (string)Convert.ChangeType(kvp.Value, TypeCode.String));
 
             return rev;
         }

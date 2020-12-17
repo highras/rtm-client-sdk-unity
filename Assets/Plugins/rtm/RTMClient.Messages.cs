@@ -793,6 +793,8 @@ namespace com.fpnn.rtm
                     }
                     callback(retrievedMessage, errorCode);
                 }
+                else
+                    callback(null, errorCode);
             }, timeout);
 
             if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)

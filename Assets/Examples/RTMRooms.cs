@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using com.fpnn.rtm;
 
@@ -70,6 +71,16 @@ class Rooms : Main.ITestCase
         GetRoomInfos(client, roomId);
 
         GetRoomsPublicInfo(client, new HashSet<long>() { 556677, 778899, 445566, 334455, 1234 });
+
+        Debug.Log("======== get room members immediately =========");
+
+        GetRoomMemberCount(client, roomId);
+        GetRoomMembers(client, roomId);
+
+        Debug.Log("======== get room members after 6 seconds =========");
+
+        GetRoomMemberCount(client, roomId);
+        GetRoomMembers(client, roomId);
 
         Debug.Log("============== Demo completed ================");
     }
@@ -151,7 +162,7 @@ class Rooms : Main.ITestCase
 
     static void GetRoomsPublicInfo(RTMClient client, HashSet<long> roomIds)
     {
-        int errorCode = client.GetRoomsPublicInfo(out Dictionary<string, string> publicInfos, roomIds);
+        int errorCode = client.GetRoomsPublicInfo(out Dictionary<long, string> publicInfos, roomIds);
 
         if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
             Debug.Log("Get rooms' info in sync failed, error code is " + errorCode);
@@ -161,5 +172,55 @@ class Rooms : Main.ITestCase
             foreach (var kvp in publicInfos)
                 Debug.Log("-- room id: " + kvp.Key + " info: [" + kvp.Value + "]");
         }
+    }
+
+    static void GetRoomMembers(RTMClient client, long roomId)
+    {
+        int errorCode = client.GetRoomMembers(out HashSet<long> uids, roomId);
+
+        if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
+            Debug.Log($"Get room members in sync failed, error code is {errorCode}.");
+        else
+        {
+            Debug.Log("Get room members in sync success");
+            foreach (var uid in uids)
+                Debug.Log($"-- room member: {uid}");
+        }
+
+        bool status = client.GetRoomMembers((HashSet<long> uids2, int errorCode2) => {
+            if (errorCode2 == com.fpnn.ErrorCode.FPNN_EC_OK)
+            {
+                Debug.Log("Get room members in async success");
+                foreach (var uid in uids2)
+                    Debug.Log($"-- room member: {uid}");
+            }
+            else
+                Debug.Log($"Get room members in async failed, error code is {errorCode2}.");
+        }, roomId);
+        if (!status)
+            Debug.Log("Launch room members in async failed.");
+
+        Thread.Sleep(3 * 1000);
+    }
+
+    static void GetRoomMemberCount(RTMClient client, long roomId)
+    {
+        int errorCode = client.GetRoomMemberCount(out int count, roomId);
+
+        if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
+            Debug.Log($"Get room members count in sync failed, error code is {errorCode}.");
+        else
+            Debug.Log($"Get room members count in sync successful, count is {count}.");
+
+        bool status = client.GetRoomMemberCount((int count2, int errorCode2) => {
+            if (errorCode2 == com.fpnn.ErrorCode.FPNN_EC_OK)
+                Debug.Log($"Get room members count in async successful, count is {count2}.");
+            else
+                Debug.Log($"Get room members count in async failed, error code is {errorCode2}.");
+        }, roomId);
+        if (!status)
+            Debug.Log("Launch room members count in async failed.");
+
+        Thread.Sleep(3 * 1000);
     }
 }

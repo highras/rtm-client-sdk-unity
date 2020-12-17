@@ -7,6 +7,7 @@ namespace com.fpnn.rtm
     {
         void SetErrorRecorder(ErrorRecorder recorder);
         void SetConnectionId(Int64 connId);
+        void BeginCheckPingInterval();
         bool ConnectionIsAlive();
         void SessionClosed(int ClosedByErrorCode);
 

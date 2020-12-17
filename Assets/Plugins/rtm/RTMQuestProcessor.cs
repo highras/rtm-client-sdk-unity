@@ -87,6 +87,12 @@ namespace com.fpnn.rtm
             Interlocked.Exchange(ref lastPingTime, 0);
         }
 
+        public void BeginCheckPingInterval()
+        {
+            Int64 now = ClientEngine.GetCurrentSeconds();
+            Interlocked.Exchange(ref lastPingTime, now);
+        }
+
         public bool ConnectionIsAlive()
         {
             Int64 lastPingSec = Interlocked.Read(ref lastPingTime);

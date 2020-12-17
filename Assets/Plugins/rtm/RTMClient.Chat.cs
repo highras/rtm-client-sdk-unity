@@ -242,6 +242,208 @@ namespace com.fpnn.rtm
             return answer.ErrorCode();
         }
 
+        //===========================[ Get Unread Dictionary ]=========================//
+        private Dictionary<long, int> GetUnreadDictionary(Answer answer, string key)
+        {
+            Dictionary<long, int> rev = new Dictionary<long, int>();
+
+            Dictionary<object, object> originalDict = (Dictionary<object, object>)answer.Want(key);
+            foreach (KeyValuePair<object, object> kvp in originalDict)
+                rev.Add((long)Convert.ChangeType(kvp.Key, TypeCode.Int64), (int)Convert.ChangeType(kvp.Value, TypeCode.Int32));
+
+            return rev;
+        }
+
+        //===========================[ Get P2P Unread ]=========================//
+        //-- Action<Dictionary<peerUid, unreadCount>, errorCode>
+        public bool GetP2PUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            return GetP2PUnread(callback, uids, 0, mTypes, timeout);
+        }
+
+        public bool GetP2PUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getp2punread");
+            quest.Param("uids", uids);
+
+            if (startTime > 0)
+                quest.Param("mtime", startTime);
+
+            if (mTypes != null && mTypes.Count > 0)
+                quest.Param("mtypes", mTypes);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                Dictionary<long, int> unreadDictionary = null;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        unreadDictionary = GetUnreadDictionary(answer, "p2p");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+
+                callback(unreadDictionary, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            return GetP2PUnread(out unreadDictionary, uids, 0, mTypes);
+        }
+
+        public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            unreadDictionary = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getp2punread");
+            quest.Param("uids", uids);
+
+            if (startTime > 0)
+                quest.Param("mtime", startTime);
+
+            if (mTypes != null && mTypes.Count > 0)
+                quest.Param("mtypes", mTypes);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                unreadDictionary = GetUnreadDictionary(answer, "p2p");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //===========================[ Get Group Unread ]=========================//
+        //-- Action<Dictionary<groupId, unreadCount>, errorCode>
+        public bool GetGroupUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            return GetGroupUnread(callback, groupIds, 0, mTypes, timeout);
+        }
+
+        public bool GetGroupUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getgroupunread");
+            quest.Param("gids", groupIds);
+
+            if (startTime > 0)
+                quest.Param("mtime", startTime);
+
+            if (mTypes != null && mTypes.Count > 0)
+                quest.Param("mtypes", mTypes);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                Dictionary<long, int> unreadDictionary = null;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        unreadDictionary = GetUnreadDictionary(answer, "group");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+
+                callback(unreadDictionary, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            return GetGroupUnread(out unreadDictionary, groupIds, 0, mTypes);
+        }
+
+        public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            unreadDictionary = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getgroupunread");
+            quest.Param("gids", groupIds);
+
+            if (startTime > 0)
+                quest.Param("mtime", startTime);
+
+            if (mTypes != null && mTypes.Count > 0)
+                quest.Param("mtypes", mTypes);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                unreadDictionary = GetUnreadDictionary(answer, "group");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
         //===========================[ Get Session ]=========================//
         //-- Action<List<p2p_uid>, List<groupId>, errorCode>
         public bool GetSession(Action<List<long>, List<long>, int> callback, int timeout = 0)

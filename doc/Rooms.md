@@ -285,24 +285,24 @@ Return Values:
 ### Get Rooms Public Infos
 
 	//-- Async Method
-	public bool GetRoomsPublicInfo(Action<Dictionary<string, string>, int> callback, HashSet<long> roomIds, int timeout = 0);
+	public bool GetRoomsPublicInfo(Action<Dictionary<long, string>, int> callback, HashSet<long> roomIds, int timeout = 0);
 	
 	//-- Sync Method
-	public int GetRoomsPublicInfo(out Dictionary<string, string> publicInfos, HashSet<long> roomIds, int timeout = 0);
+	public int GetRoomsPublicInfo(out Dictionary<long, string> publicInfos, HashSet<long> roomIds, int timeout = 0);
 
 Get rooms' public infos.
 
 Parameters:
 
-+ `Action<Dictionary<string, string>, int> callbackk`
++ `Action<Dictionary<long, string>, int> callback`
 
 	Callabck for async method.  
-	First `Dictionary<string, string>` is gotten rooms' public infos. Key is room id in string type, value is the public info;  
+	First `Dictionary<long, string>` is gotten rooms' public infos. Key is room id, value is the public info;  
 	Second `int` is the error code indicating the calling is successful or the failed reasons.
 
-+ `out Dictionary<string, string> publicInfos`
++ `out Dictionary<long, string> publicInfos`
 
-	The gotten rooms' public infos. Key is room id in string type, value is the public info.
+	The gotten rooms' public infos. Key is room id, value is the public info.
 
 + `HashSet<long> roomIds`
 
@@ -327,4 +327,103 @@ Return Values:
 	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
 
 	Others are the reason for calling failed.
+
+
+### Get Room Members
+
+	//-- Async Method
+	public bool GetRoomMembers(Action<HashSet<long>, int> callback, long roomId, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetRoomMembers(out HashSet<long> uids, long roomId, int timeout = 0);
+
+Get room member list.
+
+**IMPORTANT** The synchronous frequence of the statistic data is 5 seconds.
+
+Parameters:
+
++ `Action<HashSet<long>, int> callback`
+
+	Callabck for async method.  
+	First `HashSet<long>` is the member list of indicated room;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `out HashSet<long> uids`
+
+	The member list of indicated room.
+
++ `long roomId`
+
+	Id of room which member list is wanted to be gotten.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Get Room Member Count
+
+	//-- Async Method
+	public bool GetRoomMemberCount(Action<int, int> callback, long roomId, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetRoomMemberCount(out int count, long roomId, int timeout = 0);
+
+Get room member count.
+
+**IMPORTANT** The synchronous frequence of the statistic data is 5 seconds.
+
+Parameters:
+
++ `Action<int, int> callback`
+
+	Callabck for async method.  
+	First `int` is the member count of the indicated room;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `out int count`
+
+	The member count of the indicated room.
+
++ `long roomId`
+
+	Id of room which member count is wanted to be gotten.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
 

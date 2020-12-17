@@ -149,24 +149,24 @@ Return Values:
 ### Get Users Public Infos
 
 	//-- Async Method
-	public bool GetUserPublicInfo(Action<Dictionary<string, string>, int> callback, HashSet<long> uids, int timeout = 0);
+	public bool GetUserPublicInfo(Action<Dictionary<long, string>, int> callback, HashSet<long> uids, int timeout = 0);
 	
 	//-- Sync Method
-	public int GetUserPublicInfo(out Dictionary<string, string> publicInfos, HashSet<long> uids, int timeout = 0);
+	public int GetUserPublicInfo(out Dictionary<long, string> publicInfos, HashSet<long> uids, int timeout = 0);
 
 Get users' public infos.
 
 Parameters:
 
-+ `Action<Dictionary<string, string>, int> callbackk`
++ `Action<Dictionary<long, string>, int> callback`
 
 	Callabck for async method.  
-	First `Dictionary<string, string>` is gotten users' public infos. Key is uid in string type, value is the public info;  
+	First `Dictionary<long, string>` is gotten users' public infos. Key is uid, value is the public info;  
 	Second `int` is the error code indicating the calling is successful or the failed reasons.
 
-+ `out Dictionary<string, string> publicInfos`
++ `out Dictionary<long, string> publicInfos`
 
-	The gotten users' public infos. Key is uid in string type, value is the public info.
+	The gotten users' public infos. Key is uid, value is the public info.
 
 + `HashSet<long> uids`
 

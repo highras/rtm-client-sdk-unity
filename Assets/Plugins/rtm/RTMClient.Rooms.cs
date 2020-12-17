@@ -357,6 +357,7 @@ namespace com.fpnn.rtm
 
         //===========================[ Get Rooms Open Info ]=========================//
         //-- Action<Dictionary<string_roomId, public_info>, errorCode>
+        [System.Obsolete("GetRoomsPublicInfo() with dictionary in string key type is deprecated, please using the overloaded function with dictionary in long key type instead.")]
         public bool GetRoomsPublicInfo(Action<Dictionary<string, string>, int> callback, HashSet<long> roomIds, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
@@ -400,6 +401,51 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
+        //-- Action<Dictionary<roomId, public_info>, errorCode>
+        public bool GetRoomsPublicInfo(Action<Dictionary<long, string>, int> callback, HashSet<long> roomIds, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getroomsopeninfo");
+            quest.Param("rids", roomIds);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                Dictionary<long, string> publicInfos = null;
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        publicInfos = WantLongStringDictionary(answer, "info");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(publicInfos, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        [System.Obsolete("GetRoomsPublicInfo() with dictionary in string key type is deprecated, please using the overloaded function with dictionary in long key type instead.")]
         public int GetRoomsPublicInfo(out Dictionary<string, string> publicInfos, HashSet<long> roomIds, int timeout = 0)
         {
             publicInfos = null;
@@ -418,6 +464,178 @@ namespace com.fpnn.rtm
             try
             {
                 publicInfos = WantStringDictionary(answer, "info");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        public int GetRoomsPublicInfo(out Dictionary<long, string> publicInfos, HashSet<long> roomIds, int timeout = 0)
+        {
+            publicInfos = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getroomsopeninfo");
+            quest.Param("rids", roomIds);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                publicInfos = WantLongStringDictionary(answer, "info");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //===========================[ Get Room Members ]=========================//
+        //-- Action<HashSet<uids>, errorCode>
+        public bool GetRoomMembers(Action<HashSet<long>, int> callback, long roomId, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getroommembers");
+            quest.Param("rid", roomId);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                HashSet<long> uids = null;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        uids = WantLongHashSet(answer, "uids");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(uids, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetRoomMembers(out HashSet<long> uids, long roomId, int timeout = 0)
+        {
+            uids = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getroommembers");
+            quest.Param("rid", roomId);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                uids = WantLongHashSet(answer, "uids");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //===========================[ Get Room Count ]=========================//
+        //-- Action<count, errorCode>
+        public bool GetRoomMemberCount(Action<int, int> callback, long roomId, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getroomcount");
+            quest.Param("rid", roomId);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                int count = 0;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        count = answer.Want<int>("cn");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(count, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetRoomMemberCount(out int count, long roomId, int timeout = 0)
+        {
+            count = 0;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getroomcount");
+            quest.Param("rid", roomId);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                count = answer.Want<int>("cn");
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)

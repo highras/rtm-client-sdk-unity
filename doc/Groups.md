@@ -337,24 +337,24 @@ Return Values:
 ### Get Groups Public Infos
 
 	//-- Async Method
-	public bool GetGroupsPublicInfo(Action<Dictionary<string, string>, int> callback, HashSet<long> groupIds, int timeout = 0);
+	public bool GetGroupsPublicInfo(Action<Dictionary<long, string>, int> callback, HashSet<long> groupIds, int timeout = 0);
 	
 	//-- Sync Method
-	public int GetGroupsPublicInfo(out Dictionary<string, string> publicInfos, HashSet<long> groupIds, int timeout = 0);
+	public int GetGroupsPublicInfo(out Dictionary<long, string> publicInfos, HashSet<long> groupIds, int timeout = 0);
 
 Get groups' public infos.
 
 Parameters:
 
-+ `Action<Dictionary<string, string>, int> callbackk`
++ `Action<Dictionary<long, string>, int> callback`
 
 	Callabck for async method.  
-	First `Dictionary<string, string>` is gotten groups' public infos. Key is group id in string type, value is the public info;  
+	First `Dictionary<long, string>` is gotten groups' public infos. Key is group id, value is the public info;  
 	Second `int` is the error code indicating the calling is successful or the failed reasons.
 
-+ `out Dictionary<string, string> publicInfos`
++ `out Dictionary<long, string> publicInfos`
 
-	The gotten groups' public infos. Key is group id in string type, value is the public info.
+	The gotten groups' public infos. Key is group id, value is the public info.
 
 + `HashSet<long> groupIds`
 

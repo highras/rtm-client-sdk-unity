@@ -433,6 +433,7 @@ namespace com.fpnn.rtm
 
         //===========================[ Get Groups Open Info ]=========================//
         //-- Action<Dictionary<string_groupId, public_info>, errorCode>
+        [System.Obsolete("GetGroupsPublicInfo() with dictionary in string key type is deprecated, please using the overloaded function with dictionary in long key type instead.")]
         public bool GetGroupsPublicInfo(Action<Dictionary<string, string>, int> callback, HashSet<long> groupIds, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
@@ -476,6 +477,51 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
+        //-- Action<Dictionary<groupId, public_info>, errorCode>
+        public bool GetGroupsPublicInfo(Action<Dictionary<long, string>, int> callback, HashSet<long> groupIds, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getgroupsopeninfo");
+            quest.Param("gids", groupIds);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                Dictionary<long, string> publicInfos = null;
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        publicInfos = WantLongStringDictionary(answer, "info");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(publicInfos, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        [System.Obsolete("GetGroupsPublicInfo() with dictionary in string key type is deprecated, please using the overloaded function with dictionary in long key type instead.")]
         public int GetGroupsPublicInfo(out Dictionary<string, string> publicInfos, HashSet<long> groupIds, int timeout = 0)
         {
             publicInfos = null;
@@ -494,6 +540,32 @@ namespace com.fpnn.rtm
             try
             {
                 publicInfos = WantStringDictionary(answer, "info");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        public int GetGroupsPublicInfo(out Dictionary<long, string> publicInfos, HashSet<long> groupIds, int timeout = 0)
+        {
+            publicInfos = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getgroupsopeninfo");
+            quest.Param("gids", groupIds);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                publicInfos = WantLongStringDictionary(answer, "info");
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)

@@ -203,6 +203,7 @@ namespace com.fpnn.rtm
 
         //===========================[ Get User Open Info ]=========================//
         //-- Action<Dictionary<string_uid, public_info>, errorCode>
+        [System.Obsolete("GetUserPublicInfo() with dictionary in string key type is deprecated, please using the overloaded function with dictionary in long key type instead.")]
         public bool GetUserPublicInfo(Action<Dictionary<string, string>, int> callback, HashSet<long> uids, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
@@ -246,6 +247,51 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
+        //-- Action<Dictionary<uid, public_info>, errorCode>
+        public bool GetUserPublicInfo(Action<Dictionary<long, string>, int> callback, HashSet<long> uids, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getuseropeninfo");
+            quest.Param("uids", uids);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                Dictionary<long, string> publicInfos = null;
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        publicInfos = WantLongStringDictionary(answer, "info");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(publicInfos, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        [System.Obsolete("GetUserPublicInfo() with dictionary in string key type is deprecated, please using the overloaded function with dictionary in long key type instead.")]
         public int GetUserPublicInfo(out Dictionary<string, string> publicInfos, HashSet<long> uids, int timeout = 0)
         {
             publicInfos = null;
@@ -264,6 +310,32 @@ namespace com.fpnn.rtm
             try
             {
                 publicInfos = WantStringDictionary(answer, "info");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        public int GetUserPublicInfo(out Dictionary<long, string> publicInfos, HashSet<long> uids, int timeout = 0)
+        {
+            publicInfos = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getuseropeninfo");
+            quest.Param("uids", uids);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                publicInfos = WantLongStringDictionary(answer, "info");
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)

@@ -113,7 +113,7 @@ class Users : Main.ITestCase
 
     static void GetUsersInfos(RTMClient client, HashSet<long> uids)
     {
-        int errorCode = client.GetUserPublicInfo(out Dictionary<string, string> publicInfos, uids);
+        int errorCode = client.GetUserPublicInfo(out Dictionary<long, string> publicInfos, uids);
 
         if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
             Debug.Log("Get users' info in sync failed, error code is " + errorCode);

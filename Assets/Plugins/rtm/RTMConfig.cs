@@ -10,10 +10,10 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "2.3.2";
-        public static readonly string InterfaceVersion = "2.3.0";
+        public static readonly string SDKVersion = "2.4.0";
+        public static readonly string InterfaceVersion = "2.4.0";
 
-        internal static int lostConnectionAfterLastPingInSeconds = 120;
+        internal static int lostConnectionAfterLastPingInSeconds = 60;
         internal static int globalConnectTimeoutSeconds = 30;
         internal static int globalQuestTimeoutSeconds = 30;
         internal static int fileGateClientHoldingSeconds = 150;

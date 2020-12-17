@@ -351,6 +351,9 @@ namespace com.fpnn.rtm
 
             if (isRelogin && currInfo != null)
                 currInfo.authCallback(projectId, currUid, authStatus, errorCode);
+
+            if (authStatus)
+                processor.BeginCheckPingInterval();
         }
 
         private bool AdjustAuthRemainedTimeout()

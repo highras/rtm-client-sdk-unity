@@ -694,6 +694,120 @@ Return Values:
 	Others are the reason for calling failed.
 
 
+### Get P2P Unread Infos
+
+	//-- Async Method
+	public bool GetP2PUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0);
+	public bool GetP2PUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0);
+	public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
+
+Get P2P unread infos when indicated P2P sessions have unread messages.
+
+Parameters:
+
++ `Action<Dictionary<long, int>, int> callback`
+
+	Callabck for async method.  
+	First `Dictionary<long, int>` is the unread dictionary which key is the peer's uid who has some unread messages, and value is the count of the unread messages;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `out Dictionary<long, int> unreadDictionary`
+
+	Unread dictionary which key is the peer's uid who has some unread messages, and value is the count of the unread messages.
+
++ `HashSet<long> uids`
+
+	The uids of the peer in P2P sessions which will be wanted to be checked.
+
++ `long startTime`
+
+	The timestamp in millisecond which indicated the start time to calculate the unread messages. `0` means using the last offline/logout time. 
+
++ `HashSet<byte> mTypes`
+
+	Which message types will be checked. If set is null or empty, only chat messages, cmd messages and file messages will be checked.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Get Group Unread Infos
+
+	//-- Async Method
+	public bool GetGroupUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0);
+	public bool GetGroupUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0);
+	public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
+
+Get group unread infos when indicated group sessions have unread messages.
+
+Parameters:
+
++ `Action<Dictionary<long, int>, int> callback`
+
+	Callabck for async method.  
+	First `Dictionary<long, int>` is the unread dictionary which key is the group id which has some unread messages, and value is the count of the unread messages;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `out Dictionary<long, int> unreadDictionary`
+
+	Unread dictionary which key is the group id which has some unread messages, and value is the count of the unread messages.
+
++ `HashSet<long> groupIds`
+
+	The ids of groups which want to be checked.
+
++ `long startTime`
+
+	The timestamp in millisecond which indicated the start time to calculate the unread messages. `0` means using the last offline/logout time. 
+
++ `HashSet<byte> mTypes`
+
+	Which message types will be checked. If set is null or empty, only chat messages, cmd messages and file messages will be checked.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
 ### Get Session
 
 
