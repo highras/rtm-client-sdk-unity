@@ -628,7 +628,7 @@ namespace com.fpnn.rtm
                     if (!AdjustAuthRemainedTimeout())
                         return;
 
-                    if (AsyncFetchRtmGateEndpoint("ipv4", DispatchCallBack_Which_IPv4, authStatsInfo.remainedTimeout))
+                    if (AsyncFetchRtmGateEndpoint("ipv4", DispatchCallBack_Which_IPv4, authStatsInfo.remainedTimeout) == false)
                     {
                         AuthFinish(false, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                         return;
@@ -893,6 +893,8 @@ namespace com.fpnn.rtm
                         processor.SessionClosed(errorCode);
                         return;
                     }
+                    else
+                        autoReloginInfo.lastErrorCode = errorCode;
 
                     StartNextRelogin();
                 }
@@ -920,6 +922,7 @@ namespace com.fpnn.rtm
                         errorCode = fpnn.ErrorCode.FPNN_EC_CORE_UNKNOWN_ERROR;
 
                     processor.ReloginCompleted(false, true, errorCode, autoReloginInfo.reloginCount);
+                    autoReloginInfo.lastErrorCode = errorCode;
                     StartNextRelogin();
                 }
             }

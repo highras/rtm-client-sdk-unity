@@ -10,7 +10,7 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "2.4.0";
+        public static readonly string SDKVersion = "2.4.1";
         public static readonly string InterfaceVersion = "2.4.0";
 
         internal static int lostConnectionAfterLastPingInSeconds = 60;
@@ -31,7 +31,7 @@ namespace com.fpnn.rtm
 
         public RTMConfig()
         {
-            maxPingInterval = 120;
+            maxPingInterval = 60;
             globalConnectTimeout = 30;
             globalQuestTimeout = 30;
             fileClientHoldingSeconds = 150;

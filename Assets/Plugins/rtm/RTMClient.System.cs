@@ -15,6 +15,12 @@ namespace com.fpnn.rtm
                 return;
             }
 
+            lock (interLocker)
+            {
+                if (autoReloginInfo != null)
+                    autoReloginInfo.Disable();
+            }
+
             Quest quest =  new Quest("bye");
             if (async)
             {
