@@ -273,3 +273,155 @@ Return Values:
 	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
 
 	Others are the reason for calling failed.
+
+
+### Add Device Push Option
+
+	//-- Async Method
+	public bool AddDevicePushOption(DoneDelegate callback, MessageCategory messageCategory, long targetId, HashSet<byte> mTypes = null, int timeout = 0);
+	
+	//-- Sync Method
+	public int AddDevicePushOption(MessageCategory messageCategory, long targetId, HashSet<byte> mTypes = null, int timeout = 0);
+
+Set disabled session for chat & messages push.
+
+Parameters:
+
++ `DoneDelegate callback`
+
+		public delegate void DoneDelegate(int errorCode);
+
+	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
+
++ `MessageCategory messageCategory`
+
+	Only `MessageCategory.P2PMessage` & `MessageCategory.GroupMessage` can be used.
+
++ `long targetId`
+
+	Peer uid for `MessageCategory.P2PMessage` and group id for `MessageCategory.GroupMessage`.
+
++ `HashSet<byte> mTypes`
+
+	Disabled message types. If `mTypes` is `null` or empty, means all message types are disalbed for push.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Remove Device Push Option
+
+	//-- Async Method
+	public bool RemoveDevicePushOption(DoneDelegate callback, MessageCategory messageCategory, long targetId, HashSet<byte> mTypes = null, int timeout = 0);
+	
+	//-- Sync Method
+	public int RemoveDevicePushOption(MessageCategory messageCategory, long targetId, HashSet<byte> mTypes = null, int timeout = 0);
+
+Remove disabled option for chat & messages push.
+
+Parameters:
+
++ `DoneDelegate callback`
+
+		public delegate void DoneDelegate(int errorCode);
+
+	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
+
++ `MessageCategory messageCategory`
+
+	Only `MessageCategory.P2PMessage` & `MessageCategory.GroupMessage` can be used.
+
++ `long targetId`
+
+	Peer uid for `MessageCategory.P2PMessage` and group id for `MessageCategory.GroupMessage`.
+
++ `HashSet<byte> mTypes`
+
+	Disabled message types. If `mTypes` is `null` or empty, means all message types are removed disalbe attributes for push.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Get Device Push Option
+
+	//-- Async Method
+	public bool GetDevicePushOption(Action<Dictionary<long, HashSet<byte>>, Dictionary<long, HashSet<byte>>, int> callback, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetDevicePushOption(out Dictionary<long, HashSet<byte>> p2pDictionary, out Dictionary<long, HashSet<byte>> groupDictionary, int timeout = 0);
+
+Get disabled option for chat & messages push.
+
+Parameters:
+
++ `Action<Dictionary<long, HashSet<byte>>, Dictionary<long, HashSet<byte>>, int> callback`
+
+	Callabck for async method.  
+	First `Dictionary<long, HashSet<byte>>` is peer user id with associated disabled message types set for P2P sessions;  
+	Second `Dictionary<long, HashSet<byte>>` is group id with associated disabled message types set for group sessions;  
+	Thrid `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `out Dictionary<long, HashSet<byte>> p2pDictionary`
+
+	Peer user id with associated disabled message types set dictionary.
+
++ `out Dictionary<long, HashSet<byte>> groupDictionary`
+
+	Group id with associated disabled message types set dictionary.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+	

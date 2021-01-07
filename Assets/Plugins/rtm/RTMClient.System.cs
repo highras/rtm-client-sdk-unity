@@ -330,5 +330,285 @@ namespace com.fpnn.rtm
             Answer answer = client.SendQuest(quest, timeout);
             return answer.ErrorCode();
         }
+
+        //===========================[ Add Device Push Option ]=========================//
+        public bool AddDevicePushOption(DoneDelegate callback, MessageCategory messageCategory, long targetId, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            byte type = 99;
+            switch (messageCategory)
+            {
+                case MessageCategory.P2PMessage:
+                    type = 0; break;
+                case MessageCategory.GroupMessage:
+                    type = 1; break;
+            }
+
+            return AddDevicePushOption(callback, type, targetId,  mTypes, timeout);
+        }
+
+        internal bool AddDevicePushOption(DoneDelegate callback, byte type, long targetId, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            if (type > 1)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(ErrorCode.RTM_EC_INVALID_PARAMETER);
+                    });
+
+                return false;
+            }
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("addoption");
+            quest.Param("type", type);
+            quest.Param("xid", targetId);
+
+            if (mTypes != null)
+                quest.Param("mtypes", mTypes);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int AddDevicePushOption(MessageCategory messageCategory, long targetId, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            byte type = 99;
+            switch (messageCategory)
+            {
+                case MessageCategory.P2PMessage:
+                    type = 0; break;
+                case MessageCategory.GroupMessage:
+                    type = 1; break;
+            }
+
+            return AddDevicePushOption(type, targetId, mTypes, timeout);
+        }
+
+        internal int AddDevicePushOption(byte type, long targetId, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            if (type > 1)
+                return ErrorCode.RTM_EC_INVALID_PARAMETER;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("addoption");
+            quest.Param("type", type);
+            quest.Param("xid", targetId);
+
+            if (mTypes != null)
+                quest.Param("mtypes", mTypes);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            return answer.ErrorCode();
+        }
+
+        //===========================[ Remove Device Push Option ]=========================//
+        public bool RemoveDevicePushOption(DoneDelegate callback, MessageCategory messageCategory, long targetId, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            byte type = 99;
+            switch (messageCategory)
+            {
+                case MessageCategory.P2PMessage:
+                    type = 0; break;
+                case MessageCategory.GroupMessage:
+                    type = 1; break;
+            }
+
+            return RemoveDevicePushOption(callback, type, targetId, mTypes, timeout);
+        }
+
+        internal bool RemoveDevicePushOption(DoneDelegate callback, byte type, long targetId, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            if (type > 1)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(ErrorCode.RTM_EC_INVALID_PARAMETER);
+                    });
+
+                return false;
+            }
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("removeoption");
+            quest.Param("type", type);
+            quest.Param("xid", targetId);
+
+            if (mTypes != null)
+                quest.Param("mtypes", mTypes);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int RemoveDevicePushOption(MessageCategory messageCategory, long targetId, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            byte type = 99;
+            switch (messageCategory)
+            {
+                case MessageCategory.P2PMessage:
+                    type = 0; break;
+                case MessageCategory.GroupMessage:
+                    type = 1; break;
+            }
+
+            return RemoveDevicePushOption(type, targetId, mTypes, timeout);
+        }
+
+        internal int RemoveDevicePushOption(byte type, long targetId, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            if (type > 1)
+                return ErrorCode.RTM_EC_INVALID_PARAMETER;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("removeoption");
+            quest.Param("type", type);
+            quest.Param("xid", targetId);
+
+            if (mTypes != null)
+                quest.Param("mtypes", mTypes);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            return answer.ErrorCode();
+        }
+
+        //===========================[ Get Device Push Option ]=========================//
+        //-- Utilities functions
+        private Dictionary<long, HashSet<byte>> WantLongByteHashSetDictionary(Message message, string key)
+        {
+            Dictionary <long, HashSet<byte>> rev = new Dictionary<long, HashSet<byte>>();
+
+            Dictionary<object, object> originalDict = (Dictionary<object, object>)message.Want(key);
+            foreach (KeyValuePair<object, object> kvp in originalDict)
+            {
+                List<object> originalList = (List<object>)(kvp.Value);
+                HashSet<byte> resultSet = new HashSet<byte>();
+
+                foreach (object obj in originalList)
+                {
+                    resultSet.Add((byte)Convert.ChangeType(obj, TypeCode.Byte));
+                }
+                
+                rev.Add((long)Convert.ChangeType(kvp.Key, TypeCode.Int64), resultSet);
+            }
+
+            return rev;
+        }
+
+        //-- Action<Dictionary<p2p_uid，HashSet<mType>>, Dictionary<groupId, HashSet<mType>>, errorCode>
+        public bool GetDevicePushOption(Action<Dictionary<long, HashSet<byte>>, Dictionary<long, HashSet<byte>>, int> callback, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getoption");
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                Dictionary<long, HashSet<byte>> p2pDictionary = null;
+                Dictionary<long, HashSet<byte>> groupDictionary = null;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        p2pDictionary = WantLongByteHashSetDictionary(answer, "p2p");
+                        groupDictionary = WantLongByteHashSetDictionary(answer, "group");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(p2pDictionary, groupDictionary, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetDevicePushOption(out Dictionary<long, HashSet<byte>> p2pDictionary, out Dictionary<long, HashSet<byte>> groupDictionary, int timeout = 0)
+        {
+            p2pDictionary = null;
+            groupDictionary = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getoption");
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                p2pDictionary = WantLongByteHashSetDictionary(answer, "p2p");
+                groupDictionary = WantLongByteHashSetDictionary(answer, "group");
+
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
     }
 }
