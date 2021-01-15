@@ -74,12 +74,12 @@ class Rooms : Main.ITestCase
 
         Debug.Log("======== get room members immediately =========");
 
-        GetRoomMemberCount(client, roomId);
+        GetRoomMemberCount(client, new HashSet<long>() { roomId, 778899, 445566, 334455, 1234 });
         GetRoomMembers(client, roomId);
 
         Debug.Log("======== get room members after 6 seconds =========");
 
-        GetRoomMemberCount(client, roomId);
+        GetRoomMemberCount(client, new HashSet<long>() { roomId, 778899, 445566, 334455, 1234 });
         GetRoomMembers(client, roomId);
 
         Debug.Log("============== Demo completed ================");
@@ -203,21 +203,29 @@ class Rooms : Main.ITestCase
         Thread.Sleep(3 * 1000);
     }
 
-    static void GetRoomMemberCount(RTMClient client, long roomId)
+    static void GetRoomMemberCount(RTMClient client, HashSet<long> roomIds)
     {
-        int errorCode = client.GetRoomMemberCount(out int count, roomId);
+        int errorCode = client.GetRoomMemberCount(out Dictionary<long, int> counts, roomIds);
 
         if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
             Debug.Log($"Get room members count in sync failed, error code is {errorCode}.");
         else
-            Debug.Log($"Get room members count in sync successful, count is {count}.");
+        {
+            Debug.Log("Get room members count in sync success");
+            foreach (var kvp in counts)
+                Debug.Log($"-- room: {kvp.Key}, count: {kvp.Value}");
+        }
 
-        bool status = client.GetRoomMemberCount((int count2, int errorCode2) => {
+        bool status = client.GetRoomMemberCount((Dictionary<long, int> counts2, int errorCode2) => {
             if (errorCode2 == com.fpnn.ErrorCode.FPNN_EC_OK)
-                Debug.Log($"Get room members count in async successful, count is {count2}.");
+            {
+                Debug.Log("Get room members count in async success");
+                foreach (var kvp in counts2)
+                    Debug.Log($"-- room: {kvp.Key}, count: {kvp.Value}");
+            }
             else
                 Debug.Log($"Get room members count in async failed, error code is {errorCode2}.");
-        }, roomId);
+        }, roomIds);
         if (!status)
             Debug.Log("Launch room members count in async failed.");
 

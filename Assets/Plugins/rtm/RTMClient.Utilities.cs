@@ -94,6 +94,17 @@ namespace com.fpnn.rtm
             return rev;
         }
 
+        private Dictionary<long, int> WantLongIntDictionary(Message message, string key)
+        {
+            Dictionary<long, int> rev = new Dictionary<long, int>();
+
+            Dictionary<object, object> originalDict = (Dictionary<object, object>)message.Want(key);
+            foreach (KeyValuePair<object, object> kvp in originalDict)
+                rev.Add((long)Convert.ChangeType(kvp.Key, TypeCode.Int64), (int)Convert.ChangeType(kvp.Value, TypeCode.Int32));
+
+            return rev;
+        }
+
         internal static void ParseFileMessage(BaseMessage baseMessage, ErrorRecorder errorRecorder)
         {
             try

@@ -381,30 +381,30 @@ Return Values:
 ### Get Room Member Count
 
 	//-- Async Method
-	public bool GetRoomMemberCount(Action<int, int> callback, long roomId, int timeout = 0);
+	public bool GetRoomMemberCount(Action<Dictionary<long, int>, int> callback, HashSet<long> roomIds, int timeout = 0);
 	
 	//-- Sync Method
-	public int GetRoomMemberCount(out int count, long roomId, int timeout = 0);
+	public int GetRoomMemberCount(out Dictionary<long, int> counts, HashSet<long> roomIds, int timeout = 0);
 
-Get room member count.
+Get rooms' member counts.
 
 **IMPORTANT** The synchronous frequence of the statistic data is 5 seconds.
 
 Parameters:
 
-+ `Action<int, int> callback`
++ `Action<Dictionary<long, int>, int> callback`
 
 	Callabck for async method.  
-	First `int` is the member count of the indicated room;  
+	First `Dictionary<long, int>` is the directionary for room ids and member counts. Key is room id, value is member count of this room;  
 	Second `int` is the error code indicating the calling is successful or the failed reasons.
 
-+ `out int count`
++ `out Dictionary<long, int> counts`
 
-	The member count of the indicated room.
+	The directionary for room ids and member counts. Key is room id, value is member count of this room.
 
-+ `long roomId`
++ `HashSet<long> roomIds`
 
-	Id of room which member count is wanted to be gotten.
+	Ids of rooms which member counts are wanted to be gotten.
 
 + `int timeout`
 
