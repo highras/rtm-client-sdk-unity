@@ -326,6 +326,9 @@ namespace com.fpnn.rtm
 
                 if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
                     info.callback(0, errorCode);
+
+                if (connected)
+                    client.SetConnectionConnectedDelegate(null);
             });
 
             client.AsyncConnect();
