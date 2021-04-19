@@ -36,6 +36,11 @@ class Groups : Main.ITestCase
 
         Debug.Log("======== get group members =========");
         GetGroupMembers(client, groupId);
+        GetGroupMembersAndOnlineMembers(client, groupId);
+
+        Debug.Log("======== get group member count =========");
+        GetGroupMemberCount(client, groupId);
+        GetGroupMemberCountWithOnlineMemberCount(client, groupId);
 
 
         Debug.Log("======== get self groups =========");
@@ -130,6 +135,85 @@ class Groups : Main.ITestCase
             foreach (long uid in uids)
                 Debug.Log("-- member uid: " + uid);
         }
+    }
+
+    static void GetGroupMembersAndOnlineMembers(RTMClient client, long groupId)
+    {
+        int errorCode = client.GetGroupMembers(out HashSet<long> allUids, out HashSet<long> onlineUids, groupId);
+
+        if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
+            Debug.Log($"Get group members with online members in sync failed, error code is {errorCode}.");
+        else
+        {
+            Debug.Log($"Get group members with online members in sync successed, current has {allUids.Count} members, {onlineUids.Count} are online.");
+            foreach (long uid in allUids)
+                Debug.Log("-- [ALL] member uid: " + uid);
+            foreach (long uid in onlineUids)
+                Debug.Log("-- [Online] member uid: " + uid);
+        }
+
+        bool status = client.GetGroupMembers((HashSet<long> allUids2, HashSet<long> onlineUids2, int errorCode2) => {
+            if (errorCode2 == com.fpnn.ErrorCode.FPNN_EC_OK)
+            {
+                Debug.Log($"Get group members with online members in async success, current has {allUids2.Count} members, {onlineUids2.Count} are online.");
+                foreach (long uid in allUids2)
+                    Debug.Log("-- [ALL] member uid: " + uid);
+                foreach (long uid in onlineUids2)
+                    Debug.Log("-- [Online] member uid: " + uid);
+            }
+            else
+                Debug.Log($"Get group members with online members in async failed, error code is {errorCode2}.");
+        }, groupId);
+        if (!status)
+            Debug.Log("Launch group members with online members in async failed.");
+
+        System.Threading.Thread.Sleep(3 * 1000);
+    }
+
+    static void GetGroupMemberCount(RTMClient client, long groupId)
+    {
+        int errorCode = client.GetGroupCount(out int memberCount, groupId);
+
+        if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
+            Debug.Log($"Get group members count in sync failed, error code is {errorCode}.");
+        else
+            Debug.Log($"Get group members count in sync success, total {memberCount}");
+
+        bool status = client.GetGroupCount((int memberCount2, int errorCode2) => {
+            if (errorCode2 == com.fpnn.ErrorCode.FPNN_EC_OK)
+            {
+                Debug.Log($"Get group members count in async success, total {memberCount2}");
+            }
+            else
+                Debug.Log($"Get group members count in async failed, error code is {errorCode2}.");
+        }, groupId);
+        if (!status)
+            Debug.Log("Launch group members count in async failed.");
+
+        System.Threading.Thread.Sleep(3 * 1000);
+    }
+
+    static void GetGroupMemberCountWithOnlineMemberCount(RTMClient client, long groupId)
+    {
+        int errorCode = client.GetGroupCount(out int memberCount, out int onlineCount, groupId);
+
+        if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
+            Debug.Log($"Get group members count with online member count in sync failed, error code is {errorCode}.");
+        else
+            Debug.Log($"Get group members count with online member count in sync success, total {memberCount}, online {onlineCount}");
+
+        bool status = client.GetGroupCount((int memberCount2, int onlineCount2, int errorCode2) => {
+            if (errorCode2 == com.fpnn.ErrorCode.FPNN_EC_OK)
+            {
+                Debug.Log($"Get group members count with online member count in async success, total {memberCount2}, online {onlineCount2}");
+            }
+            else
+                Debug.Log($"Get group members count with online member count in async failed, error code is {errorCode2}.");
+        }, groupId);
+        if (!status)
+            Debug.Log("Launch group members count with online member count in async failed.");
+
+        System.Threading.Thread.Sleep(3 * 1000);
     }
 
     static void GetSelfGroups(RTMClient client)

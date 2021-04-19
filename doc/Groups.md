@@ -102,9 +102,11 @@ Return Values:
 
 	//-- Async Method
 	public bool GetGroupMembers(Action<HashSet<long>, int> callback, long groupId, int timeout = 0);
+	public bool GetGroupMembers(Action<HashSet<long>, HashSet<long>, int> callback, long groupId, int timeout = 0);
 
 	//-- Sync Method
 	public int GetGroupMembers(out HashSet<long> uids, long groupId, int timeout = 0);
+	public int GetGroupMembers(out HashSet<long> allUids, out HashSet<long> onlineUids, long groupId, int timeout = 0);
 
 Get group members.
 
@@ -114,9 +116,82 @@ Get group members.
 	First `HashSet<long>` is gotten group members' uids;  
 	Second `int` is the error code indicating the calling is successful or the failed reasons.
 
++ `Action<HashSet<long>, HashSet<long>, int> callback`
+
+	Callabck for async method.  
+	First `HashSet<long>` is gotten group members' uids;  
+	Second `HashSet<long>` is gotten group online members' uids;  
+	Thrid `int` is the error code indicating the calling is successful or the failed reasons.
+
 + `out HashSet<long> uids`
 
 	The gotten group members' uids.
+
++ `out HashSet<long> allUids`
+
+	The gotten group members' uids.
+
++ `out HashSet<long> onlineUids`
+
+	The gotten group online members' uids.
+
++ `long groupId`
+
+	Group id.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Get Group Count
+
+	//-- Async Method
+	public bool GetGroupCount(Action<int, int> callback, long groupId, int timeout = 0);
+	public bool GetGroupCount(Action<int, int, int> callback, long groupId, int timeout = 0);
+
+	//-- Sync Method
+	public int GetGroupCount(out int memberCount, long groupId, int timeout = 0);
+	public int GetGroupCount(out int memberCount, out int onlineCount, long groupId, int timeout = 0);
+
+Get group member count.
+
++ `Action<int, int> callback`
+
+	Callabck for async method.  
+	First `int` is group member count;  
+	Second `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `Action<int, int, int> callback`
+
+	Callabck for async method.  
+	First `int` is group member count;  
+	Second `int` is group online member count;  
+	Thrid `int` is the error code indicating the calling is successful or the failed reasons.
+
++ `out int memberCount`
+
+	The group member count.
+
++ `out int onlineCount`
+
+	The group online member count.
 
 + `long groupId`
 

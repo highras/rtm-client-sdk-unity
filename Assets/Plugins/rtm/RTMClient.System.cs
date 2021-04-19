@@ -35,47 +35,6 @@ namespace com.fpnn.rtm
             }
         }
 
-        //===========================[ Kickout ]=========================//
-        public bool Kickout(DoneDelegate callback, string endpoint, int timeout = 0)
-        {
-            TCPClient client = GetCoreClient();
-            if (client == null)
-            {
-                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
-                    ClientEngine.RunTask(() =>
-                    {
-                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
-                    });
-
-                return false;
-            }
-
-            Quest quest = new Quest("kickout");
-            quest.Param("ce", endpoint);
-
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
-
-            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
-                ClientEngine.RunTask(() =>
-                {
-                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
-                });
-
-            return asyncStarted;
-        }
-
-        public int Kickout(string endpoint, int timeout = 0)
-        {
-            TCPClient client = GetCoreClient();
-            if (client == null)
-                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
-
-            Quest quest = new Quest("kickout");
-            quest.Param("ce", endpoint);
-            Answer answer = client.SendQuest(quest, timeout);
-            return answer.ErrorCode();
-        }
-
         //===========================[ Add Attributes ]=========================//
         public bool AddAttributes(DoneDelegate callback, Dictionary<string, string> attrs, int timeout = 0)
         {
@@ -118,29 +77,8 @@ namespace com.fpnn.rtm
         }
 
         //===========================[ Get Attributes ]=========================//
-        private List<Dictionary<string, string>> ConvertGetAttributesAnswer(Answer answer)
-        {
-            List<Dictionary<string, string>> attributes = new List<Dictionary<string, string>>();
-            List<object> attrsList = answer.Want<List<object>>("attrs");
-
-            foreach (object obj in attrsList)
-            {
-                Dictionary<object, object> originalDict = (Dictionary<object, object>)obj;
-                Dictionary<string, string> attrDict = new Dictionary<string, string>();
-
-                foreach (KeyValuePair<object, object> kvp in originalDict)
-                {
-                    attrDict.Add((string)kvp.Key, (string)kvp.Value);
-                }
-                if (attrDict.Count > 0)
-                    attributes.Add(attrDict);
-            }
-
-            return attributes;
-        }
-
         //-- Action<attributes, errorCode>
-        public bool GetAttributes(Action<List<Dictionary<string, string>>, int> callback, int timeout = 0)
+        public bool GetAttributes(Action<Dictionary<string, string>, int> callback, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -157,11 +95,13 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("getattrs");
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
-                List < Dictionary<string, string> > result = null;
+                Dictionary<string, string> result = null;
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     try
-                    { result = ConvertGetAttributesAnswer(answer); }
+                    {
+                        result = WantStringDictionary(answer, "attrs");
+                    }
                     catch (Exception)
                     {
                         errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
@@ -179,7 +119,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int GetAttributes(out List<Dictionary<string, string>> attributes, int timeout = 0)
+        public int GetAttributes(out Dictionary<string, string> attributes, int timeout = 0)
         {
             attributes = null;
 
@@ -195,7 +135,7 @@ namespace com.fpnn.rtm
 
             try
             {
-                attributes = ConvertGetAttributesAnswer(answer);
+                attributes = WantStringDictionary(answer, "attrs");
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)

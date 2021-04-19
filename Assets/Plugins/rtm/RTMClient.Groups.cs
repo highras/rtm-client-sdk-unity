@@ -140,6 +140,54 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
+        //-- Action<member_uids, online_uids, errorCode>
+        public bool GetGroupMembers(Action<HashSet<long>, HashSet<long>, int> callback, long groupId, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getgroupmembers");
+            quest.Param("gid", groupId);
+            quest.Param("online", true);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                HashSet<long> allUids = null;
+                HashSet<long> onlineUids = null;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        allUids = WantLongHashSet(answer, "uids");
+                        onlineUids = GetLongHashSet(answer, "onlines");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(allUids, onlineUids, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
         public int GetGroupMembers(out HashSet<long> uids, long groupId, int timeout = 0)
         {
             uids = null;
@@ -158,6 +206,188 @@ namespace com.fpnn.rtm
             try
             {
                 uids = WantLongHashSet(answer, "uids");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        public int GetGroupMembers(out HashSet<long> allUids, out HashSet<long> onlineUids, long groupId, int timeout = 0)
+        {
+            allUids = null;
+            onlineUids = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getgroupmembers");
+            quest.Param("gid", groupId);
+            quest.Param("online", true);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                allUids = WantLongHashSet(answer, "uids");
+                onlineUids = GetLongHashSet(answer, "onlines");
+
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //===========================[ Get Group Count ]=========================//
+        //-- Action<member_count, errorCode>
+        public bool GetGroupCount(Action<int, int> callback, long groupId, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getgroupcount");
+            quest.Param("gid", groupId);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                int memberCount = 0;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        memberCount = answer.Want<int>("cn");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(memberCount, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        //-- Action<member_count, online_count, errorCode>
+        public bool GetGroupCount(Action<int, int, int> callback, long groupId, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getgroupcount");
+            quest.Param("gid", groupId);
+            quest.Param("online", true);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                int memberCount = 0;
+                int onlineCount = 0;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        memberCount = answer.Want<int>("cn");
+                        onlineCount = answer.Want<int>("online");
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(memberCount, onlineCount, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, 0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetGroupCount(out int memberCount, long groupId, int timeout = 0)
+        {
+            memberCount = 0;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getgroupcount");
+            quest.Param("gid", groupId);
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                memberCount = answer.Want<int>("cn");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        public int GetGroupCount(out int memberCount, out int onlineCount, long groupId, int timeout = 0)
+        {
+            memberCount = 0;
+            onlineCount = 0;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getgroupcount");
+            quest.Param("gid", groupId);
+            quest.Param("online", true);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                memberCount = answer.Want<int>("cn");
+                onlineCount = answer.Want<int>("online");
+
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)

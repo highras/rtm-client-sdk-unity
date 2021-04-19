@@ -84,27 +84,17 @@ class RTMSystem : Main.ITestCase
 
     static void GetAttributesDemo(RTMClient client)
     {
-        int errorCode = client.GetAttributes(out List<Dictionary<string, string>> attributes);
+        int errorCode = client.GetAttributes(out Dictionary<string, string> attributes);
         if (errorCode != com.fpnn.ErrorCode.FPNN_EC_OK)
         {
             Debug.Log("Get attributes in sync failed. error code " + errorCode);
             return;
         }
 
-        Debug.Log("Attributes has " + attributes.Count + " dictory.");
-        int dictCount = 0;
+        Debug.Log("Attributes has " + attributes.Count + " items.");
 
-        foreach (Dictionary<string, string> dict in attributes)
-        {
-            dictCount += 1;
-
-            Debug.Log("Dictory " + dictCount + " has " + dict.Count + " items.");
-
-            foreach (KeyValuePair<string, string> kvp in dict)
-                Debug.Log("Key " + kvp.Key  + ", value " + kvp.Value);
-
-            Debug.Log("");
-        }
+        foreach (KeyValuePair<string, string> kvp in attributes)
+            Debug.Log("Key " + kvp.Key  + ", value " + kvp.Value);
     }
 
     static void AddDevicePushOption(RTMClient client, MessageCategory messageCategory, long targetId, HashSet<byte> mTypes = null)

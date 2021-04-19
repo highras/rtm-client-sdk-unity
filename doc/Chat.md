@@ -699,10 +699,14 @@ Return Values:
 	//-- Async Method
 	public bool GetP2PUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0);
 	public bool GetP2PUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
+	public bool GetP2PUnread(Action<Dictionary<long, int>, Dictionary<long, long>, int> callback, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0);
+	public bool GetP2PUnread(Action<Dictionary<long, int>, Dictionary<long, long>, int> callback, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
 	
 	//-- Sync Method
 	public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0);
 	public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
+	public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, out Dictionary<long, long> lastUnreadTimestampDictionary, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0);
+	public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, out Dictionary<long, long> lastUnreadTimestampDictionary, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
 
 Get P2P unread infos when indicated P2P sessions have unread messages.
 
@@ -714,9 +718,20 @@ Parameters:
 	First `Dictionary<long, int>` is the unread dictionary which key is the peer's uid who has some unread messages, and value is the count of the unread messages;  
 	Second `int` is the error code indicating the calling is successful or the failed reasons.
 
++ `Action<Dictionary<long, int>, Dictionary<long, long>, int> callback`
+
+	Callabck for async method.  
+	First `Dictionary<long, int>` is the unread dictionary which key is the peer's uid who has some unread messages, and value is the count of the unread messages;  
+	Second `Dictionary<long, long>` is the last unread message timestamp dictionary which key is the peer's uid who has some unread messages, and value is the timestamp in milliseconds of the latest unread message;  
+	Thrid `int` is the error code indicating the calling is successful or the failed reasons.
+
 + `out Dictionary<long, int> unreadDictionary`
 
 	Unread dictionary which key is the peer's uid who has some unread messages, and value is the count of the unread messages.
+
++ `out Dictionary<long, long> lastUnreadTimestampDictionary`
+
+	Last unread message timestamp dictionary which key is the peer's uid who has some unread messages, and value is the timestamp in milliseconds of the latest unread message.
 
 + `HashSet<long> uids`
 
@@ -756,10 +771,14 @@ Return Values:
 	//-- Async Method
 	public bool GetGroupUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0);
 	public bool GetGroupUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
+	public bool GetGroupUnread(Action<Dictionary<long, int>, Dictionary<long, long>, int> callback, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0);
+	public bool GetGroupUnread(Action<Dictionary<long, int>, Dictionary<long, long>, int> callback, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
 	
 	//-- Sync Method
 	public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0);
 	public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
+	public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, out Dictionary<long, long> lastUnreadTimestampDictionary, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0);
+	public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, out Dictionary<long, long> lastUnreadTimestampDictionary, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0);
 
 Get group unread infos when indicated group sessions have unread messages.
 
@@ -771,9 +790,20 @@ Parameters:
 	First `Dictionary<long, int>` is the unread dictionary which key is the group id which has some unread messages, and value is the count of the unread messages;  
 	Second `int` is the error code indicating the calling is successful or the failed reasons.
 
++ `Action<Dictionary<long, int>, Dictionary<long, long>, int> callback`
+
+	Callabck for async method.  
+	First `Dictionary<long, int>` is the unread dictionary which key is the group id which has some unread messages, and value is the count of the unread messages;  
+	Second `Dictionary<long, long>` is the last unread message timestamp dictionary which key is the group id which has some unread messages, and value is the timestamp in milliseconds of the latest unread message;  
+	Thrid `int` is the error code indicating the calling is successful or the failed reasons.
+
 + `out Dictionary<long, int> unreadDictionary`
 
 	Unread dictionary which key is the group id which has some unread messages, and value is the count of the unread messages.
+
++ `out Dictionary<long, int> lastUnreadTimestampDictionary`
+
+	Last unread message timestamp dictionary which key is the group id which has some unread messages, and value is the timestamp in milliseconds of the latest unread message.
 
 + `HashSet<long> groupIds`
 

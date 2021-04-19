@@ -45,8 +45,10 @@ class Chat : Main.ITestCase
         }
 
         GetP2PUnreadInSync(client, new HashSet<long> { peerUid, peerUid+1, peerUid+2 }, new HashSet<byte>{ 30, 40, 50 });
+        GetP2PUnreadInSyncPlus(client, new HashSet<long> { peerUid, peerUid + 1, peerUid + 2 }, new HashSet<byte> { 30, 40, 50 });
         GetGroupUnreadInSync(client, new HashSet<long> { groupId }, new HashSet<byte> { 30, 40, 50 });
-
+        GetGroupUnreadInSyncPlus(client, new HashSet<long> { groupId }, new HashSet<byte> { 30, 40, 50 });
+        
         TextAudit(client, "sdaada asdasd asdasd asdas dds");
         TextAudit(client, "ssds 他妈的， 去你妈逼，操你妈的");
         TextAudit(client, "sdaada fuck you mother dds");
@@ -54,7 +56,7 @@ class Chat : Main.ITestCase
         ImageAudit(client, "https://box.bdimg.com/static/fisp_static/common/img/searchbox/logo_news_276_88_1f9876a.png");
         AudioAudit(client, "https://opus-codec.org/static/examples/samples/speech_orig.wav");
         VideoAudit(client, "http://vfx.mtime.cn/Video/2019/02/04/mp4/190204084208765161.mp4");
-
+        
         Debug.Log("Running for receiving server pushed chat & cmd &c audio if those are being demoed ...");
     }
 
@@ -274,6 +276,45 @@ class Chat : Main.ITestCase
             Debug.Log($"Fetch P2P unread with mTypes in sync failed. Error code {errorCode}");
     }
 
+    static void GetP2PUnreadInSyncPlus(RTMClient client, HashSet<long> uids, HashSet<byte> mtypes)
+    {
+        Dictionary<long, int> unreadMap;
+        Dictionary<long, long> lastUnreadTimestampDictionary;
+        int errorCode = client.GetP2PUnread(out unreadMap, out lastUnreadTimestampDictionary, uids);
+
+        if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
+        {
+            Debug.Log("Fetch P2P unread in sync successful.");
+            foreach (KeyValuePair<long, int> kvp in unreadMap)
+            {
+                Debug.Log($" -- peer: {kvp.Key}, unread message {kvp.Value}");
+            }
+            foreach (KeyValuePair<long, long> kvp in lastUnreadTimestampDictionary)
+            {
+                Debug.Log($" -- peer: {kvp.Key}, last unread message UTC in msec is {kvp.Value}");
+            }
+        }
+        else
+            Debug.Log($"Fetch P2P unread in sync failed. Error code {errorCode}");
+
+        errorCode = client.GetP2PUnread(out unreadMap, out lastUnreadTimestampDictionary, uids, mtypes);
+
+        if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
+        {
+            Debug.Log("Fetch P2P unread with mTypes in sync successful.");
+            foreach (KeyValuePair<long, int> kvp in unreadMap)
+            {
+                Debug.Log($" -- peer: {kvp.Key}, unread message {kvp.Value}");
+            }
+            foreach (KeyValuePair<long, long> kvp in lastUnreadTimestampDictionary)
+            {
+                Debug.Log($" -- peer: {kvp.Key}, last unread message UTC in msec is {kvp.Value}");
+            }
+        }
+        else
+            Debug.Log($"Fetch P2P unread with mTypes in sync failed. Error code {errorCode}");
+    }
+
     static void GetGroupUnreadInSync(RTMClient client, HashSet<long> groupIds, HashSet<byte> mtypes)
     {
         Dictionary<long, int> unreadMap;
@@ -298,6 +339,45 @@ class Chat : Main.ITestCase
             foreach (KeyValuePair<long, int> kvp in unreadMap)
             {
                 Debug.Log($" -- group: {kvp.Key}, unread message {kvp.Value}");
+            }
+        }
+        else
+            Debug.Log($"Fetch group unread with mTypes in sync failed. Error code {errorCode}");
+    }
+
+    static void GetGroupUnreadInSyncPlus(RTMClient client, HashSet<long> groupIds, HashSet<byte> mtypes)
+    {
+        Dictionary<long, int> unreadMap;
+        Dictionary<long, long> lastUnreadTimestampDictionary;
+        int errorCode = client.GetGroupUnread(out unreadMap, out lastUnreadTimestampDictionary, groupIds);
+
+        if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
+        {
+            Debug.Log("Fetch group unread in sync successful.");
+            foreach (KeyValuePair<long, int> kvp in unreadMap)
+            {
+                Debug.Log($" -- group: {kvp.Key}, unread message {kvp.Value}");
+            }
+            foreach (KeyValuePair<long, long> kvp in lastUnreadTimestampDictionary)
+            {
+                Debug.Log($" -- group: {kvp.Key}, last unread message UTC in msec is {kvp.Value}");
+            }
+        }
+        else
+            Debug.Log($"Fetch group unread in sync failed. Error code {errorCode}");
+
+        errorCode = client.GetGroupUnread(out unreadMap, out lastUnreadTimestampDictionary, groupIds, mtypes);
+
+        if (errorCode == com.fpnn.ErrorCode.FPNN_EC_OK)
+        {
+            Debug.Log("Fetch group unread with mTypes in sync successful.");
+            foreach (KeyValuePair<long, int> kvp in unreadMap)
+            {
+                Debug.Log($" -- group: {kvp.Key}, unread message {kvp.Value}");
+            }
+            foreach (KeyValuePair<long, long> kvp in lastUnreadTimestampDictionary)
+            {
+                Debug.Log($" -- group: {kvp.Key}, last unread message UTC in msec is {kvp.Value}");
             }
         }
         else

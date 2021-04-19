@@ -242,18 +242,6 @@ namespace com.fpnn.rtm
             return answer.ErrorCode();
         }
 
-        //===========================[ Get Unread Dictionary ]=========================//
-        private Dictionary<long, int> GetUnreadDictionary(Answer answer, string key)
-        {
-            Dictionary<long, int> rev = new Dictionary<long, int>();
-
-            Dictionary<object, object> originalDict = (Dictionary<object, object>)answer.Want(key);
-            foreach (KeyValuePair<object, object> kvp in originalDict)
-                rev.Add((long)Convert.ChangeType(kvp.Key, TypeCode.Int64), (int)Convert.ChangeType(kvp.Value, TypeCode.Int32));
-
-            return rev;
-        }
-
         //===========================[ Get P2P Unread ]=========================//
         //-- Action<Dictionary<peerUid, unreadCount>, errorCode>
         public bool GetP2PUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0)
@@ -263,13 +251,24 @@ namespace com.fpnn.rtm
 
         public bool GetP2PUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
         {
+            return GetP2PUnread((Dictionary<long, int> unreadDictionary, Dictionary<long, long> _, int errorCode) => { callback(unreadDictionary, errorCode); }, uids, startTime, mTypes, timeout);
+        }
+
+        //-- Action<Dictionary<peerUid, unreadCount>, Dictionary<peerUid, lastUnreadTimestamp>, errorCode>
+        public bool GetP2PUnread(Action<Dictionary<long, int>, Dictionary<long, long>, int> callback, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            return GetP2PUnread(callback, uids, 0, mTypes, timeout);
+        }
+
+        public bool GetP2PUnread(Action<Dictionary<long, int>, Dictionary<long, long>, int> callback, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
+        {
             TCPClient client = GetCoreClient();
             if (client == null)
             {
                 if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                     ClientEngine.RunTask(() =>
                     {
-                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                        callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                     });
 
                 return false;
@@ -287,12 +286,14 @@ namespace com.fpnn.rtm
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 Dictionary<long, int> unreadDictionary = null;
+                Dictionary<long, long> lastUnreadTimestampDictionary = null;
 
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     try
                     {
-                        unreadDictionary = GetUnreadDictionary(answer, "p2p");
+                        unreadDictionary = WantLongIntDictionary(answer, "p2p");
+                        lastUnreadTimestampDictionary = WantLongLongDictionary(answer, "ltime");
                     }
                     catch (Exception)
                     {
@@ -300,13 +301,13 @@ namespace com.fpnn.rtm
                     }
                 }
 
-                callback(unreadDictionary, errorCode);
+                callback(unreadDictionary, lastUnreadTimestampDictionary, errorCode);
             }, timeout);
 
             if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                 ClientEngine.RunTask(() =>
                 {
-                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                 });
 
             return asyncStarted;
@@ -314,12 +315,23 @@ namespace com.fpnn.rtm
 
         public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0)
         {
-            return GetP2PUnread(out unreadDictionary, uids, 0, mTypes);
+            return GetP2PUnread(out unreadDictionary, uids, 0, mTypes, timeout);
         }
 
         public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
         {
+            return GetP2PUnread(out unreadDictionary, out _, uids, startTime, mTypes, timeout);
+        }
+
+        public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, out Dictionary<long, long> lastUnreadTimestampDictionary, HashSet<long> uids, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            return GetP2PUnread(out unreadDictionary, out lastUnreadTimestampDictionary, uids, 0, mTypes, timeout);
+        }
+
+        public int GetP2PUnread(out Dictionary<long, int> unreadDictionary, out Dictionary<long, long> lastUnreadTimestampDictionary, HashSet<long> uids, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
+        {
             unreadDictionary = null;
+            lastUnreadTimestampDictionary = null;
 
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -340,7 +352,8 @@ namespace com.fpnn.rtm
 
             try
             {
-                unreadDictionary = GetUnreadDictionary(answer, "p2p");
+                unreadDictionary = WantLongIntDictionary(answer, "p2p");
+                lastUnreadTimestampDictionary = WantLongLongDictionary(answer, "ltime");
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)
@@ -358,13 +371,24 @@ namespace com.fpnn.rtm
 
         public bool GetGroupUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
         {
+            return GetP2PUnread((Dictionary<long, int> unreadDictionary, Dictionary<long, long> _, int errorCode) => { callback(unreadDictionary, errorCode); }, groupIds, startTime, mTypes, timeout);
+        }
+
+        //-- Action<Dictionary<groupId, unreadCount>, Dictionary<groupId, lastUnreadTimestamp>, errorCode>
+        public bool GetGroupUnread(Action<Dictionary<long, int>, Dictionary<long, long>, int> callback, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            return GetGroupUnread(callback, groupIds, 0, mTypes, timeout);
+        }
+
+        public bool GetGroupUnread(Action<Dictionary<long, int>, Dictionary<long, long>, int> callback, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
+        {
             TCPClient client = GetCoreClient();
             if (client == null)
             {
                 if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                     ClientEngine.RunTask(() =>
                     {
-                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                        callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                     });
 
                 return false;
@@ -382,12 +406,14 @@ namespace com.fpnn.rtm
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
                 Dictionary<long, int> unreadDictionary = null;
+                Dictionary<long, long> lastUnreadTimestampDictionary = null;
 
                 if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
                 {
                     try
                     {
-                        unreadDictionary = GetUnreadDictionary(answer, "group");
+                        unreadDictionary = WantLongIntDictionary(answer, "group");
+                        lastUnreadTimestampDictionary = WantLongLongDictionary(answer, "ltime");
                     }
                     catch (Exception)
                     {
@@ -395,13 +421,13 @@ namespace com.fpnn.rtm
                     }
                 }
 
-                callback(unreadDictionary, errorCode);
+                callback(unreadDictionary, lastUnreadTimestampDictionary, errorCode);
             }, timeout);
 
             if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
                 ClientEngine.RunTask(() =>
                 {
-                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    callback(null, null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
                 });
 
             return asyncStarted;
@@ -414,7 +440,18 @@ namespace com.fpnn.rtm
 
         public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
         {
+            return GetGroupUnread(out unreadDictionary, out _, groupIds, startTime, mTypes, timeout);
+        }
+
+        public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, out Dictionary<long, long> lastUnreadTimestampDictionary, HashSet<long> groupIds, HashSet<byte> mTypes = null, int timeout = 0)
+        {
+            return GetGroupUnread(out unreadDictionary, out lastUnreadTimestampDictionary, groupIds, 0, mTypes, timeout);
+        }
+
+        public int GetGroupUnread(out Dictionary<long, int> unreadDictionary, out Dictionary<long, long> lastUnreadTimestampDictionary, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
+        {
             unreadDictionary = null;
+            lastUnreadTimestampDictionary = null;
 
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -435,7 +472,8 @@ namespace com.fpnn.rtm
 
             try
             {
-                unreadDictionary = GetUnreadDictionary(answer, "group");
+                unreadDictionary = WantLongIntDictionary(answer, "group");
+                lastUnreadTimestampDictionary = WantLongLongDictionary(answer, "ltime");
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)

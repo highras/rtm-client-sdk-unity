@@ -126,6 +126,47 @@ namespace com.fpnn.rtm
             }
         }
 
+        //===========================[ IPv4 Convert IPv6 Utilies ]=========================//
+        private string ConvertIPv4ToIPv6(string ipv4)
+        {
+            string[] parts = ipv4.Split(new Char[] { '.' });
+            if (parts.Length != 4)
+                return string.Empty;
+
+            foreach (string part in parts)
+            {
+                int partInt = Int32.Parse(part);
+                if (partInt > 255 || partInt < 0)
+                    return string.Empty;
+            }
+
+            string part7 = Convert.ToString(Int32.Parse(parts[0]) * 256 + Int32.Parse(parts[1]), 16);
+            string part8 = Convert.ToString(Int32.Parse(parts[2]) * 256 + Int32.Parse(parts[3]), 16);
+            return "64:ff9b::" + part7 + ":" + part8;
+        }
+
+        private bool ConvertIPv4EndpointToIPv6IPPort(string ipv4endpoint, out string ipv6, out int port)
+        {
+            int idx = ipv4endpoint.LastIndexOf(':');
+            if (idx == -1)
+            {
+                ipv6 = string.Empty;
+                port = 0;
+
+                return false;
+            }
+
+            string ipv4 = ipv4endpoint.Substring(0, idx);
+            string portString = ipv4endpoint.Substring(idx + 1);
+            port = Convert.ToInt32(portString, 10);
+
+            ipv6 = ConvertIPv4ToIPv6(ipv4);
+            if (ipv6.Length == 0)
+                return false;
+
+            return true;
+        }
+
         //===========================[ File Utilies ]=========================//
         private void UpdateTimeout(ref int timeout, ref long lastActionTimestamp)
         {
@@ -546,50 +587,6 @@ namespace com.fpnn.rtm
         public int SendRoomFile(out long messageId, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120)
         {
             return RealSendFile(out messageId, FileTokenType.Room, roomId, (byte)type, fileContent, filename, fileExtension, attrs, null, timeout);
-        }
-
-        private Dictionary<string, object> BuildAudioMessageAttrs(RTMAudioData audioData)
-        {
-            Dictionary<string, object> rtmAttrs = new Dictionary<string, object>();
-            rtmAttrs.Add("type", "audiomsg");
-            rtmAttrs.Add("codec", audioData.CodecType);
-            rtmAttrs.Add("srate", audioData.Frequency);
-            rtmAttrs.Add("lang", audioData.Language);
-            rtmAttrs.Add("duration", audioData.Duration);
-            return rtmAttrs;
-        }
-
-        //===========================[ Send RTM-Audio File ]=========================//
-        public bool SendFile(MessageIdDelegate callback, long peerUid, RTMAudioData audioData, string attrs = "", int timeout = 120)
-        {
-            return RealSendFile(callback, FileTokenType.P2P, peerUid, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
-        }
-
-        public int SendFile(out long messageId, long peerUid, RTMAudioData audioData, string attrs = "", int timeout = 120)
-        {
-            return RealSendFile(out messageId, FileTokenType.P2P, peerUid, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
-        }
-
-        //===========================[ Sned RTM-Audio Group File ]=========================//
-        public bool SendGroupFile(MessageIdDelegate callback, long groupId, RTMAudioData audioData, string attrs = "", int timeout = 120)
-        {
-            return RealSendFile(callback, FileTokenType.Group, groupId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
-        }
-
-        public int SendGroupFile(out long messageId, long groupId, RTMAudioData audioData, string attrs = "", int timeout = 120)
-        {
-            return RealSendFile(out messageId, FileTokenType.Group, groupId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
-        }
-
-        //===========================[ Sned Sned RTM-Audio Room File ]=========================//
-        public bool SendRoomFile(MessageIdDelegate callback, long roomId, RTMAudioData audioData, string attrs = "", int timeout = 120)
-        {
-            return RealSendFile(callback, FileTokenType.Room, roomId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
-        }
-
-        public int SendRoomFile(out long messageId, long roomId, RTMAudioData audioData, string attrs = "", int timeout = 120)
-        {
-            return RealSendFile(out messageId, FileTokenType.Room, roomId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
         }
     }
 }

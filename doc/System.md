@@ -4,49 +4,6 @@
 
 [TOC]
 
-### Kickout
-
-	//-- Async Method
-	public bool Kickout(DoneDelegate callback, string endpoint, int timeout = 0);
-	
-	//-- Sync Method
-	public int Kickout(string endpoint, int timeout = 0);
-
-Kickout another session in multi-login mode.
-
-Parameters:
-
-+ `DoneDelegate callback`
-
-		public delegate void DoneDelegate(int errorCode);
-
-	Callabck for async method. Please refer [DoneDelegate](Delegates.md#DoneDelegate).
-
-+ `string endpoint`
-
-	Endpoint of another session, which can be retrieved by `Get Attributes` methods.
-
-+ `int timeout`
-
-	Timeout in second.
-
-	0 means using default setting.
-
-
-Return Values:
-
-+ bool for Async
-
-	* true: Async calling is start.
-	* false: Start async calling is failed.
-
-+ int for Sync
-
-	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
-
-	Others are the reason for calling failed.
-
-
 ### Add Attributes
 
 	//-- Async Method
@@ -92,31 +49,24 @@ Return Values:
 ### Get Attributes
 
 	//-- Async Method
-	public bool GetAttributes(Action<List<Dictionary<string, string>>, int> callback, int timeout = 0);
+	public bool GetAttributes(Action<Dictionary<string, string>, int> callback, int timeout = 0);
 	
 	//-- Sync Method
-	public int GetAttributes(out List<Dictionary<string, string>> attributes, int timeout = 0);
+	public int GetAttributes(out Dictionary<string, string> attributes, int timeout = 0);
 
 Get session or connection attributes.
 
 Parameters:
 
-+ `Action<List<Dictionary<string, string>>, int> callback`
++ `Action<Dictionary<string, string>, int> callback`
 
 	Callabck for async method.  
-	First `List<Dictionary<string, string>>` is sessions' attributes list. Detail please refer the `out List<Dictionary<string, string>> attributes` parameter for sync method;  
+	First `Dictionary<string, string>` is the attributes dictionary for current session;  
 	Second `int` is the error code indicating the calling is successful or the failed reasons.
 
-+ `out List<Dictionary<string, string>> attributes`
++ `out Dictionary<string, string> attributes`
 
-	Sessions' attributes.  
-	If multi-login is enabled, each session will has its attributes dictionary.  
-	Each attributes dictionary has two extra keys:
-
-		* **ce**: the endpoint of this session
-		* **login**: the UTC timestamp of this session login
-		
-	If the attributes dictionary belong to the current session, key **my** will appear.
+	Attributes dictionary for current session.
 
 + `int timeout`
 

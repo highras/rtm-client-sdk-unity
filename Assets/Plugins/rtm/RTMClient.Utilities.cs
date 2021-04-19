@@ -32,6 +32,19 @@ namespace com.fpnn.rtm
             return rev;
         }
 
+        private HashSet<long> GetLongHashSet(Message message, string key)
+        {
+            HashSet<long> rev = new HashSet<long>();
+
+            List<object> originalList = (List<object>)message.Get(key);
+
+            if (originalList != null)
+                foreach (object obj in originalList)
+                    rev.Add((long)Convert.ChangeType(obj, TypeCode.Int64));
+
+            return rev;
+        }
+
         private List<long> WantLongList(Message message, string key)
         {
             List<long> rev = new List<long>();
@@ -71,7 +84,6 @@ namespace com.fpnn.rtm
             return rev;
         }
 
-        [System.Obsolete("WantStringDictionary will be deprecated, except another function using it.")]
         private Dictionary<string, string> WantStringDictionary(Message message, string key)
         {
             Dictionary<string, string> rev = new Dictionary<string, string>();
@@ -101,6 +113,17 @@ namespace com.fpnn.rtm
             Dictionary<object, object> originalDict = (Dictionary<object, object>)message.Want(key);
             foreach (KeyValuePair<object, object> kvp in originalDict)
                 rev.Add((long)Convert.ChangeType(kvp.Key, TypeCode.Int64), (int)Convert.ChangeType(kvp.Value, TypeCode.Int32));
+
+            return rev;
+        }
+
+        private Dictionary<long, long> WantLongLongDictionary(Message message, string key)
+        {
+            Dictionary<long, long> rev = new Dictionary<long, long>();
+
+            Dictionary<object, object> originalDict = (Dictionary<object, object>)message.Want(key);
+            foreach (KeyValuePair<object, object> kvp in originalDict)
+                rev.Add((long)Convert.ChangeType(kvp.Key, TypeCode.Int64), (long)Convert.ChangeType(kvp.Value, TypeCode.Int64));
 
             return rev;
         }
