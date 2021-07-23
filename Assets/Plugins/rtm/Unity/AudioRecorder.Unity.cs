@@ -80,6 +80,9 @@ namespace com.fpnn.rtm
         }
 
         void UpdateLoudness() {
+#if RTM_BUILD_NO_AUDIO
+            throw new Exception("Audio is disabled, please remove the RTM_BUILD_NO_AUDIO define in \"Scripting Define Symbols\"");
+#else
             if (micPhone == null) {
                 return;
             }
@@ -101,6 +104,7 @@ namespace com.fpnn.rtm
                 }
             }
             loudness = levelMax;
+#endif
         }
 
         private IEnumerator TimeDown() {
