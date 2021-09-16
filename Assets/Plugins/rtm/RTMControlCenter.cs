@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using static com.fpnn.rtm.RTMClient;
 
 #if UNITY_2017_1_OR_NEWER
 using UnityEngine;
@@ -11,7 +12,8 @@ namespace com.fpnn.rtm
     public static class RTMControlCenter
     {
         private static object interLocker = new object();
-        private static volatile bool networkReachable = true;
+        //private static volatile bool networkReachable = true;
+        private static volatile NetworkType networkType = NetworkType.NetworkType_Uninited;
         private static Dictionary<Int64, RTMClient> rtmClients = new Dictionary<long, RTMClient>();
         private static Dictionary<RTMClient, Int64> reloginClients = new Dictionary<RTMClient, Int64>();
 
@@ -57,6 +59,20 @@ namespace com.fpnn.rtm
                 client.Close();
         }
 
+        internal static ClientStatus GetClientStatus(Int64 connectionId)
+        { 
+            RTMClient client = null;
+            lock (interLocker)
+            {
+                rtmClients.TryGetValue(connectionId, out client);
+            }
+
+            if (client != null)
+                return client.Status;
+            else
+                return ClientStatus.Closed;
+        }
+
         //===========================[ Relogin Functions ]=========================//
         internal static void DelayRelogin(RTMClient client, long triggeredMs)
         {
@@ -77,7 +93,9 @@ namespace com.fpnn.rtm
 
         private static void ReloginCheck()
         {
-            if (!networkReachable)
+            //if (!networkReachable)
+            //return;
+            if (networkType != NetworkType.NetworkType_4G && networkType != NetworkType.NetworkType_Wifi)
                 return;
 
             HashSet<RTMClient> clients = new HashSet<RTMClient>();
@@ -103,26 +121,72 @@ namespace com.fpnn.rtm
             }
         }
 
-        internal static void NetworkReachableChanged(bool reachable)
+        //internal static void NetworkReachableChanged(bool reachable)
+        //{
+        //    if (reachable != networkReachable)
+        //    {
+        //        networkReachable = reachable;
+        //        long now = ClientEngine.GetCurrentMilliseconds();
+        //        if (reachable)
+        //        {
+        //            Dictionary<RTMClient, Int64> clients = new Dictionary<RTMClient, Int64>();
+        //            lock (interLocker)
+        //            {
+        //                foreach (KeyValuePair<RTMClient, Int64> kvp in reloginClients)
+        //                    clients.Add(kvp.Key, now);
+
+        //                reloginClients = clients;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            lock (interLocker)
+        //            {
+        //                foreach (KeyValuePair<UInt64, RTMClient> kvp in rtmClients)
+        //                {
+        //                    kvp.Value.Close();
+        //                    reloginClients.Add(kvp.Value, now);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+
+        public static void NetworkChanged(NetworkType type)
         {
-            if (reachable != networkReachable)
-            {
-                networkReachable = reachable;
-                if (reachable)
+            if (type == NetworkType.NetworkType_Unknown)
+                type = NetworkType.NetworkType_Unreachable;
+            if (networkType == NetworkType.NetworkType_Uninited)
+                networkType = type;
+            if (networkType == type)
+                return;
+            long now = ClientEngine.GetCurrentMilliseconds();
+            if (networkType == NetworkType.NetworkType_Unreachable && (type == NetworkType.NetworkType_4G || type == NetworkType.NetworkType_Wifi))
+            {//之前没有网络，现在有网络
+                Dictionary<RTMClient, Int64> clients = new Dictionary<RTMClient, Int64>();
+                lock (interLocker)
                 {
-                    long now = ClientEngine.GetCurrentMilliseconds();
+                    foreach (KeyValuePair<RTMClient, Int64> kvp in reloginClients)
+                        clients.Add(kvp.Key, now);
 
-                    Dictionary<RTMClient, Int64> clients = new Dictionary<RTMClient, Int64>();
-
-                    lock (interLocker)
-                    {
-                        foreach (KeyValuePair<RTMClient, Int64> kvp in reloginClients)
-                            clients.Add(kvp.Key, now);
-
-                        reloginClients = clients;
-                    }
+                    reloginClients = clients;
                 }
             }
+            else
+            {
+                lock (interLocker)
+                {
+                    List<RTMClient> clients = new List<RTMClient>();
+                    foreach (KeyValuePair<Int64, RTMClient> kvp in rtmClients)
+                    {
+                        clients.Add(kvp.Value);
+                        reloginClients.Add(kvp.Value, now);
+                    }
+                    foreach (RTMClient client in clients)
+                        client.Close();
+                }
+            }
+            networkType = type;
         }
 
         //===========================[ File Gate Client Functions ]=========================//

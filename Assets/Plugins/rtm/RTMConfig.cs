@@ -6,11 +6,12 @@ namespace com.fpnn.rtm
         public int startConnectFailedCount = 3;                //-- 连接失败多少次后，开始退行性处理
         public int maxIntervalSeconds = 8;                     //-- 退行性重连最大时间间隔
         public int linearRegressiveCount = 4;                  //-- 从第一次退行性连接开始，到最大链接时间，允许尝试几次连接，每次时间间隔都会增大
+        public int maxRegressvieCount = 10;                     //-- 退行性重连最大次数，超出该次数则不再进行重连
     }
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "2.7.1";
+        public static readonly string SDKVersion = "2.7.2";
         public static readonly string InterfaceVersion = "2.7.0";
 
         internal static int lostConnectionAfterLastPingInSeconds = 60;

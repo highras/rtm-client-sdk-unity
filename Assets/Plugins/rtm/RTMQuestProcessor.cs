@@ -152,9 +152,10 @@ namespace com.fpnn.rtm
 
         public Answer Kickout(Int64 connectionId, string endpoint, Quest quest)
         {
+            bool closed = RTMControlCenter.GetClientStatus(connectionId) == RTMClient.ClientStatus.Closed;
             RTMControlCenter.CloseSession(connectionId);
 
-            if (questProcessor != null)
+            if (questProcessor != null && closed == false)
                 questProcessor.Kickout();
 
             return null;

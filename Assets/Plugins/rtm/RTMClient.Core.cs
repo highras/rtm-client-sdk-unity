@@ -356,6 +356,8 @@ namespace com.fpnn.rtm
 
         private bool AdjustAuthRemainedTimeout()
         {
+            if (authStatsInfo == null)
+                return false;
             long curr = ClientEngine.GetCurrentMilliseconds();
             int passSeconds = (int)(curr - authStatsInfo.lastActionMsecTimeStamp) / 1000;
             authStatsInfo.lastActionMsecTimeStamp = curr;
@@ -467,15 +469,15 @@ namespace com.fpnn.rtm
             authStatsInfo.lang = lang;
             authStatsInfo.lastActionMsecTimeStamp = ClientEngine.GetCurrentMilliseconds();
 
-            if (rtmGate.IsConnected())
-            {
-                if (authStatsInfo.remainedTimeout == 0)
-                    authStatsInfo.remainedTimeout = RTMConfig.globalQuestTimeoutSeconds;
+            //if (rtmGate.IsConnected())
+            //{
+            //    if (authStatsInfo.remainedTimeout == 0)
+            //        authStatsInfo.remainedTimeout = RTMConfig.globalQuestTimeoutSeconds;
 
-                RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
-                Auth(false);
-            }
-            else
+            //    RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
+            //    Auth(false);
+            //}
+            //else
             {
                 if (authStatsInfo.remainedTimeout == 0)
                     authStatsInfo.remainedTimeout = ((ConnectTimeout == 0) ? RTMConfig.globalConnectTimeoutSeconds : ConnectTimeout)
@@ -558,7 +560,7 @@ namespace com.fpnn.rtm
         //-------------[ Relogin interfaces ]--------------------------//
         private void StartNextRelogin()
         {
-            if (autoReloginInfo.reloginCount <= regressiveStrategy.startConnectFailedCount)
+            if (autoReloginInfo.reloginCount < regressiveStrategy.startConnectFailedCount)
             {
                 StartRelogin();
                 return;
@@ -566,11 +568,12 @@ namespace com.fpnn.rtm
 
             int regressiveCount = autoReloginInfo.reloginCount - regressiveStrategy.startConnectFailedCount;
             long interval = regressiveStrategy.maxIntervalSeconds * 1000;
+            if (regressiveCount > regressiveStrategy.maxRegressvieCount)
+                return;
             if (regressiveCount < regressiveStrategy.linearRegressiveCount)
             {
                 interval = interval * regressiveCount / regressiveStrategy.linearRegressiveCount;
             }
-
             RTMControlCenter.DelayRelogin(this, ClientEngine.GetCurrentMilliseconds() + interval);
         }
 

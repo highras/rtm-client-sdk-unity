@@ -1,46 +1,93 @@
 ﻿#if UNITY_2017_1_OR_NEWER
 
+using System;
 using System.Collections;
+using System.Runtime.InteropServices;
+using System.Threading;
+using AOT;
 using UnityEngine;
 
 namespace com.fpnn.rtm
 {
+    public enum NetworkType
+    { 
+        NetworkType_Uninited = -2,
+        NetworkType_Unknown = -1,
+        NetworkType_Unreachable = 0,
+        NetworkType_4G = 1,
+        NetworkType_Wifi = 2,
+    }
     public class StatusMonitor : Singleton<StatusMonitor>
     {
-        bool networkReachable = true;
+#if UNITY_IOS
+        [DllImport("__Internal")]
+        private static extern void initNetworkStatusChecker(NetworkStatusDelegate callback);
+#elif UNITY_ANDROID
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate void HeadsetStatusDelegate(int networkStatus);
 
-        public void Init() { }
-
-        public void Start()
+        [MonoPInvokeCallback(typeof(HeadsetStatusDelegate))]
+        public static void HeadsetStatusCallback(int headsetType)
         {
-            StartCoroutine(PerSecondCoroutine());
-        }
-        
-        public void OnDestroy()
-        {
-            StopAllCoroutines();
         }
 
-        private IEnumerator PerSecondCoroutine()
+        static AndroidJavaObject AndroidNativeManager= null;
+        class NetChangeListener : AndroidJavaProxy
         {
-            yield return new WaitForSeconds(1.0f);
-
-            while (true)
+            Action<int> msgCallback;
+            public NetChangeListener(Action<int> callback) : base("com.NetForUnity.INetChange") { msgCallback = callback; }
+            public void netChangeNotify(int type)
             {
-                CheckNetworkChange();
-
-                yield return new WaitForSeconds(1.0f);
+                msgCallback(type);
             }
         }
-
-        private void CheckNetworkChange()
+        class HeadsetListener: AndroidJavaProxy
         {
-            bool reachable = !(Application.internetReachability == NetworkReachability.NotReachable);
-            if (networkReachable != reachable)
+            Action<int> headsetCallback;
+            public HeadsetListener(Action<int> callback) : base("com.NetForUnity.IHeadsetChange") { headsetCallback = callback; }
+
+            public void headsetChange(int type) // //0-无网 1-移动网络 2-wifi
             {
-                networkReachable = reachable;
-                RTMControlCenter.NetworkReachableChanged(reachable);
+                headsetCallback(type);
             }
+        }
+        private static void initNetworkStatusChecker(Action<int> netChangeCallback, Action<int> headersetCallback)
+        {
+            if (AndroidNativeManager == null)
+            {
+                AndroidJavaClass playerClass = new AndroidJavaClass("com.NetForUnity.ListenUnity");
+                AndroidNativeManager = playerClass.CallStatic<AndroidJavaObject>("getInstance");
+            }
+            AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+            var context = jc.GetStatic<AndroidJavaObject>("currentActivity");
+            AndroidNativeManager.Call("registerNetChange", context, new NetChangeListener(netChangeCallback));
+            AndroidNativeManager.Call("registerHeadsetChange", context, new HeadsetListener(headersetCallback));
+        }
+#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+        [DllImport("RTMNative")]
+        private static extern void initNetworkStatusChecker(NetworkStatusDelegate callback);
+#else
+#endif
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate void NetworkStatusDelegate(int networkStatus);
+
+        [MonoPInvokeCallback(typeof(NetworkStatusDelegate))]
+        static void NetworkStatusCallback(int networkStatus)
+        {
+            //RTMControlCenter.NetworkReachableChanged(networkReachable);
+            RTMControlCenter.NetworkChanged((NetworkType)networkStatus);
+        }
+
+        public void Init() 
+        {
+#if UNITY_IOS
+            initNetworkStatusChecker(NetworkStatusCallback);
+#elif UNITY_ANDROID
+            initNetworkStatusChecker(NetworkStatusCallback, HeadsetStatusCallback);
+#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            initNetworkStatusChecker(NetworkStatusCallback);
+#else
+#endif
         }
     }
 }
