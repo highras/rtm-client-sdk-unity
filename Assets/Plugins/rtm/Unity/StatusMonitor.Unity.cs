@@ -19,7 +19,11 @@ namespace com.fpnn.rtm
     }
     public class StatusMonitor : Singleton<StatusMonitor>
     {
-#if UNITY_IOS
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+#elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+        [DllImport("RTMNative")]
+        private static extern void initNetworkStatusChecker(NetworkStatusDelegate callback);
+#elif UNITY_IOS
         [DllImport("__Internal")]
         private static extern void initNetworkStatusChecker(NetworkStatusDelegate callback);
 #elif UNITY_ANDROID
@@ -63,9 +67,7 @@ namespace com.fpnn.rtm
             AndroidNativeManager.Call("registerNetChange", context, new NetChangeListener(netChangeCallback));
             AndroidNativeManager.Call("registerHeadsetChange", context, new HeadsetListener(headersetCallback));
         }
-#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-        [DllImport("RTMNative")]
-        private static extern void initNetworkStatusChecker(NetworkStatusDelegate callback);
+
 #else
 #endif
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -80,15 +82,46 @@ namespace com.fpnn.rtm
 
         public void Init() 
         {
-#if UNITY_IOS
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+
+#elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+            initNetworkStatusChecker(NetworkStatusCallback);
+#elif UNITY_IOS
             initNetworkStatusChecker(NetworkStatusCallback);
 #elif UNITY_ANDROID
             initNetworkStatusChecker(NetworkStatusCallback, HeadsetStatusCallback);
-#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-            initNetworkStatusChecker(NetworkStatusCallback);
 #else
 #endif
         }
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+        public void Start()
+        {
+            StartCoroutine(PerSecondCoroutine());
+        }
+
+        public void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
+
+        private IEnumerator PerSecondCoroutine()
+        {
+            yield return new WaitForSeconds(1.0f);
+
+            while (true)
+            {
+                CheckNetworkChange();
+
+                yield return new WaitForSeconds(1.0f);
+            }
+        }
+
+        private void CheckNetworkChange()
+        {
+            int networkStatus = (int)Application.internetReachability;
+            RTMControlCenter.NetworkChanged((NetworkType)networkStatus);
+        }
+#endif
     }
 }
 #endif
