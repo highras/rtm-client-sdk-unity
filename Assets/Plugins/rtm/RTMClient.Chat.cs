@@ -371,7 +371,7 @@ namespace com.fpnn.rtm
 
         public bool GetGroupUnread(Action<Dictionary<long, int>, int> callback, HashSet<long> groupIds, long startTime, HashSet<byte> mTypes = null, int timeout = 0)
         {
-            return GetP2PUnread((Dictionary<long, int> unreadDictionary, Dictionary<long, long> _, int errorCode) => { callback(unreadDictionary, errorCode); }, groupIds, startTime, mTypes, timeout);
+            return GetGroupUnread((Dictionary<long, int> unreadDictionary, Dictionary<long, long> _, int errorCode) => { callback(unreadDictionary, errorCode); }, groupIds, startTime, mTypes, timeout);
         }
 
         //-- Action<Dictionary<groupId, unreadCount>, Dictionary<groupId, lastUnreadTimestamp>, errorCode>
