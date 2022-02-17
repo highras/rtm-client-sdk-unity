@@ -21,7 +21,7 @@ namespace com.fpnn.rtm
             return language.ToString("G");
         }
 
-        private HashSet<long> WantLongHashSet(Message message, string key)
+        public static HashSet<long> WantLongHashSet(Message message, string key)
         {
             HashSet<long> rev = new HashSet<long>();
 
@@ -32,7 +32,7 @@ namespace com.fpnn.rtm
             return rev;
         }
 
-        private HashSet<long> GetLongHashSet(Message message, string key)
+        private static HashSet<long> GetLongHashSet(Message message, string key)
         {
             HashSet<long> rev = new HashSet<long>();
 
@@ -45,7 +45,7 @@ namespace com.fpnn.rtm
             return rev;
         }
 
-        private List<long> WantLongList(Message message, string key)
+        private static List<long> WantLongList(Message message, string key)
         {
             List<long> rev = new List<long>();
 
@@ -56,7 +56,7 @@ namespace com.fpnn.rtm
             return rev;
         }
 
-        private List<int> GetIntList(Message message, string key)
+        private static List<int> GetIntList(Message message, string key)
         {
             List<int> rev = new List<int>();
 

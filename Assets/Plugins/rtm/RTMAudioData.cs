@@ -37,6 +37,16 @@ namespace com.fpnn.rtm
             ParseAudioData();
         }
 
+        public RTMAudioData(byte[] audio, string language, long duration)
+        {
+            codecType = DefaultCodec;
+            lang = language;
+            this.duration = duration;
+            this.audio = audio;
+            frequency = AudioRecorder.RECORD_SAMPLE_RATE;
+            ParseAudioData();
+        }
+
         private void ParseAudioData()
         {
             byte[] wavBuffer = AudioConvert.ConvertToWav(audio);

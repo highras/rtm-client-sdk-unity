@@ -9,9 +9,9 @@ namespace com.fpnn
         static partial void PlatformInit()
         {
             ConnectionMonitor.Instance.Init();
-            Application.quitting += () => {
-                ClientEngine.Close();
-            };
+            //Application.quitting += () => {
+            //    ClientEngine.Close();
+            //};
         }
 
         static partial void PlatformUninit()

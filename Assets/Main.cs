@@ -76,5 +76,9 @@ public class Main : MonoBehaviour
     {
         tester.Stop();
         Debug.Log("Test App exited.");
+#if UNITY_EDITOR
+        RTMControlCenter.Close();
+        ClientEngine.Close();
+#endif
     }
 }

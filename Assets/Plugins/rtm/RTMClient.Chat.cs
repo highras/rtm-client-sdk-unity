@@ -870,97 +870,97 @@ namespace com.fpnn.rtm
         //===========================[ SpeechToText ]=========================//
         //-------- url version ----------//
         //-- Action<string text, string language, errorCode>
-        public bool SpeechToText(Action<string, string, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
-        {
-            TCPClient client = GetCoreClient();
-            if (client == null)
-            {
-                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
-                    ClientEngine.RunTask(() =>
-                    {
-                        callback(string.Empty, string.Empty, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
-                    });
+        //public bool SpeechToText(Action<string, string, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        //{
+        //    TCPClient client = GetCoreClient();
+        //    if (client == null)
+        //    {
+        //        if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+        //            ClientEngine.RunTask(() =>
+        //            {
+        //                callback(string.Empty, string.Empty, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+        //            });
 
-                return false;
-            }
+        //        return false;
+        //    }
 
-            Quest quest = new Quest("speech2text");
-            quest.Param("audio", audioUrl);
-            quest.Param("type", 1);
-            quest.Param("lang", language);
+        //    Quest quest = new Quest("speech2text");
+        //    quest.Param("audio", audioUrl);
+        //    quest.Param("type", 1);
+        //    quest.Param("lang", language);
 
-            if (codec != null && codec.Length > 0)
-                quest.Param("codec", codec);
+        //    if (codec != null && codec.Length > 0)
+        //        quest.Param("codec", codec);
 
-            if (sampleRate > 0)
-                quest.Param("srate", sampleRate);
+        //    if (sampleRate > 0)
+        //        quest.Param("srate", sampleRate);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+        //    bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
-                string text = "";
-                string resultLanguage = "";
+        //        string text = "";
+        //        string resultLanguage = "";
 
-                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
-                {
-                    try
-                    {
-                        text = answer.Want<string>("text");
-                        resultLanguage = answer.Want<string>("lang");
-                    }
-                    catch (Exception)
-                    {
-                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
-                    }
-                }
-                callback(text, resultLanguage, errorCode);
-            }, timeout);
+        //        if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+        //        {
+        //            try
+        //            {
+        //                text = answer.Want<string>("text");
+        //                resultLanguage = answer.Want<string>("lang");
+        //            }
+        //            catch (Exception)
+        //            {
+        //                errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+        //            }
+        //        }
+        //        callback(text, resultLanguage, errorCode);
+        //    }, timeout);
 
-            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
-                ClientEngine.RunTask(() =>
-                {
-                    callback(string.Empty, string.Empty, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
-                });
+        //    if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+        //        ClientEngine.RunTask(() =>
+        //        {
+        //            callback(string.Empty, string.Empty, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+        //        });
 
-            return asyncStarted;
-        }
+        //    return asyncStarted;
+        //}
 
-        public int SpeechToText(out string resultText, out string resultLanguage, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
-        {
-            resultText = "";
-            resultLanguage = "";
+        //public int SpeechToText(out string resultText, out string resultLanguage, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120)
+        //{
+        //    resultText = "";
+        //    resultLanguage = "";
 
-            TCPClient client = GetCoreClient();
-            if (client == null)
-                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+        //    TCPClient client = GetCoreClient();
+        //    if (client == null)
+        //        return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
-            Quest quest = new Quest("speech2text");
-            quest.Param("audio", audioUrl);
-            quest.Param("type", 1);
-            quest.Param("lang", language);
+        //    Quest quest = new Quest("speech2text");
+        //    quest.Param("audio", audioUrl);
+        //    quest.Param("type", 1);
+        //    quest.Param("lang", language);
 
-            if (codec != null && codec.Length > 0)
-                quest.Param("codec", codec);
+        //    if (codec != null && codec.Length > 0)
+        //        quest.Param("codec", codec);
 
-            if (sampleRate > 0)
-                quest.Param("srate", sampleRate);
+        //    if (sampleRate > 0)
+        //        quest.Param("srate", sampleRate);
 
-            Answer answer = client.SendQuest(quest, timeout);
+        //    Answer answer = client.SendQuest(quest, timeout);
 
-            if (answer.IsException())
-                return answer.ErrorCode();
+        //    if (answer.IsException())
+        //        return answer.ErrorCode();
 
-            try
-            {
-                resultText = answer.Want<string>("text");
-                resultLanguage = answer.Want<string>("lang");
+        //    try
+        //    {
+        //        resultText = answer.Want<string>("text");
+        //        resultLanguage = answer.Want<string>("lang");
 
-                return fpnn.ErrorCode.FPNN_EC_OK;
-            }
-            catch (Exception)
-            {
-                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
-            }
-        }
+        //        return fpnn.ErrorCode.FPNN_EC_OK;
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+        //    }
+        //}
 
         //-------- binary version ----------//
 

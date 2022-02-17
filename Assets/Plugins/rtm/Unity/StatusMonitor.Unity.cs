@@ -20,6 +20,12 @@ namespace com.fpnn.rtm
     public class StatusMonitor : Singleton<StatusMonitor>
     {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+        [DllImport("RTMNative")]
+        private static extern void initNetworkStatusChecker(NetworkStatusDelegate callback);
+
+        [DllImport("RTMNative")]
+        private static extern void closeNetworkStatusChecker();
+
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
         [DllImport("RTMNative")]
         private static extern void initNetworkStatusChecker(NetworkStatusDelegate callback);
@@ -67,7 +73,6 @@ namespace com.fpnn.rtm
             AndroidNativeManager.Call("registerNetChange", context, new NetChangeListener(netChangeCallback));
             AndroidNativeManager.Call("registerHeadsetChange", context, new HeadsetListener(headersetCallback));
         }
-
 #else
 #endif
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -76,52 +81,103 @@ namespace com.fpnn.rtm
         [MonoPInvokeCallback(typeof(NetworkStatusDelegate))]
         static void NetworkStatusCallback(int networkStatus)
         {
-            //RTMControlCenter.NetworkReachableChanged(networkReachable);
             RTMControlCenter.NetworkChanged((NetworkType)networkStatus);
+        }
+
+        static private bool _isPause;
+        static private bool _isFocus;
+        static private bool _isBackground;
+
+        internal static bool IsBackground() { return _isBackground; }
+
+        void OnEnable()
+        {
+            _isPause = false;
+            _isFocus = true;
+            _isBackground = false;
         }
 
         public void Init() 
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
-
+            initNetworkStatusChecker(NetworkStatusCallback);
+            //Assert.IsTrue(false, "windows is not supported for now");
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             initNetworkStatusChecker(NetworkStatusCallback);
 #elif UNITY_IOS
             initNetworkStatusChecker(NetworkStatusCallback);
 #elif UNITY_ANDROID
             initNetworkStatusChecker(NetworkStatusCallback, HeadsetStatusCallback);
-#else
 #endif
         }
+
+        public void Close() 
+        {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
-        public void Start()
-        {
-            StartCoroutine(PerSecondCoroutine());
+            closeNetworkStatusChecker();
+#endif
         }
+            
 
-        public void OnDestroy()
+//#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+//        public void Start()
+//        {
+//            StartCoroutine(PerSecondCoroutine());
+//        }
+//
+//        public void OnDestroy()
+//        {
+//            StopAllCoroutines();
+//        }
+//
+//        private IEnumerator PerSecondCoroutine()
+//        {
+//            yield return new WaitForSeconds(1.0f);
+//
+//            while (true)
+//            {
+//                CheckNetworkChange();
+//
+//                yield return new WaitForSeconds(1.0f);
+//            }
+//        }
+//
+//        private void CheckNetworkChange()
+//        {
+//            int networkStatus = (int)Application.internetReachability;
+//            RTMControlCenter.NetworkChanged((NetworkType)networkStatus);
+//        }
+//#endif
+
+        private void CheckInBackground()
         {
-            StopAllCoroutines();
-        }
-
-        private IEnumerator PerSecondCoroutine()
-        {
-            yield return new WaitForSeconds(1.0f);
-
-            while (true)
+            if (_isPause && !_isFocus)
             {
-                CheckNetworkChange();
-
-                yield return new WaitForSeconds(1.0f);
+                if (_isBackground == false)
+                {
+                    _isBackground = true;
+                }
+            }
+            else
+            {
+                if (_isBackground)
+                {
+                    _isBackground = false;
+                }
             }
         }
 
-        private void CheckNetworkChange()
+        void OnApplicationPause(bool pauseStatus)
         {
-            int networkStatus = (int)Application.internetReachability;
-            RTMControlCenter.NetworkChanged((NetworkType)networkStatus);
+            _isPause = pauseStatus;
+            CheckInBackground();
         }
-#endif
+
+        void OnApplicationFocus(bool hasFocus)
+        {
+            _isFocus = hasFocus;
+            CheckInBackground();
+        }
     }
 }
 #endif

@@ -181,11 +181,9 @@ Return Values:
 ### SpeechToText
 
 	//-- Async Method
-	public bool SpeechToText(Action<string, string, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120);
 	public bool SpeechToText(Action<string, string, int> callback, byte[] audioBinaryContent, string language, string codec = null, int sampleRate = 0, int timeout = 120);
 	
 	//-- Sync Method
-	public int SpeechToText(out string resultText, out string resultLanguage, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120);
 	public int SpeechToText(out string resultText, out string resultLanguage, byte[] audioBinaryContent, string language, string codec = null, int sampleRate = 0, int timeout = 120);
 
 Speech Recognition, convert speech to text.
@@ -206,10 +204,6 @@ Parameters:
 + `out string resultLanguage`
 
 	The recognized language.
-
-+ `string audioUrl`
-
-	Http/https url for speech binary.
 
 + `byte[] audioBinaryContent`
 

@@ -134,6 +134,10 @@ Please refer [Messages Functions](Messages.md)
 
 Please refer [Audio Functions](Audio.md)
 
+#### Audio Native Functions
+
+Please refer [Audio Native Functions](Audio.Native.md)
+
 #### Files Functions
 
 Please refer [Files Functions](Files.md)
@@ -157,6 +161,10 @@ Please refer [Users Functions](Users.md)
 #### Data Functions
 
 Please refer [Data Functions](Data.md)
+
+#### RTC
+
+Please refer [RTC](RTC.md)
 
 ### Error Codes
 

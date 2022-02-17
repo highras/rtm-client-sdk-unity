@@ -152,12 +152,12 @@ namespace com.fpnn.rtm
         //    }
         //}
 
-        public static void NetworkChanged(NetworkType type)
+        internal static void NetworkChanged(NetworkType type)
         {
-            if (type == NetworkType.NetworkType_Unknown)
-                type = NetworkType.NetworkType_Unreachable;
             if (networkType == NetworkType.NetworkType_Uninited)
                 networkType = type;
+            if (type == NetworkType.NetworkType_Unknown)
+                type = NetworkType.NetworkType_Unreachable;
             if (networkType == type)
                 return;
             long now = ClientEngine.GetCurrentMilliseconds();
@@ -197,7 +197,7 @@ namespace com.fpnn.rtm
                         client.Close(false);
                 }
             }
-            networkType = type;
+                networkType = type;
         }
 
         //===========================[ File Gate Client Functions ]=========================//
@@ -312,13 +312,6 @@ namespace com.fpnn.rtm
 
                 routineInited = true;
             }
-
-#if UNITY_2017_1_OR_NEWER
-            Application.quitting += () => {
-                RTMControlCenter.Close();
-            };
-#endif
-
         }
 
         private static void RoutineFunc()
@@ -346,6 +339,11 @@ namespace com.fpnn.rtm
 
         public static void Close()
         {
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+            AudioRecorderNative.destroy();
+#endif
+            StatusMonitor.Instance.Close();
+
             lock (interLocker)
             {
                 if (!routineInited)
@@ -360,6 +358,17 @@ namespace com.fpnn.rtm
 #if UNITY_2017_1_OR_NEWER
             routineThread.Join();
 #endif
+            HashSet<RTMClient> clients = new HashSet<RTMClient>();
+
+            lock (interLocker)
+            {
+                foreach (KeyValuePair<Int64, RTMClient> kvp in rtmClients)
+                    clients.Add(kvp.Value);
+            }
+
+            foreach (RTMClient client in clients)
+                    client.Close(true, true);
+
         }
     }
 }
