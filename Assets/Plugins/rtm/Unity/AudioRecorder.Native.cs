@@ -81,7 +81,22 @@ namespace com.fpnn.rtm
                 audioRecorderListener.PlayEnd();
         }
 
-#if UNITY_IOS
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+        [DllImport("RTMNative")]
+        private static extern void startRecord(VolumnCallbackDelegate callback, StartRecordCallbackDelegate startCallback);
+
+        [DllImport("RTMNative")]
+        private static extern void stopRecord(StopRecordCallbackDelegate callback);
+
+        [DllImport("RTMNative")]
+        private static extern void startPlay(byte[] data, int length, PlayFinishCallbackDelegate callback);
+
+        [DllImport("RTMNative")]
+        private static extern void stopPlay();
+
+        [DllImport("RTMNative")]
+        private static extern void playWithPath(byte[] data, int length, PlayFinishCallbackDelegate callback);
+#elif UNITY_IOS
         [DllImport("__Internal")]
         private static extern void startRecord(VolumnCallbackDelegate callback, StartRecordCallbackDelegate startCallback);
 
@@ -136,21 +151,6 @@ namespace com.fpnn.rtm
             }
         }
         static AndroidJavaObject AudioRecord = null;
-#else
-        [DllImport("RTMNative")]
-        private static extern void startRecord(VolumnCallbackDelegate callback, StartRecordCallbackDelegate startCallback);
-
-        [DllImport("RTMNative")]
-        private static extern void stopRecord(StopRecordCallbackDelegate callback);
-
-        [DllImport("RTMNative")]
-        private static extern void startPlay(byte[] data, int length, PlayFinishCallbackDelegate callback);
-
-        [DllImport("RTMNative")]
-        private static extern void stopPlay();
-
-        [DllImport("RTMNative")]
-        private static extern void playWithPath(byte[] data, int length, PlayFinishCallbackDelegate callback);
 #endif
 
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
@@ -160,12 +160,11 @@ namespace com.fpnn.rtm
 
         public void Init(string language, IAudioRecorderListener listener)
         {
-//#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
-            //Assert.IsTrue(false, "windows is not supported for now");
-//#endif
             AudioRecorderNative.language = language;
             audioRecorderListener = listener;
-#if UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+
+#elif UNITY_ANDROID
             AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             AndroidJavaObject appconatext = jc.GetStatic<AndroidJavaObject>("currentActivity");
             if (AudioRecord == null)
@@ -187,7 +186,9 @@ namespace com.fpnn.rtm
         public void StartRecord()
         {
             recording = true;
-#if UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+            startRecord(VolumnCallback, StartRecordCallback);
+#elif UNITY_ANDROID
             if (AudioRecord != null)
                 AudioRecord.Call("startRecord");
 #else
@@ -197,7 +198,9 @@ namespace com.fpnn.rtm
 
         public void StopRecord()
         {
-#if UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+            stopRecord(StopRecordCallback);
+#elif UNITY_ANDROID
             AndroidJavaObject audio = AudioRecord.Call<AndroidJavaObject>("stopRecord");
             int duration = audio.Get<int>("duration");
             byte[] audioData = audio.Get<byte[]>("audioData");
@@ -225,12 +228,14 @@ namespace com.fpnn.rtm
 
         public void Play(RTMAudioData data)
         {
-#if UNITY_ANDROID
-            if (AudioRecord != null)
-                AudioRecord.Call("broadAudio", AudioConvert.ConvertToWav(data.Audio));
-#elif (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
             byte[] wavBuffer = AudioConvert.ConvertToWav(data.Audio);
             startPlay(wavBuffer, wavBuffer.Length, PlayFinishCallback);
+#elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+            startPlay(data.Audio, data.Audio.Length, PlayFinishCallback);
+#elif UNITY_ANDROID
+            if (AudioRecord != null)
+                AudioRecord.Call("broadAudio", AudioConvert.ConvertToWav(data.Audio));
 #else
             startPlay(data.Audio, data.Audio.Length, PlayFinishCallback);
 #endif
@@ -238,7 +243,9 @@ namespace com.fpnn.rtm
 
         public void StopPlay()
         {
-#if UNITY_ANDROID
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
+            stopPlay();
+#elif UNITY_ANDROID
             if (AudioRecord != null)
                 AudioRecord.Call("stopAudio");
 #else
