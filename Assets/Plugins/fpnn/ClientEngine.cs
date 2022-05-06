@@ -247,6 +247,8 @@ namespace com.fpnn
         {
             lock (interLocker)
             {
+                if (inited == false)
+                    return;
                 if (stopped)
                     return;
 
