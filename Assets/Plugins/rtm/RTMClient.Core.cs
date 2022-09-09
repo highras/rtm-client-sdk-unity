@@ -271,7 +271,10 @@ namespace com.fpnn.rtm
                         if (status == ClientStatus.Connecting)
                             isConnecting = true;
                         else
+                        { 
                             status = ClientStatus.Closed;
+                            rtmGateConnectionId = 0;
+                        }
                     }
 
                     if (autoReloginInfo != null)
@@ -303,6 +306,7 @@ namespace com.fpnn.rtm
             long currUid;
             bool isRelogin = false;
             Int64 reservedRtmGateConnectionId = 0;
+            bool needClose = false;
 
             lock (interLocker)
             {
@@ -318,6 +322,7 @@ namespace com.fpnn.rtm
                     status = ClientStatus.Closed;
                     reservedRtmGateConnectionId = rtmGateConnectionId;
                     rtmGateConnectionId = 0;
+                    needClose = true;
                     //-- Reserving rtmGate without closing for quick relogin.
                 }
 
@@ -339,6 +344,9 @@ namespace com.fpnn.rtm
                 currInfo = authStatsInfo;
                 authStatsInfo = null;
                 currUid = uid;
+
+                if (needClose)
+                    rtmGate.Close();
 
                 syncConnectingEvent.Set();
             }
@@ -456,35 +464,22 @@ namespace com.fpnn.rtm
 
                 if (autoReloginInfo != null)
                     autoReloginInfo.Login();
-            }
+                authStatsInfo = new AuthStatusInfo
+                {
+                    authDelegates = new HashSet<AuthDelegate>() { callback },
+                    remainedTimeout = timeout,
+                };
 
-            authStatsInfo = new AuthStatusInfo
-            {
-                authDelegates = new HashSet<AuthDelegate>() { callback },
-                remainedTimeout = timeout,
-            };
-
-            authStatsInfo.token = token;
-            authStatsInfo.attr = attr;
-            authStatsInfo.lang = lang;
-            authStatsInfo.lastActionMsecTimeStamp = ClientEngine.GetCurrentMilliseconds();
-
-            //if (rtmGate.IsConnected())
-            //{
-            //    if (authStatsInfo.remainedTimeout == 0)
-            //        authStatsInfo.remainedTimeout = RTMConfig.globalQuestTimeoutSeconds;
-
-            //    RTMControlCenter.RegisterSession(rtmGateConnectionId, this);
-            //    Auth(false);
-            //}
-            //else
-            {
+                authStatsInfo.token = token;
+                authStatsInfo.attr = attr;
+                authStatsInfo.lang = lang;
+                authStatsInfo.lastActionMsecTimeStamp = ClientEngine.GetCurrentMilliseconds();
                 if (authStatsInfo.remainedTimeout == 0)
                     authStatsInfo.remainedTimeout = ((ConnectTimeout == 0) ? RTMConfig.globalConnectTimeoutSeconds : ConnectTimeout)
                         + ((QuestTimeout == 0) ? RTMConfig.globalQuestTimeoutSeconds : QuestTimeout);
-
-                rtmGate.AsyncConnect();
             }
+
+            rtmGate.AsyncConnect();
 
             return true;
         }

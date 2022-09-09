@@ -20,6 +20,7 @@ namespace com.fpnn
         internal static int globalConnectTimeoutSeconds;
         internal static int globalQuestTimeoutSeconds;
         internal static int maxPayloadSize;
+        internal static bool closeConnectionsWhenBackground;
         internal static common.ErrorRecorder errorRecorder;
 
         static partial void PlatformInit();     //-- In lock (interLocker) {...}
@@ -67,6 +68,7 @@ namespace com.fpnn
                 globalConnectTimeoutSeconds = config.globalConnectTimeoutSeconds;
                 globalQuestTimeoutSeconds = config.globalQuestTimeoutSeconds;
                 maxPayloadSize = config.maxPayloadSize;
+                closeConnectionsWhenBackground = config.closeConnectionsWhenBackground;
                 errorRecorder = config.errorRecorder;
 
                 taskPool = new common.TaskThreadPool(config.taskThreadPoolConfig.initThreadCount,

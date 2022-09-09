@@ -44,8 +44,11 @@ namespace com.fpnn
                     _isBackground = true;
 
 #if UNITY_IOS
-                    ClientEngine.ChangeForbiddenRegisterConnection(_isBackground);
-                    ClientEngine.StopAllConnections();
+                    if (ClientEngine.closeConnectionsWhenBackground)
+                    {
+                        ClientEngine.ChangeForbiddenRegisterConnection(_isBackground);
+                        ClientEngine.StopAllConnections();
+                    }
 #endif
                 }
             }
@@ -56,7 +59,10 @@ namespace com.fpnn
                     _isBackground = false;
 
 #if UNITY_IOS
-                    ClientEngine.ChangeForbiddenRegisterConnection(_isBackground);
+                    if (ClientEngine.closeConnectionsWhenBackground)
+                    { 
+                        ClientEngine.ChangeForbiddenRegisterConnection(_isBackground);
+                    }
 #endif
                 }
             }

@@ -24,6 +24,10 @@ class MyAudioRecorderListener : AudioRecorderNative.IAudioRecorderListener {
         Debug.Log("OnVolumn db=" + db);
     }
 
+    public void PlayStart(bool success)
+    {
+        Debug.Log("PlayStart success = " + success);
+    }
     public void PlayEnd()
     { 
         Debug.Log("PlayEnd");

@@ -23,6 +23,7 @@ namespace com.fpnn
         public int maxPayloadSize;
         public common.ErrorRecorder errorRecorder;
         public bool dropAllUnexecutedTaskWhenExiting;
+        public bool closeConnectionsWhenBackground;
 
         public Config()
         {
@@ -36,6 +37,7 @@ namespace com.fpnn
             globalQuestTimeoutSeconds = 5;
             maxPayloadSize = 1024 * 1024 * 4;        //-- 4MB
 
+            closeConnectionsWhenBackground = false;
 #if UNITY_EDITOR
             dropAllUnexecutedTaskWhenExiting = true;
 #else

@@ -15,6 +15,7 @@ namespace com.fpnn.rtm
             void RecordEnd();
             void OnRecord(RTMAudioData audioData);
             void OnVolumn(double db);
+            void PlayStart(bool success);
             void PlayEnd();
         }
 
@@ -81,6 +82,13 @@ namespace com.fpnn.rtm
                 audioRecorderListener.PlayEnd();
         }
 
+        delegate void PlayStartCallbackDelegate(bool success);
+        [MonoPInvokeCallback(typeof(PlayStartCallbackDelegate))]
+        private static void PlayStartCallback(bool success)
+        {
+            audioRecorderListener?.PlayStart(success);
+        }
+
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
         [DllImport("RTMNative")]
         private static extern void startRecord(VolumnCallbackDelegate callback, StartRecordCallbackDelegate startCallback);
@@ -89,7 +97,7 @@ namespace com.fpnn.rtm
         private static extern void stopRecord(StopRecordCallbackDelegate callback);
 
         [DllImport("RTMNative")]
-        private static extern void startPlay(byte[] data, int length, PlayFinishCallbackDelegate callback);
+        private static extern void startPlay(byte[] data, int length, PlayFinishCallbackDelegate callback, PlayStartCallbackDelegate playStartCallback);
 
         [DllImport("RTMNative")]
         private static extern void stopPlay();
@@ -104,7 +112,7 @@ namespace com.fpnn.rtm
         private static extern void stopRecord(StopRecordCallbackDelegate callback);
 
         [DllImport("__Internal")]
-        private static extern void startPlay(byte[] data, int length, PlayFinishCallbackDelegate callback);
+        private static extern void startPlay(byte[] data, int length, PlayFinishCallbackDelegate callback, PlayStartCallbackDelegate playStartCallback);
 
         [DllImport("__Internal")]
         private static extern void stopPlay();
@@ -126,6 +134,12 @@ namespace com.fpnn.rtm
                 recording = false;
                 if (AudioRecorderNative.audioRecorderListener != null)
                     AudioRecorderNative.audioRecorderListener.RecordEnd();
+            }
+
+            public void startBroad(bool success)
+            {
+                if (AudioRecorderNative.audioRecorderListener != null)
+                    AudioRecorderNative.audioRecorderListener.PlayStart(success);
             }
 
             public void broadFinish()
@@ -230,14 +244,14 @@ namespace com.fpnn.rtm
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
             byte[] wavBuffer = AudioConvert.ConvertToWav(data.Audio);
-            startPlay(wavBuffer, wavBuffer.Length, PlayFinishCallback);
+            startPlay(wavBuffer, wavBuffer.Length, PlayFinishCallback, PlayStartCallback);
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
-            startPlay(data.Audio, data.Audio.Length, PlayFinishCallback);
+            startPlay(data.Audio, data.Audio.Length, PlayFinishCallback, PlayStartCallback);
 #elif UNITY_ANDROID
             if (AudioRecord != null)
                 AudioRecord.Call("broadAudio", AudioConvert.ConvertToWav(data.Audio));
 #else
-            startPlay(data.Audio, data.Audio.Length, PlayFinishCallback);
+            startPlay(data.Audio, data.Audio.Length, PlayFinishCallback, PlayStartCallback);
 #endif
         }
 
