@@ -145,7 +145,8 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("getunread");
             quest.Param("clear", clear);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 List<long> p2pList = null;
                 List<long> groupList = null;
@@ -283,7 +284,8 @@ namespace com.fpnn.rtm
             if (mTypes != null && mTypes.Count > 0)
                 quest.Param("mtypes", mTypes);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 Dictionary<long, int> unreadDictionary = null;
                 Dictionary<long, long> lastUnreadTimestampDictionary = null;
@@ -403,7 +405,8 @@ namespace com.fpnn.rtm
             if (mTypes != null && mTypes.Count > 0)
                 quest.Param("mtypes", mTypes);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 Dictionary<long, int> unreadDictionary = null;
                 Dictionary<long, long> lastUnreadTimestampDictionary = null;
@@ -499,7 +502,8 @@ namespace com.fpnn.rtm
             }
 
             Quest quest = new Quest("getsession");
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 List<long> p2pList = null;
                 List<long> groupList = null;
@@ -554,6 +558,48 @@ namespace com.fpnn.rtm
             {
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
             }
+        }
+
+        //===========================[ Remove Session ]=========================//
+        public bool RemoveSession(DoneDelegate callback, long toUid, int timeout = 0)
+        { 
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("removesession");
+            quest.Param("to", toUid);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int RemoveSession(long toUid, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("removesession");
+            quest.Param("to", toUid);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            return answer.ErrorCode();
         }
 
         //===========================[ Delete Chat ]=========================//
@@ -691,7 +737,8 @@ namespace com.fpnn.rtm
                 case ProfanityType.Off: quest.Param("profanity", "off"); break;
             }
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 TranslatedInfo tm = null;
 
@@ -806,7 +853,8 @@ namespace com.fpnn.rtm
             quest.Param("text", text);
             quest.Param("classify", classify);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 string resultText = "";
                 List<string> classification = null;
@@ -989,7 +1037,8 @@ namespace com.fpnn.rtm
             if (sampleRate > 0)
                 quest.Param("srate", sampleRate);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 string text = "";
                 string resultLanguage = "";
@@ -1075,7 +1124,8 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("tcheck");
             quest.Param("text", text);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 TextCheckResult result = new TextCheckResult();
 
@@ -1157,7 +1207,8 @@ namespace com.fpnn.rtm
             quest.Param("image", imageUrl);
             quest.Param("type", 1);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1234,7 +1285,8 @@ namespace com.fpnn.rtm
             quest.Param("image", imageContent);
             quest.Param("type", 2);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1320,7 +1372,8 @@ namespace com.fpnn.rtm
             if (sampleRate > 0)
                 quest.Param("srate", sampleRate);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1411,7 +1464,8 @@ namespace com.fpnn.rtm
             if (sampleRate > 0)
                 quest.Param("srate", sampleRate);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1498,7 +1552,8 @@ namespace com.fpnn.rtm
             quest.Param("type", 1);
             quest.Param("videoName", videoName);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 
@@ -1577,7 +1632,8 @@ namespace com.fpnn.rtm
             quest.Param("type", 2);
             quest.Param("videoName", videoName);
 
-            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
 
                 CheckResult result = new CheckResult();
 

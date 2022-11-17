@@ -52,6 +52,7 @@ namespace com.fpnn.rtm
         public const int RTM_EC_PROFANITY_STOP = 200057;
         public const int RTM_EC_NO_CONFIG_IN_CONSOLE = 200060;
         public const int RTM_EC_UNSUPPORTED_TRASNCRIBE_TYPE = 200061;
+        public const int RTM_EC_BLOCK_USER = 200062;
 
         public const int RTM_EC_MESSAGE_NOT_FOUND = 200070;
 

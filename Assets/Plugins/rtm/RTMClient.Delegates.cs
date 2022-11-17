@@ -124,4 +124,18 @@ namespace com.fpnn.rtm
     }
 
     public delegate void HistoryMessageDelegate(int count, long lastCursorId, long beginMsec, long endMsec, List<HistoryMessage> messages, int errorCode);
+
+    public enum ConversationType
+    { 
+        P2P = 1,
+        GROUP = 2,       
+    }
+
+    public class Conversation
+    {
+        public long id;
+        public ConversationType conversationType;
+        public int unreadCount;
+        public HistoryMessage lastMessage;
+    }
 }

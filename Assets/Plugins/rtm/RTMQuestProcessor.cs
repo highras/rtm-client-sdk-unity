@@ -6,45 +6,87 @@ using com.fpnn.proto;
 
 namespace com.fpnn.rtm
 {
+    public delegate void SessionClosedDelegate(int ClosedByErrorCode);
+    public delegate bool ReloginWillStartDelegate(int lastErrorCode, int retriedCount);
+    public delegate void ReloginCompletedDelegate(bool successful, bool retryAgain, int errorCode, int retriedCount);
+    public delegate void KickOutDelegate();
+    public delegate void KickoutRoomDelegate(long roomId);
+    public delegate void PushMessageDelegate(RTMMessage message);
+
     public class RTMQuestProcessor
     {
         //----------------[ System Events ]-----------------//
         public virtual void SessionClosed(int ClosedByErrorCode) { }    //-- ErrorCode: com.fpnn.ErrorCode & com.fpnn.rtm.ErrorCode
+        public SessionClosedDelegate SessionClosedCallback;
 
         //-- Return true for starting relogin, false for stopping relogin.
         public virtual bool ReloginWillStart(int lastErrorCode, int retriedCount) { return true; }
+        public ReloginWillStartDelegate ReloginWillStartCallback;
+
         public virtual void ReloginCompleted(bool successful, bool retryAgain, int errorCode, int retriedCount) { }
+        public ReloginCompletedDelegate ReloginCompletedCallback;
 
         public virtual void Kickout() { }
+        public KickOutDelegate KickoutCallback;
+
         public virtual void KickoutRoom(long roomId) { }
+        public KickoutRoomDelegate KickoutRoomCallback;
 
         //----------------[ Message Interfaces ]-----------------//
         //-- Messages
         public virtual void PushMessage(RTMMessage message) { }
+        public PushMessageDelegate PushMessageCallback;
+
         public virtual void PushGroupMessage(RTMMessage message) { }
+        public PushMessageDelegate PushGroupMessageCallback;
+
         public virtual void PushRoomMessage(RTMMessage message) { }
+        public PushMessageDelegate PushRoomMessageCallback;
+
         public virtual void PushBroadcastMessage(RTMMessage message) { }
+        public PushMessageDelegate PushBroadcastMessageCallback;
 
         //-- Chat
         public virtual void PushChat(RTMMessage message) { }
+        public PushMessageDelegate PushChatCallback;
+
         public virtual void PushGroupChat(RTMMessage message) { }
+        public PushMessageDelegate PushGroupChatCallback;
+
         public virtual void PushRoomChat(RTMMessage message) { }
+        public PushMessageDelegate PushRoomChatCallback;
+
         public virtual void PushBroadcastChat(RTMMessage message) { }
+        public PushMessageDelegate PushBroadcastChatCallback;
 
         //-- Cmd
         public virtual void PushCmd(RTMMessage message) { }
+        public PushMessageDelegate PushCmdCallback;
+
         public virtual void PushGroupCmd(RTMMessage message) { }
+        public PushMessageDelegate PushGroupCmdCallback;
+
         public virtual void PushRoomCmd(RTMMessage message) { }
+        public PushMessageDelegate PushRoomCmdCallback;
+
         public virtual void PushBroadcastCmd(RTMMessage message) { }
+        public PushMessageDelegate PushBroadcastCmdCallback;
 
         //-- Files
         public virtual void PushFile(RTMMessage message) { }
+        public PushMessageDelegate PushFileCallback;
+
         public virtual void PushGroupFile(RTMMessage message) { }
+        public PushMessageDelegate PushGroupFileCallback;
+
         public virtual void PushRoomFile(RTMMessage message) { }
+        public PushMessageDelegate PushRoomFileCallback;
+
         public virtual void PushBroadcastFile(RTMMessage message) { }
+        public PushMessageDelegate PushBroadcastFileCallback;
     }
 
-    internal class RTMMasterProcessor: IRTMMasterProcessor
+    public class RTMMasterProcessor: IRTMMasterProcessor
     {
         private RTMQuestProcessor questProcessor;
         private DuplicatedMessageFilter duplicatedFilter;
@@ -116,7 +158,10 @@ namespace com.fpnn.rtm
         public void SessionClosed(int ClosedByErrorCode)
         {
             if (questProcessor != null)
+            { 
                 questProcessor.SessionClosed(ClosedByErrorCode);
+                questProcessor.SessionClosedCallback?.Invoke(ClosedByErrorCode);
+            }
 
             RTMControlCenter.UnregisterSession(connectionId);
         }
@@ -125,7 +170,12 @@ namespace com.fpnn.rtm
         {
             bool startRelogin = true;
             if (questProcessor != null)
-                startRelogin = questProcessor.ReloginWillStart(lastErrorCode, retriedCount);
+            {
+                if (questProcessor.ReloginWillStartCallback == null)
+                    startRelogin = questProcessor.ReloginWillStart(lastErrorCode, retriedCount);
+                else
+                    questProcessor.ReloginWillStartCallback?.Invoke(lastErrorCode, retriedCount);
+            }
 
             if (startRelogin)       //-- if startRelogin == false, will call SessionClosed(), the UnregisterSession() will be called in SessionClosed().
                 RTMControlCenter.UnregisterSession(connectionId);
@@ -136,7 +186,10 @@ namespace com.fpnn.rtm
         public void ReloginCompleted(bool successful, bool retryAgain, int errorCode, int retriedCount)
         {
             if (questProcessor != null)
+            { 
                 questProcessor.ReloginCompleted(successful, retryAgain, errorCode, retriedCount);
+                questProcessor.ReloginCompletedCallback?.Invoke(successful, retryAgain, errorCode, retriedCount);
+            }
         }
 
         //----------------------[ RTM Operations ]-------------------//
@@ -156,7 +209,10 @@ namespace com.fpnn.rtm
             RTMControlCenter.CloseSession(connectionId);
 
             if (questProcessor != null && closed == false)
+            { 
                 questProcessor.Kickout();
+                questProcessor.KickoutCallback?.Invoke();
+            }
 
             return null;
         }
@@ -167,6 +223,7 @@ namespace com.fpnn.rtm
             {
                 long roomId = quest.Want<Int64>("rid");
                 questProcessor.KickoutRoom(roomId);
+                questProcessor.KickoutRoomCallback?.Invoke(roomId);
             }
 
             return null;
@@ -306,19 +363,25 @@ namespace com.fpnn.rtm
             if (rtmMessage.messageType == (byte)MessageType.Chat)
             {
                 if (rtmMessage.translatedInfo != null)
+                { 
                     questProcessor.PushChat(rtmMessage);
+                    questProcessor.PushChatCallback?.Invoke(rtmMessage);
+                }
             }
             else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
                 questProcessor.PushCmd(rtmMessage);
+                questProcessor.PushCmdCallback?.Invoke(rtmMessage);
             }
             else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
                 questProcessor.PushFile(rtmMessage);
+                questProcessor.PushFileCallback?.Invoke(rtmMessage);
             }
             else
             {
                 questProcessor.PushMessage(rtmMessage);
+                questProcessor.PushMessageCallback?.Invoke(rtmMessage);
             }
 
             return null;
@@ -343,19 +406,25 @@ namespace com.fpnn.rtm
             if (rtmMessage.messageType == (byte)MessageType.Chat)
             {
                 if (rtmMessage.translatedInfo != null)
+                { 
                     questProcessor.PushGroupChat(rtmMessage);
+                    questProcessor.PushGroupChatCallback?.Invoke(rtmMessage);
+                }
             }
             else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
                 questProcessor.PushGroupCmd(rtmMessage);
+                questProcessor.PushGroupCmdCallback?.Invoke(rtmMessage);
             }
             else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
                 questProcessor.PushGroupFile(rtmMessage);
+                questProcessor.PushGroupFileCallback?.Invoke(rtmMessage);
             }
             else
             {
                 questProcessor.PushGroupMessage(rtmMessage);
+                questProcessor.PushGroupMessageCallback?.Invoke(rtmMessage);
             }
 
             return null;
@@ -380,19 +449,25 @@ namespace com.fpnn.rtm
             if (rtmMessage.messageType == (byte)MessageType.Chat)
             {
                 if (rtmMessage.translatedInfo != null)
+                { 
                     questProcessor.PushRoomChat(rtmMessage);
+                    questProcessor.PushRoomChatCallback?.Invoke(rtmMessage);
+                }
             }
             else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
                 questProcessor.PushRoomCmd(rtmMessage);
+                questProcessor.PushRoomCmdCallback?.Invoke(rtmMessage);
             }
             else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
                 questProcessor.PushRoomFile(rtmMessage);
+                questProcessor.PushRoomFileCallback?.Invoke(rtmMessage);
             }
             else
             {
                 questProcessor.PushRoomMessage(rtmMessage);
+                questProcessor.PushRoomMessageCallback?.Invoke(rtmMessage);
             }
 
             return null;
@@ -416,19 +491,25 @@ namespace com.fpnn.rtm
             if (rtmMessage.messageType == (byte)MessageType.Chat)
             {
                 if (rtmMessage.translatedInfo != null)
+                { 
                     questProcessor.PushBroadcastChat(rtmMessage);
+                    questProcessor.PushBroadcastChatCallback?.Invoke(rtmMessage);
+                }
             }
             else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
                 questProcessor.PushBroadcastCmd(rtmMessage);
+                questProcessor.PushBroadcastCmdCallback?.Invoke(rtmMessage);
             }
             else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
                 questProcessor.PushBroadcastFile(rtmMessage);
+                questProcessor.PushBroadcastFileCallback?.Invoke(rtmMessage);
             }
             else
             {
                 questProcessor.PushBroadcastMessage(rtmMessage);
+                questProcessor.PushBroadcastMessageCallback?.Invoke(rtmMessage);
             }
 
             return null;

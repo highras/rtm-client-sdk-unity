@@ -122,6 +122,10 @@ Please refer [RTM System Functions](System.md)
 
 Please refer [Chat Functions](Chat.md)
 
+#### Conversation Functions
+
+Please refer [Conversation Functions](Conversation.md)
+
 #### Value-Added Functions
 
 Please refer [Value-Added Functions](ValueAdded.md)

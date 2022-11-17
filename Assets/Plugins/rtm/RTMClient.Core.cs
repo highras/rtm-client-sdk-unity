@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using com.fpnn.proto;
+using UnityEngine;
 
 namespace com.fpnn.rtm
 {
@@ -86,6 +87,7 @@ namespace com.fpnn.rtm
 
         //-------------[ Fields ]--------------------------//
         private object interLocker;
+        private static object instanceLocker = new object();
         private readonly long projectId;
         private readonly long uid;
 
@@ -125,6 +127,7 @@ namespace com.fpnn.rtm
             if (errorRecorder != null)
                 processor.SetErrorRecorder(errorRecorder);
 
+            
             BuildRtmGateClient(endpoint);
 
             if (autoRelogin)
@@ -133,6 +136,60 @@ namespace com.fpnn.rtm
                 regressiveStrategy = RTMConfig.globalRegressiveStrategy;
             }
         }
+
+        private void reset(RTMQuestProcessor serverPushProcessor, bool autoRelogin)
+        {
+            //status = ClientStatus.Closed;
+            //requireClose = false;
+            //ConnectTimeout = 0;
+            //QuestTimeout = 0;
+            //rtmGateConnectionId = 0;
+
+            RTMMasterProcessor processorCurrent = new RTMMasterProcessor();
+            processorCurrent.SetProcessor(serverPushProcessor);
+
+            lock (interLocker)
+            {
+                processorCurrent.SetConnectionId(rtmGateConnectionId);
+                processor = processorCurrent;
+                if (errorRecorder != null)
+                    processor.SetErrorRecorder(errorRecorder);
+
+                if (autoRelogin)
+                {
+                    autoReloginInfo = new AutoReloginInfo();
+                    regressiveStrategy = RTMConfig.globalRegressiveStrategy;
+                }
+                else
+                {
+                    autoReloginInfo = null;
+                    regressiveStrategy = null;
+                }
+            }
+
+            //authStatsInfo = null;
+            //syncConnectingEvent.Reset();
+        }
+
+        public static RTMClient getInstance(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
+        {
+            RTMClient client = null;
+            lock (instanceLocker)
+            {
+                client = RTMControlCenter.FetchClient(projectId, uid);
+                if (client != null)
+                {
+                    client.reset(serverPushProcessor, autoRelogin);
+                }
+                else
+                {
+                    client = new RTMClient(endpoint, projectId, uid, serverPushProcessor, autoRelogin);
+                    RTMControlCenter.AddClient(projectId, uid, client);
+                }
+            }
+            return client;
+        }
+        
 
         //-------------[ Fack Fields ]--------------------------//
 
@@ -279,7 +336,7 @@ namespace com.fpnn.rtm
 
                     if (autoReloginInfo != null)
                     {
-                        startRelogin = (autoReloginInfo.disabled == false && autoReloginInfo.canRelogin);
+                        startRelogin = CheckRelogin();
                         autoReloginInfo.lastErrorCode = (causedByError ? fpnn.ErrorCode.FPNN_EC_CORE_CONNECTION_CLOSED : fpnn.ErrorCode.FPNN_EC_OK);
                     }
                 }
@@ -297,6 +354,11 @@ namespace com.fpnn.rtm
                     }
                 }
             });
+        }
+
+        public bool CheckRelogin()
+        {
+            return autoReloginInfo.disabled == false && autoReloginInfo.canRelogin;
         }
 
         //-------------[ Auth(Login) processing functions ]--------------------------//
@@ -664,13 +726,13 @@ namespace com.fpnn.rtm
 
             lock (interLocker)
             {
+                if (disableRelogin && autoReloginInfo != null)
+                    autoReloginInfo.Disable();
+
                 if (status == ClientStatus.Closed)
                     return;
 
                 requireClose = true;
-
-                if (disableRelogin && autoReloginInfo != null)
-                    autoReloginInfo.Disable();
 
                 if (status == ClientStatus.Connecting)
                 {
