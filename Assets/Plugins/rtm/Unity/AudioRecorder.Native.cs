@@ -62,6 +62,8 @@ namespace com.fpnn.rtm
                     cancelRecord = false;
                     return;
                 }
+                if (data == IntPtr.Zero)
+                    return;
                 byte[] payload = new byte[length];
                 Marshal.Copy(data, payload, 0, length);
 

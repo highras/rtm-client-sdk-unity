@@ -15,6 +15,7 @@ namespace com.fpnn.rtm
         //private static volatile bool networkReachable = true;
         private static volatile NetworkType networkType = NetworkType.NetworkType_Uninited;
         private static Dictionary<Int64, RTMClient> rtmClients = new Dictionary<long, RTMClient>();
+        private static Dictionary<Int64, Dictionary<Int64, RTMClient>> pidUidClients = new Dictionary<Int64, Dictionary<Int64, RTMClient>>();
         private static Dictionary<RTMClient, Int64> reloginClients = new Dictionary<RTMClient, Int64>();
 
         private static Dictionary<string, Dictionary<TCPClient, long>> fileClients = new Dictionary<string, Dictionary<TCPClient, long>>();
@@ -22,6 +23,8 @@ namespace com.fpnn.rtm
         private static volatile bool routineInited;
         private static volatile bool routineRunning;
         private static Thread routineThread;
+        private static GameObject rtmGameObject;
+        public static RTMCallbackQueue callbackQueue;
 
         static RTMControlCenter()
         {
@@ -72,6 +75,39 @@ namespace com.fpnn.rtm
             else
                 return ClientStatus.Closed;
         }
+        internal static void AddClient(Int64 projectId, Int64 uid, RTMClient client)
+        { 
+            lock (interLocker)
+            { 
+                pidUidClients.TryGetValue(projectId, out Dictionary<Int64, RTMClient> clients);
+                if (clients == null)
+                {
+                    clients = new Dictionary<long, RTMClient>{ { uid, client } };
+                    pidUidClients.Add(projectId, clients);
+                }
+                else
+                {
+                    clients.TryGetValue(uid, out RTMClient rtmClient);
+                    if (rtmClient == null)
+                        clients.Add(uid, client);
+                    else
+                        throw new Exception("duplicated RTMClient pid = " + projectId.ToString() + ", uid = " + uid.ToString());
+                }
+            }
+        }
+
+        internal static RTMClient FetchClient(Int64 projectId, Int64 uid)
+        {
+            RTMClient client = null;
+            lock (interLocker)
+            {
+                pidUidClients.TryGetValue(projectId, out Dictionary<Int64, RTMClient> clients);
+                if (clients == null)
+                    return null;
+                clients.TryGetValue(uid, out client);
+            }
+            return client;
+        }
 
         //===========================[ Relogin Functions ]=========================//
         internal static void DelayRelogin(RTMClient client, long triggeredMs)
@@ -116,7 +152,8 @@ namespace com.fpnn.rtm
             foreach (RTMClient client in clients)
             {
                 ClientEngine.RunTask(() => {
-                    client.StartRelogin();
+                    if (client.CheckRelogin())
+                        client.StartRelogin();
                 });
             }
         }
@@ -179,7 +216,7 @@ namespace com.fpnn.rtm
                         }
                     }
                     foreach (RTMClient client in activeClients)
-                        client.Close(false);
+                        client.Close(false, false);
                     reloginClients = clients;
                 }
             }
@@ -194,10 +231,10 @@ namespace com.fpnn.rtm
                         reloginClients.Add(kvp.Value, now);
                     }
                     foreach (RTMClient client in clients)
-                        client.Close(false);
+                        client.Close(false, false);
                 }
             }
-                networkType = type;
+            networkType = type;
         }
 
         //===========================[ File Gate Client Functions ]=========================//
@@ -280,11 +317,19 @@ namespace com.fpnn.rtm
 #if UNITY_2017_1_OR_NEWER
             StatusMonitor.Instance.Init();
 #endif
-
+            InitCallbackQueue();
             if (config == null)
                 return;
 
             RTMConfig.Config(config);
+        }
+
+        private static void InitCallbackQueue()
+        {
+            rtmGameObject = new GameObject(RTMConfig.RTMGameObjectName);
+            callbackQueue = rtmGameObject.AddComponent<RTMCallbackQueue>();
+            GameObject.DontDestroyOnLoad(rtmGameObject);
+            rtmGameObject.hideFlags = HideFlags.HideInHierarchy;
         }
 
         private static void CheckRoutineInit()
@@ -358,6 +403,7 @@ namespace com.fpnn.rtm
 #if UNITY_2017_1_OR_NEWER
             routineThread.Join();
 #endif
+            pidUidClients = null;
             HashSet<RTMClient> clients = new HashSet<RTMClient>();
 
             lock (interLocker)
@@ -368,7 +414,6 @@ namespace com.fpnn.rtm
 
             foreach (RTMClient client in clients)
                     client.Close(true, true);
-
         }
     }
 }
