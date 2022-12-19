@@ -171,7 +171,10 @@ namespace com.fpnn.common
         static private void SerializeBoolean(JsonStringify js, object obj)
         {
             Boolean v = (bool)obj;
-            js.sb.Append(v);
+            if (v == true)
+                js.sb.Append("true");
+            else
+                js.sb.Append("false");
         }
 
         static private void SerializeDecimal(JsonStringify js, object obj)
