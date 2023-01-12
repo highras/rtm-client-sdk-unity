@@ -604,3 +604,287 @@ Return Values:
 
 	Others are the reason for calling failed.
 
+### Get P2P Message By Message ID
+
+	//-- Async Method
+	public bool GetP2PMessageByMessageId(HistoryMessageDelegate callback, long peerUid, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, List<byte> mtypes = null, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetP2PMessageByMessageId(out HistoryMessageResult result, long peerUid, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, List<byte> mtypes = null, int timeout = 0);
+
+Get history data for P2P message by message id.
+
+Parameters:
+
++ `HistoryMessageDelegate callback`
+
+		public delegate void HistoryMessageDelegate(int count, long lastId, long beginMsec, long endMsec, List<HistoryMessage> messages, int errorCode);
+
+	Callabck for async method. Please refer [HistoryMessageDelegate](Delegates.md#HistoryMessageDelegate).
+
++ `out HistoryMessageResult result`
+
+	Fetched history data. Please refer [HistoryMessageResult](Structures.md#HistoryMessageResult).
+
++ `long peerUid`
+
+	Peer user id.
+
++ `bool desc`
+
+	* true: desc order;
+	* false: asc order.
+
++ `int count`
+
+	Count for retrieving. Max is 20 for each calling.
+
++ `long messageId`
+
+	Message id.
+
++ `long beginMsec`
+
+	Beginning timestamp in milliseconds.
+
++ `long endMsec`
+
+	Ending timestamp in milliseconds.
+
++ `List<byte> mtypes`
+
+	Message types for retrieved message. `null` means all types.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Get Group Messsage By Message ID
+
+
+	//-- Async Method
+	public bool GetGroupMessageByMessageId(HistoryMessageDelegate callback, long groupId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, List<byte> mtypes = null, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetGroupMessageByMessageId(out HistoryMessageResult result, long groupId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, List<byte> mtypes = null, int timeout = 0);
+
+Get history data for group message by message id.
+
+Parameters:
+
++ `HistoryMessageDelegate callback`
+
+		public delegate void HistoryMessageDelegate(int count, long lastId, long beginMsec, long endMsec, List<HistoryMessage> messages, int errorCode);
+
+	Callabck for async method. Please refer [HistoryMessageDelegate](Delegates.md#HistoryMessageDelegate).
+
++ `out HistoryMessageResult result`
+
+	Fetched history data. Please refer [HistoryMessageResult](Structures.md#HistoryMessageResult).
+
++ `long groupId`
+
+	Group id.
+
++ `bool desc`
+
+	* true: desc order;
+	* false: asc order.
+
++ `int count`
+
+	Count for retrieving. Max is 20 for each calling.
+
++ `long messageId`
+
+	Message id.
+
++ `long beginMsec`
+
+	Beginning timestamp in milliseconds.
+
++ `long endMsec`
+
+	Ending timestamp in milliseconds.
+
++ `List<byte> mtypes`
+
+	Message types for retrieved message. `null` means all types.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+
+### Get Room Message By Message ID
+
+	//-- Async Method
+	public bool GetRoomMessageByMessageId(HistoryMessageDelegate callback, long roomId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, List<byte> mtypes = null, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetRoomMessageByMessageId(out HistoryMessageResult result, long roomId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, List<byte> mtypes = null, int timeout = 0);
+
+Get history data for room message by message id.
+
+Parameters:
+
++ `HistoryMessageDelegate callback`
+
+		public delegate void HistoryMessageDelegate(int count, long lastId, long beginMsec, long endMsec, List<HistoryMessage> messages, int errorCode);
+
+	Callabck for async method. Please refer [HistoryMessageDelegate](Delegates.md#HistoryMessageDelegate).
+
++ `out HistoryMessageResult result`
+
+	Fetched history data. Please refer [HistoryMessageResult](Structures.md#HistoryMessageResult).
+
++ `long roomId`
+
+	Room id.
+
++ `bool desc`
+
+	* true: desc order;
+	* false: asc order.
+
++ `int count`
+
+	Count for retrieving. Max is 20 for each calling.
+
++ `long messageId`
+
+	Message id.
+
++ `long beginMsec`
+
+	Beginning timestamp in milliseconds.
+
++ `long endMsec`
+
+	Ending timestamp in milliseconds.
+
++ `List<byte> mtypes`
+
+	Message types for retrieved message. `null` means all types.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
+### Get Broadcast Message By Message ID
+
+
+	//-- Async Method
+	public bool GetBroadcastMessage(HistoryMessageDelegate callback, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, List<byte> mtypes = null, int timeout = 0);
+	
+	//-- Sync Method
+	public int GetBroadcastMessage(out HistoryMessageResult result, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, List<byte> mtypes = null, int timeout = 0);
+
+Get history data for broadcast message by message id.
+
+Parameters:
+
++ `HistoryMessageDelegate callback`
+
+		public delegate void HistoryMessageDelegate(int count, long lastId, long beginMsec, long endMsec, List<HistoryMessage> messages, int errorCode);
+
+	Callabck for async method. Please refer [HistoryMessageDelegate](Delegates.md#HistoryMessageDelegate).
+
++ `out HistoryMessageResult result`
+
+	Fetched history data. Please refer [HistoryMessageResult](Structures.md#HistoryMessageResult).
+
++ `bool desc`
+
+	* true: desc order;
+	* false: asc order.
+
++ `int count`
+
+	Count for retrieving. Max is 20 for each calling.
+
++ `long messageId`
+
+	Message id.
+
++ `long beginMsec`
+
+	Beginning timestamp in milliseconds.
+
++ `long endMsec`
+
+	Ending timestamp in milliseconds.
+
++ `List<byte> mtypes`
+
+	Message types for retrieved message. `null` means all types.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async calling is start.
+	* false: Start async calling is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means calling successed.
+
+	Others are the reason for calling failed.
+
