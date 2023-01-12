@@ -260,6 +260,7 @@ namespace com.fpnn
             quitSemaphore.WaitOne();
             quitSemaphore.Close();
             quitSemaphore = null;
+            inited = false;
 
             PlatformUninit();
             taskPool.Close(dropAllTaskWhenQuit);

@@ -28,8 +28,8 @@ namespace com.fpnn
         public Config()
         {
             taskThreadPoolConfig.initThreadCount = 1;
-            taskThreadPoolConfig.perfectThreadCount = 2;
-            taskThreadPoolConfig.maxThreadCount = 4;
+            taskThreadPoolConfig.perfectThreadCount = 8;
+            taskThreadPoolConfig.maxThreadCount = 16;
             taskThreadPoolConfig.maxQueueLengthLimitation = 0;
             taskThreadPoolConfig.tempLatencySeconds = 60;
 
