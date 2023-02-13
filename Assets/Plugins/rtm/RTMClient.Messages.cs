@@ -818,7 +818,7 @@ namespace com.fpnn.rtm
             if (client == null)
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
-            Quest quest = new Quest("getbroadcastmsg");
+            Quest quest = new Quest("getbroadcastmsgbymessageid");
             quest.Param("desc", desc);
             quest.Param("num", count);
             quest.Param("mid", messageId);
@@ -951,7 +951,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            Quest quest = new Quest("getp2pmsg");
+            Quest quest = new Quest("getp2pmsgbymessageid");
             quest.Param("ouid", peerUid);
             quest.Param("desc", desc);
             quest.Param("num", count);
@@ -1001,7 +1001,7 @@ namespace com.fpnn.rtm
             if (client == null)
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
-            Quest quest = new Quest("getp2pmsg");
+            Quest quest = new Quest("getp2pmsgbymessageid");
             quest.Param("ouid", peerUid);
             quest.Param("desc", desc);
             quest.Param("num", count);

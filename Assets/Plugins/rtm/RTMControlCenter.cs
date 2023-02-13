@@ -403,7 +403,6 @@ namespace com.fpnn.rtm
 #if UNITY_2017_1_OR_NEWER
             routineThread.Join();
 #endif
-            pidUidClients = null;
             HashSet<RTMClient> clients = new HashSet<RTMClient>();
 
             lock (interLocker)
@@ -414,6 +413,11 @@ namespace com.fpnn.rtm
 
             foreach (RTMClient client in clients)
                     client.Close(true, true);
+
+            rtmClients.Clear();
+            pidUidClients.Clear();
+            reloginClients.Clear();
+            fileClients.Clear();
         }
     }
 }

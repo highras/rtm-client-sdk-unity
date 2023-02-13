@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace com.fpnn.rtm
 {
@@ -26,7 +27,7 @@ namespace com.fpnn.rtm
             return RealSendFile(out messageId, FileTokenType.P2P, peerUid, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
         }
 
-        //===========================[ Sned RTM-Audio Group File ]=========================//
+        //===========================[ Send RTM-Audio Group File ]=========================//
         public bool SendGroupFile(MessageIdDelegate callback, long groupId, RTMAudioData audioData, string attrs = "", int timeout = 120)
         {
             return RealSendFile(callback, FileTokenType.Group, groupId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
@@ -37,7 +38,7 @@ namespace com.fpnn.rtm
             return RealSendFile(out messageId, FileTokenType.Group, groupId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
         }
 
-        //===========================[ Sned Sned RTM-Audio Room File ]=========================//
+        //===========================[ Send RTM-Audio Room File ]=========================//
         public bool SendRoomFile(MessageIdDelegate callback, long roomId, RTMAudioData audioData, string attrs = "", int timeout = 120)
         {
             return RealSendFile(callback, FileTokenType.Room, roomId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
@@ -47,5 +48,18 @@ namespace com.fpnn.rtm
         {
             return RealSendFile(out messageId, FileTokenType.Room, roomId, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
         }
+
+        //===========================[ Upload RTM-Audio File ]=========================//
+        public bool UploadFile(Action<string, uint, int> callback, RTMAudioData audioData, string attrs = "", int timeout = 120)
+        {
+            return RealUploadFile(callback, FileTokenType.Upload, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
+        }
+
+        public int UploadFile(out string url, out uint size, RTMAudioData audioData, string attrs = "", int timeout = 120)
+        {
+            return RealUploadFile(out url, out size, FileTokenType.Upload, (byte)MessageType.AudioFile, audioData.Audio, "", "", attrs, BuildAudioMessageAttrs(audioData), timeout);
+        }
+
+
     }
 }

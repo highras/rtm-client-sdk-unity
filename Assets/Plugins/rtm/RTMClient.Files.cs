@@ -13,7 +13,8 @@ namespace com.fpnn.rtm
         {
             P2P,
             Group,
-            Room
+            Room,
+            Upload,
         }
 
         private class SendFileInfo
@@ -32,6 +33,7 @@ namespace com.fpnn.rtm
             public int remainTimeout;
             public long lastActionTimestamp;
             public MessageIdDelegate callback;
+            public Action<string, uint, int> uploadCallback;
             public Dictionary<string, object> rtmAttrs;
         }
 
@@ -59,6 +61,9 @@ namespace com.fpnn.rtm
                 case FileTokenType.Room:
                     quest.Param("cmd", "sendroomfile");
                     quest.Param("rid", xid);
+                    break;
+                case FileTokenType.Upload:
+                    quest.Param("cmd", "uploadfile");
                     break;
             }
 
@@ -107,6 +112,9 @@ namespace com.fpnn.rtm
                 case FileTokenType.Room:
                     quest.Param("cmd", "sendroomfile");
                     quest.Param("rid", xid);
+                    break;
+                case FileTokenType.Upload:
+                    quest.Param("cmd", "uploadfile");
                     break;
             }
 
@@ -277,6 +285,10 @@ namespace com.fpnn.rtm
                     quest = new Quest("sendroomfile");
                     quest.Param("rid", info.xid);
                     break;
+                case FileTokenType.Upload:
+                    quest = new Quest("uploadfile");
+                    quest.Param("uid", uid);
+                    break;
             }
 
             quest.Param("pid", projectId);
@@ -319,6 +331,42 @@ namespace com.fpnn.rtm
                 }
 
                 info.callback(0, errorCode);
+            }, info.remainTimeout);
+
+            if (success)
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            else
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+        }
+
+        private int UploadFileWithClient(SendFileInfo info, TCPClient client)
+        {
+            UpdateTimeout(ref info.remainTimeout, ref info.lastActionTimestamp);
+            if (info.remainTimeout <= 0)
+                return fpnn.ErrorCode.FPNN_EC_CORE_TIMEOUT;
+
+            long messageId = 0;
+            Quest quest = BuildSendFileQuest(out messageId, info);
+            bool success = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        string url = answer.Want<string>("url");
+                        uint size = answer.Want<uint>("size");
+                        info.uploadCallback(url, size, fpnn.ErrorCode.FPNN_EC_OK);
+
+                        RTMControlCenter.ActiveFileGateClient(info.endpoint, client);
+                        return;
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+
+                info.uploadCallback(null, 0, errorCode);
             }, info.remainTimeout);
 
             if (success)
@@ -377,6 +425,56 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
+        private int UploadFileWithoutClient(SendFileInfo info, bool originalEndpoint)
+        {
+            string fileGateEndpoint;
+            if (originalEndpoint)
+                fileGateEndpoint = info.endpoint;
+            else
+            {
+                if (ConvertIPv4EndpointToIPv6IPPort(info.endpoint, out string ipv6, out int port))
+                {
+                    fileGateEndpoint = ipv6 + ":" + port;
+                }
+                else
+                {
+                    return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+                }
+            }
+
+            TCPClient client = TCPClient.Create(fileGateEndpoint, true);
+            if (errorRecorder != null)
+                client.SetErrorRecorder(errorRecorder);
+
+            client.SetConnectionConnectedDelegate((Int64 connectionId, string endpoint, bool connected) => {
+                int errorCode = fpnn.ErrorCode.FPNN_EC_OK;
+
+                if (connected)
+                {
+                    RTMControlCenter.ActiveFileGateClient(info.endpoint, client);
+                    errorCode = UploadFileWithClient(info, client);
+                }
+                else if (originalEndpoint)
+                {
+                    errorCode = UploadFileWithoutClient(info, false);
+                }
+                else
+                {
+                    errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+                }
+
+                if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
+                    info.uploadCallback(null, 0, errorCode);
+
+                if (connected)
+                    client.SetConnectionConnectedDelegate(null);
+            });
+
+            client.AsyncConnect();
+
+            return fpnn.ErrorCode.FPNN_EC_OK;
+        }
+
         private void GetFileTokenCallback(SendFileInfo info, string token, string endpoint, int errorCode)
         {
             if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
@@ -395,6 +493,26 @@ namespace com.fpnn.rtm
             }
             else
                 info.callback(0, errorCode);
+        }
+
+        private void GetFileTokenUploadCallback(SendFileInfo info, string token, string endpoint, int errorCode)
+        {
+            if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+            {
+                info.token = token;
+                info.endpoint = endpoint;
+
+                TCPClient fileClient = RTMControlCenter.FecthFileGateClient(info.endpoint);
+                if (fileClient != null)
+                    errorCode = UploadFileWithClient(info, fileClient);
+                else
+                    errorCode = UploadFileWithoutClient(info, true);
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                    return;
+            }
+            else
+                info.uploadCallback(null, 0, errorCode);
         }
 
         //===========================[ Real Send File ]=========================//
@@ -556,6 +674,169 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
+        private bool RealUploadFile(Action<string, uint, int> callback, FileTokenType tokenType, byte mtype,
+            byte[] fileContent, string filename, string fileExtension = "", string attrs = "", Dictionary<string, object> rtmAttrs = null, int timeout = 120)
+        {
+            if (mtype < 40 || mtype > 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("Send file require mtype between [40, 50], current mtype is " + mtype);
+
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, 0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
+                return false;
+            }
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, 0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            SendFileInfo info = new SendFileInfo
+            {
+                actionType = tokenType,
+                xid = 0,
+                mtype = mtype,
+                fileContent = fileContent,
+                filename = filename,
+                fileExtension = fileExtension,
+                userAttrs = attrs,
+                remainTimeout = timeout,
+                lastActionTimestamp = ClientEngine.GetCurrentMilliseconds(),
+                uploadCallback = callback
+            };
+            info.rtmAttrs = rtmAttrs;
+
+            bool asyncStarted = FileToken((string token, string endpoint, int errorCode) => {
+                GetFileTokenUploadCallback(info, token, endpoint, errorCode);
+            }, tokenType, info.xid, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, 0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        private int RealUploadFile(out string url, out uint size, FileTokenType tokenType, byte mtype,
+            byte[] fileContent, string filename, string fileExtension = "", string attrs = "", Dictionary<string, object> rtmAttrs = null, int timeout = 120)
+        {
+            url = null;
+            size = 0;
+
+            //----------[ 1. check mtype ]---------------//
+
+            if (mtype < 40 || mtype > 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("Send file require mtype between [40, 50], current mtype is " + mtype);
+
+                return ErrorCode.RTM_EC_INVALID_MTYPE;
+            }
+
+            //----------[ 2. Get File Token ]---------------//
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            long lastActionTimestamp = ClientEngine.GetCurrentMilliseconds();
+
+            int errorCode = FileToken(out string token, out string endpoint, tokenType, 0, timeout);
+            if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
+                return errorCode;
+
+            //----------[ 2.1 check timeout ]---------------//
+
+            UpdateTimeout(ref timeout, ref lastActionTimestamp);
+            if (timeout <= 0)
+                return fpnn.ErrorCode.FPNN_EC_CORE_TIMEOUT;
+
+            //----------[ 3. fetch file gate client ]---------------//
+
+            TCPClient fileClient = RTMControlCenter.FecthFileGateClient(endpoint);
+            if (fileClient == null)
+            {
+                fileClient = TCPClient.Create(endpoint, true);
+                if (fileClient.SyncConnect())
+                {
+                    RTMControlCenter.ActiveFileGateClient(endpoint, fileClient);
+                }
+                else
+                {
+                    //----------[ 3.1 check timeout ]---------------//
+                    UpdateTimeout(ref timeout, ref lastActionTimestamp);
+                    if (timeout <= 0)
+                        return fpnn.ErrorCode.FPNN_EC_CORE_TIMEOUT;
+
+                    if (ConvertIPv4EndpointToIPv6IPPort(endpoint, out string ipv6, out int port))
+                    {
+                        fileClient = TCPClient.Create(ipv6 + ":" + port, true);
+                        if (fileClient.SyncConnect())
+                        {
+                            RTMControlCenter.ActiveFileGateClient(endpoint, fileClient);
+                        }
+                        else
+                        {
+                            return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+                        }
+                    }
+                    else
+                    {
+                        return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+                    }
+                }
+            }
+
+            //----------[ 3.2 check timeout ]---------------//
+
+            UpdateTimeout(ref timeout, ref lastActionTimestamp);
+            if (timeout <= 0)
+                return fpnn.ErrorCode.FPNN_EC_CORE_TIMEOUT;
+
+            //----------[ 4. build quest ]---------------//
+            SendFileInfo info = new SendFileInfo
+            {
+                actionType = tokenType,
+                xid = 0,
+                mtype = mtype,
+                fileContent = fileContent,
+                filename = filename,
+                fileExtension = fileExtension,
+                userAttrs = attrs,
+                token = token,
+            };
+            info.rtmAttrs = rtmAttrs;
+
+            long messageId = 0;
+            Quest quest = BuildSendFileQuest(out messageId, info);
+            Answer answer = fileClient.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            url = answer.Want<string>("url");
+            size = answer.Want<uint>("size");
+
+            RTMControlCenter.ActiveFileGateClient(endpoint, fileClient);
+
+            // mtime = answer.Want<long>("mtime");
+            return fpnn.ErrorCode.FPNN_EC_OK;
+        }
+
         //===========================[ Sned File ]=========================//
         public bool SendFile(MessageIdDelegate callback, long peerUid, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120)
         {
@@ -587,6 +868,17 @@ namespace com.fpnn.rtm
         public int SendRoomFile(out long messageId, long roomId, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120)
         {
             return RealSendFile(out messageId, FileTokenType.Room, roomId, (byte)type, fileContent, filename, fileExtension, attrs, null, timeout);
+        }
+
+        //===========================[ Upload File ]=========================//
+        public bool UploadFile(Action<string, uint, int> callback, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120)
+        {
+            return RealUploadFile(callback, FileTokenType.Upload, (byte)type, fileContent, filename, fileExtension, attrs, null, timeout);
+        }
+
+        public int UploadFile(out string url, out uint size, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120)
+        {
+            return RealUploadFile(out url, out size, FileTokenType.Upload, (byte)type, fileContent, filename, fileExtension, attrs, null, timeout);
         }
     }
 }

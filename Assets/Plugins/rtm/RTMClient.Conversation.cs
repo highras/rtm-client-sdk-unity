@@ -12,13 +12,6 @@ namespace com.fpnn.rtm
             int i = 0;
             foreach (List<object> items in messages)
             {
-                bool deleted = (bool)Convert.ChangeType(items[4], TypeCode.Boolean);
-                if (deleted)
-                {
-                    i += 1;
-                    continue;
-                }
-
                 HistoryMessage message = new HistoryMessage();
                 message.cursorId = (long)Convert.ChangeType(items[0], TypeCode.Int64);
                 if (message.cursorId != 0)
@@ -231,13 +224,6 @@ namespace com.fpnn.rtm
             int i = 0;
             foreach (List<object> items in messages)
             {
-                bool deleted = (bool)Convert.ChangeType(items[4], TypeCode.Boolean);
-                if (deleted)
-                {
-                    i += 1;
-                    continue;
-                }
-
                 HistoryMessage message = new HistoryMessage();
                 message.cursorId = (long)Convert.ChangeType(items[0], TypeCode.Int64);
                 if (message.cursorId != 0)

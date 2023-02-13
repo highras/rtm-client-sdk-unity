@@ -56,6 +56,19 @@ namespace com.fpnn.rtm
             return rev;
         }
 
+        private static List<long> GetLongList(Message message, string key)
+        { 
+            List<long> rev = new List<long>();
+
+            List<object> originalList = (List<object>)message.Get(key);
+            if (originalList == null)
+                return null;
+
+            foreach (object obj in originalList)
+                rev.Add((long)Convert.ChangeType(obj, TypeCode.Int64));
+            return rev;
+        }
+
         private static List<int> GetIntList(Message message, string key)
         {
             List<int> rev = new List<int>();
@@ -70,6 +83,20 @@ namespace com.fpnn.rtm
             return rev;
         }
 
+        private static List<bool> GetBoolList(Message message, string key)
+        {
+            List<bool> rev = new List<bool>();
+
+            List<object> originalList = (List<object>)message.Get(key);
+            if (originalList == null)
+                return null;
+
+            foreach (object obj in originalList)
+                rev.Add((bool)Convert.ChangeType(obj, TypeCode.Boolean));
+
+            return rev;
+        }
+
         private List<string> GetStringList(Message message, string key)
         {
             List<string> rev = new List<string>();
@@ -80,6 +107,22 @@ namespace com.fpnn.rtm
 
             foreach (object obj in originalList)
                 rev.Add((string)Convert.ChangeType(obj, TypeCode.String));
+
+            return rev;
+        }
+
+        private Dictionary<string, Dictionary<string, string>> GetStringStringDictionary(Message message, string key)
+        {
+            Dictionary<string, Dictionary<string, string>> rev = new Dictionary<string, Dictionary<string, string>>();
+
+            Dictionary<object, Dictionary<object, object>> originalDict = (Dictionary<object, Dictionary<object, object>>)message.Want(key);
+            foreach (var kvp in originalDict)
+            {
+                Dictionary<string, string> subDict = new Dictionary<string, string>();
+                foreach(var kvp2 in kvp.Value)
+                    subDict.Add((string)Convert.ChangeType(kvp2.Key, TypeCode.String), (string)Convert.ChangeType(kvp2.Value, TypeCode.String));
+                rev.Add((string)Convert.ChangeType(kvp.Key, TypeCode.String), subDict);
+            }
 
             return rev;
         }
@@ -125,6 +168,21 @@ namespace com.fpnn.rtm
             foreach (KeyValuePair<object, object> kvp in originalDict)
                 rev.Add((long)Convert.ChangeType(kvp.Key, TypeCode.Int64), (long)Convert.ChangeType(kvp.Value, TypeCode.Int64));
 
+            return rev;
+        }
+
+        private List<Dictionary<string, string>> GetListStringDictionary(Message message, string key)
+        {
+            List<Dictionary<string, string>> rev = new List<Dictionary<string, string>>();
+
+            List<Dictionary<object, object>> originalList = (List<Dictionary<object, object>>)message.Get(key);
+            foreach (var value in originalList)
+            {
+                Dictionary<string, string> dict = new Dictionary<string, string>();
+                foreach (var kv in value)
+                    dict.Add((string)Convert.ChangeType(kv.Key, TypeCode.String), (string)Convert.ChangeType(kv.Value, TypeCode.String));
+                rev.Add(dict);
+            }
             return rev;
         }
 

@@ -30,6 +30,7 @@ namespace com.fpnn.rtm
         public const int RTM_EC_TOO_MANY_ITEMS_IN_PARAMETERS = 200032;
         public const int RTM_EC_EMPTY_PARAMETER = 200033;
         public const int RTM_EC_INVALID_PARAMETER = 200034;
+        public const int RTM_EC_LARGE_DATA = 200035;
 
         public const int RTM_EC_NOT_IN_ROOM = 200040;
         public const int RTM_EC_NOT_GROUP_MEMBER = 200041;
