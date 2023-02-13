@@ -247,10 +247,10 @@ Return Values:
 ### TextCheck
 
 	//-- Async Method
-	public bool TextCheck(Action<TextCheckResult, int> callback, string text, int timeout = 120);
+	public bool TextCheck(Action<TextCheckResult, int> callback, string text, string strategyId = null, int timeout = 120);
 	
 	//-- Sync Method
-	public int TextCheck(out TextCheckResult result, string text, int timeout = 120);
+	public int TextCheck(out TextCheckResult result, string text, string strategyId = null, int timeout = 120);
 
 Text moderation.
 
@@ -270,6 +270,10 @@ Parameters:
 + `string text`
 
 	The text need to be audited.
+
++ `string strategeId`
+
+	The strategy ID of text check.
 
 + `int timeout`
 
@@ -295,12 +299,12 @@ Return Values:
 ### ImageCheck
 
 	//-- Async Method
-	public bool ImageCheck(Action<CheckResult, int> callback, string imageUrl, int timeout = 120);
-	public bool ImageCheck(Action<CheckResult, int> callback, byte[] imageContent, int timeout = 120);
+	public bool ImageCheck(Action<CheckResult, int> callback, string imageUrl, string strategyId = null, int timeout = 120);
+	public bool ImageCheck(Action<CheckResult, int> callback, byte[] imageContent, string strategyId = null, int timeout = 120);
 	
 	//-- Sync Method
-	public int ImageCheck(out CheckResult result, string imageUrl, int timeout = 120);
-	public int ImageCheck(out CheckResult result, byte[] imageContent, int timeout = 120);
+	public int ImageCheck(out CheckResult result, string imageUrl, string strategyId = null, int timeout = 120);
+	public int ImageCheck(out CheckResult result, byte[] imageContent, string strategyId = null, int timeout = 120);
 
 Image review.
 
@@ -324,6 +328,10 @@ Parameters:
 + `byte[] imageContent`
 
 	Image binary data for auditing.
+
++ `string strategeId`
+
+	The strategy ID of image check.
 
 + `int timeout`
 
@@ -349,12 +357,12 @@ Return Values:
 ### AudioCheck
 
 	//-- Async Method
-	public bool AudioCheck(Action<CheckResult, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120);
-	public bool AudioCheck(Action<CheckResult, int> callback, byte[] audioContent, string language, string codec = null, int sampleRate = 0, int timeout = 120);
+	public bool AudioCheck(Action<CheckResult, int> callback, string audioUrl, string language, string codec = null, int sampleRate = 0, string strategyId = null, int timeout = 120);
+	public bool AudioCheck(Action<CheckResult, int> callback, byte[] audioContent, string language, string codec = null, int sampleRate = 0, string strategyId = null, int timeout = 120);
 	
 	//-- Sync Method
-	public int AudioCheck(out CheckResult result, string audioUrl, string language, string codec = null, int sampleRate = 0, int timeout = 120);
-	public int AudioCheck(out CheckResult result, byte[] audioContent, string language, string codec = null, int sampleRate = 0, int timeout = 120);
+	public int AudioCheck(out CheckResult result, string audioUrl, string language, string codec = null, int sampleRate = 0, string strategyId = null, int timeout = 120);
+	public int AudioCheck(out CheckResult result, byte[] audioContent, string language, string codec = null, int sampleRate = 0, , string strategyId = null, int timeout = 120);
 
 Audio check.
 
@@ -378,6 +386,10 @@ Parameters:
 + `byte[] audioContent`
 
 	Audio binary data for checking.
+
++ `string strategeId`
+
+	The strategy ID of audio check.
 
 + `language`
 
@@ -418,12 +430,12 @@ Return Values:
 ### VideoCheck
 
 	//-- Async Method
-	public bool VideoCheck(Action<CheckResult, int> callback, string videoUrl, string videoName, int timeout = 120);
-	public bool VideoCheck(Action<CheckResult, int> callback, byte[] videoContent, string videoName, int timeout = 120);
+	public bool VideoCheck(Action<CheckResult, int> callback, string videoUrl, string videoName, string strategyId = null, int timeout = 120);
+	public bool VideoCheck(Action<CheckResult, int> callback, byte[] videoContent, string videoName, string strategyId = null, int timeout = 120);
 	
 	//-- Sync Method
-	public int VideoCheck(out CheckResult result, string videoUrl, string videoName, int timeout = 120);
-	public int VideoCheck(out CheckResult result, byte[] videoContent, string videoName, int timeout = 120);
+	public int VideoCheck(out CheckResult result, string videoUrl, string videoName, string strategyId = null, int timeout = 120);
+	public int VideoCheck(out CheckResult result, byte[] videoContent, string videoName, string strategyId = null, int timeout = 120);
 
 Video review.
 
@@ -451,6 +463,10 @@ Parameters:
 + `string videoName`
 
 	Video name.
+
++ `string strategeId`
+
+	The strategy ID of video check.
 
 + `int timeout`
 

@@ -204,3 +204,70 @@ Return Values:
 
 	Others are the reason for sending failed.
 
+### Upload File
+
+	//-- Async Method
+	public bool UploadFile(Action<string, uint, int> callback, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120);
+	
+	//-- Sync Method
+	public int UploadFile(out string url, out uint size, MessageType type, byte[] fileContent, string filename, string fileExtension = "", string attrs = "", int timeout = 120);
+
+Upload file.
+
+Parameters:
+
++ `Action<string, uint, int> callback`
+
+	Callabck for async method.  
+	`string` is url of the uploaded file.  
+	`uint` is size of the uploaded file.
+	`int` is the error code indicating the calling is successful or the failed reasons.
+		
++ `out string url`
+
+	URL of the uploaded file.
+
++ `out uint size`
+
+	Size of the uploaded file.
+
++ `MessageType type`
+
+	Message type for file.
+
++ `byte[] fileContent`
+
+	File content.
+
++ `string filename`
+
+	File name.
+
++ `string fileExtension`
+
+	File extension.
+
++ `string attrs`
+
+	Text file attributes in Json.
+
++ `int timeout`
+
+	Timeout in second.
+
+	0 means using default setting.
+
+
+Return Values:
+
++ bool for Async
+
+	* true: Async sending is start.
+	* false: Start async sending is failed.
+
++ int for Sync
+
+	0 or com.fpnn.ErrorCode.FPNN_EC_OK means sending successed.
+
+	Others are the reason for sending failed.
+
