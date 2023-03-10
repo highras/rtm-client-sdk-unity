@@ -31,6 +31,10 @@ namespace com.fpnn.rtm
             routineInited = false;
         }
 
+        public static NetworkType NetworkStatus 
+        {
+            get { return networkType; }
+        }
         //===========================[ Session Functions ]=========================//
         internal static void RegisterSession(Int64 connectionId, RTMClient client)
         {
@@ -198,43 +202,48 @@ namespace com.fpnn.rtm
             if (networkType == type)
                 return;
             long now = ClientEngine.GetCurrentMilliseconds();
-            if (networkType == NetworkType.NetworkType_Unreachable && (type == NetworkType.NetworkType_4G || type == NetworkType.NetworkType_Wifi))
-            {//之前没有网络，现在有网络
-                Dictionary<RTMClient, Int64> clients = new Dictionary<RTMClient, Int64>();
-                List<RTMClient> activeClients = new List<RTMClient>();
-                lock (interLocker)
-                {
-                    foreach (KeyValuePair<RTMClient, Int64> kvp in reloginClients)
-                        clients.Add(kvp.Key, now);
-
-                    foreach (KeyValuePair<Int64, RTMClient> kvp in rtmClients)
-                    {
-                        if (!clients.ContainsKey(kvp.Value))
-                        {
-                            activeClients.Add(kvp.Value);
-                            clients.Add(kvp.Value, now);
-                        }
-                    }
-                    foreach (RTMClient client in activeClients)
-                        client.Close(false, false);
-                    reloginClients = clients;
-                }
-            }
-            else
-            {
-                lock (interLocker)
-                {
-                    List<RTMClient> clients = new List<RTMClient>();
-                    foreach (KeyValuePair<Int64, RTMClient> kvp in rtmClients)
-                    {
-                        clients.Add(kvp.Value);
-                        reloginClients.Add(kvp.Value, now);
-                    }
-                    foreach (RTMClient client in clients)
-                        client.Close(false, false);
-                }
-            }
+            NetworkType oldType = networkType;
             networkType = type;
+            ClientEngine.RunTask(()=>
+            {
+                if (oldType == NetworkType.NetworkType_Unreachable && (type == NetworkType.NetworkType_4G || type == NetworkType.NetworkType_Wifi))
+                {//之前没有网络，现在有网络
+                    Dictionary<RTMClient, Int64> clients = new Dictionary<RTMClient, Int64>();
+                    List<RTMClient> activeClients = new List<RTMClient>();
+                    lock (interLocker)
+                    {
+                        foreach (KeyValuePair<RTMClient, Int64> kvp in reloginClients)
+                            clients.Add(kvp.Key, now);
+
+                        foreach (KeyValuePair<Int64, RTMClient> kvp in rtmClients)
+                        {
+                            if (!clients.ContainsKey(kvp.Value))
+                            {
+                                activeClients.Add(kvp.Value);
+                                clients.Add(kvp.Value, now);
+                            }
+                        }
+                        foreach (RTMClient client in activeClients)
+                            client.Close(false, false);
+                        reloginClients = clients;
+                    }
+                }
+                else
+                {
+                    lock (interLocker)
+                    {
+                        List<RTMClient> clients = new List<RTMClient>();
+                        foreach (KeyValuePair<Int64, RTMClient> kvp in rtmClients)
+                        {
+                            clients.Add(kvp.Value);
+                            reloginClients.Add(kvp.Value, now);
+                        }
+                        foreach (RTMClient client in clients)
+                            client.Close(false, false);
+                    }
+                }
+            });
+            
         }
 
         //===========================[ File Gate Client Functions ]=========================//

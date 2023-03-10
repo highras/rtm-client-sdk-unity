@@ -7,19 +7,7 @@ namespace com.fpnn.rtm
 {
     internal static class AudioConvert
     {
-        #if UNITY_IOS
-
-            [DllImport("__Internal")]
-            public static extern IntPtr convert_wav_to_amrwb(IntPtr wavSrc, int wavSrcSize, ref int status, ref int amrSize);
-
-            [DllImport("__Internal")]
-            public static extern IntPtr convert_amrwb_to_wav(IntPtr amrSrc, int amrSrcSize, ref int status, ref int wavSize);
-
-            [DllImport("__Internal")]
-            public static extern void free_memory(IntPtr ptr);
-
-        #else
-
+#if (UNITY_ANDROID || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             [DllImport("audio-convert")]
             public static extern IntPtr convert_wav_to_amrwb(IntPtr wavSrc, int wavSrcSize, ref int status, ref int amrSize);
 
@@ -29,7 +17,19 @@ namespace com.fpnn.rtm
             [DllImport("audio-convert")]
             public static extern void free_memory(IntPtr ptr);
 
-        #endif
+
+#elif UNITY_IOS
+
+            [DllImport("__Internal")]
+            public static extern IntPtr convert_wav_to_amrwb(IntPtr wavSrc, int wavSrcSize, ref int status, ref int amrSize);
+
+            [DllImport("__Internal")]
+            public static extern IntPtr convert_amrwb_to_wav(IntPtr amrSrc, int amrSrcSize, ref int status, ref int wavSize);
+
+            [DllImport("__Internal")]
+            public static extern void free_memory(IntPtr ptr);
+
+#endif
 
         public static byte[] ConvertToAmrwb(byte[] wavBuffer)
         {

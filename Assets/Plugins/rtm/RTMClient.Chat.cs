@@ -14,9 +14,18 @@ namespace com.fpnn.rtm
 
         public int SendChat(out long messageId, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out messageId, uid, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Chat, message, attrs, timeout);
         }
 
+        public bool SendChat(SendMessageDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
+        { 
+            return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, timeout);
+        }
+
+        public int SendChat(out long messageId, out long mtime, long uid, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Chat, message, attrs, timeout);
+        }
 
         public bool SendGroupChat(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
@@ -25,9 +34,18 @@ namespace com.fpnn.rtm
 
         public int SendGroupChat(out long messageId, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, groupId, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Chat, message, attrs, timeout);
         }
 
+        public bool SendGroupChat(SendMessageDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, timeout);
+        }
+
+        public int SendGroupChat(out long messageId, out long mtime, long groupId, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Chat, message, attrs, timeout);
+        }
 
         public bool SendRoomChat(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
@@ -36,9 +54,18 @@ namespace com.fpnn.rtm
 
         public int SendRoomChat(out long messageId, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, roomId, (byte)MessageType.Chat, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Chat, message, attrs, timeout);
         }
 
+        public bool SendRoomChat(SendMessageDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, timeout);
+        }
+
+        public int SendRoomChat(out long messageId, out long mtime, long roomId, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Chat, message, attrs, timeout);
+        }
         //===========================[ Sending Cmd ]=========================//
         public bool SendCmd(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
         {
@@ -47,9 +74,18 @@ namespace com.fpnn.rtm
 
         public int SendCmd(out long messageId, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out messageId, uid, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Cmd, message, attrs, timeout);
         }
 
+        public bool SendCmd(SendMessageDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, timeout);
+        }
+
+        public int SendCmd(out long messageId, out long mtime, long uid, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Cmd, message, attrs, timeout);
+        }
 
         public bool SendGroupCmd(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
@@ -58,9 +94,18 @@ namespace com.fpnn.rtm
 
         public int SendGroupCmd(out long messageId, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, groupId, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Cmd, message, attrs, timeout);
         }
 
+        public bool SendGroupCmd(SendMessageDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, timeout);
+        }
+
+        public int SendGroupCmd(out long messageId, out long mtime, long groupId, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Cmd, message, attrs, timeout);
+        }
 
         public bool SendRoomCmd(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
@@ -69,9 +114,18 @@ namespace com.fpnn.rtm
 
         public int SendRoomCmd(out long messageId, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, roomId, (byte)MessageType.Cmd, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Cmd, message, attrs, timeout);
         }
 
+        public bool SendRoomCmd(SendMessageDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, timeout);
+        }
+
+        public int SendRoomCmd(out long messageId, out long mtime, long roomId, string message, string attrs = "", int timeout = 0)
+        {
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Cmd, message, attrs, timeout);
+        }
         //===========================[ History Chat (Chat & Cmd & Audio) ]=========================//
         private static readonly List<byte> chatMTypes = new List<byte>
         {

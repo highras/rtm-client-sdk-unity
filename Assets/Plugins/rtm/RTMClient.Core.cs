@@ -26,6 +26,7 @@ namespace com.fpnn.rtm
             public long lastReloginMS = 0;
 
             public string token;
+            public long ts;
             public Dictionary<string, string> attr;
             public string lang;
 
@@ -63,6 +64,7 @@ namespace com.fpnn.rtm
         {
             public HashSet<AuthDelegate> authDelegates;
             public string token;
+            public long ts;
             public Dictionary<string, string> attr;
             public string lang;
 
@@ -358,7 +360,7 @@ namespace com.fpnn.rtm
 
         public bool CheckRelogin()
         {
-            return autoReloginInfo.disabled == false && autoReloginInfo.canRelogin;
+            return autoReloginInfo.disabled == false && autoReloginInfo.canRelogin && RTMControlCenter.NetworkStatus != NetworkType.NetworkType_Unreachable;
         }
 
         //-------------[ Auth(Login) processing functions ]--------------------------//
@@ -395,6 +397,7 @@ namespace com.fpnn.rtm
                     if (authStatsInfo != null)
                     {
                         autoReloginInfo.token = authStatsInfo.token;
+                        autoReloginInfo.ts = authStatsInfo.ts;
                         autoReloginInfo.attr = authStatsInfo.attr;
                         autoReloginInfo.lang = authStatsInfo.lang;
                     }
@@ -452,6 +455,12 @@ namespace com.fpnn.rtm
             quest.Param("pid", projectId);
             quest.Param("uid", uid);
             quest.Param("token", authStatsInfo.token);
+            if (authStatsInfo.ts != 0)
+            { 
+                quest.Param("ts", authStatsInfo.ts);
+                quest.Param("authv", 2);
+            }
+
 
 #if UNITY_2017_1_OR_NEWER
             quest.Param("version", "Unity-" + RTMConfig.SDKVersion);
@@ -491,15 +500,25 @@ namespace com.fpnn.rtm
         //-------------[ Login & System interfaces ]--------------------------//
         public bool Login(AuthDelegate callback, string token, int timeout = 0)
         {
-            return Login(callback, token, null, "", timeout);
+            return Login(callback, token, null, 0, "", timeout);
+        }
+
+        public bool Login(AuthDelegate callback, string token, long ts, int timeout = 0)
+        {
+            return Login(callback, token, null, ts, "", timeout);
         }
 
         public bool Login(AuthDelegate callback, string token, Dictionary<string, string> attr, TranslateLanguage language = TranslateLanguage.None, int timeout = 0)
         {
-            return Login(callback, token, attr, GetTranslatedLanguage(language), timeout);
+            return Login(callback, token, attr, 0, GetTranslatedLanguage(language), timeout);
         }
 
-        private bool Login(AuthDelegate callback, string token, Dictionary<string, string> attr, string lang = "", int timeout = 0)
+        public bool Login(AuthDelegate callback, string token, long ts, Dictionary<string, string> attr, TranslateLanguage language = TranslateLanguage.None, int timeout = 0)
+        {
+            return Login(callback, token, attr, ts, GetTranslatedLanguage(language), timeout);
+        }
+
+        private bool Login(AuthDelegate callback, string token, Dictionary<string, string> attr, long ts = 0, string lang = "", int timeout = 0)
         {
             lock (interLocker)
             {
@@ -533,6 +552,7 @@ namespace com.fpnn.rtm
                 };
 
                 authStatsInfo.token = token;
+                authStatsInfo.ts = ts;
                 authStatsInfo.attr = attr;
                 authStatsInfo.lang = lang;
                 authStatsInfo.lastActionMsecTimeStamp = ClientEngine.GetCurrentMilliseconds();
@@ -548,7 +568,12 @@ namespace com.fpnn.rtm
 
         public int Login(out bool ok, string token, int timeout = 0)
         {
-            return Login(out ok, token, null, "", timeout);
+            return Login(out ok, token, null, 0, "", timeout);
+        }
+
+        public int Login(out bool ok, string token, long ts, int timeout = 0)
+        {
+            return Login(out ok, token, null, ts, "", timeout);
         }
 
         private class SyncLoginStatus
@@ -576,17 +601,22 @@ namespace com.fpnn.rtm
 
         public int Login(out bool ok, string token, Dictionary<string, string> attr, TranslateLanguage language = TranslateLanguage.None, int timeout = 0)
         {
-            return Login(out ok, token, attr, GetTranslatedLanguage(language), timeout);
+            return Login(out ok, token, attr, 0, GetTranslatedLanguage(language), timeout);
         }
 
-        private int Login(out bool ok, string token, Dictionary<string, string> attr, string lang = "", int timeout = 0)
+        public int Login(out bool ok, string token, long ts, Dictionary<string, string> attr, TranslateLanguage language = TranslateLanguage.None, int timeout = 0)
+        {
+            return Login(out ok, token, attr, ts, GetTranslatedLanguage(language), timeout);
+        }
+
+        private int Login(out bool ok, string token, Dictionary<string, string> attr, long ts = 0, string lang = "", int timeout = 0)
         {
             SyncLoginStatus syncLoginStatus = new SyncLoginStatus();
             bool actionBegin = Login((long projectId, long uid, bool authStatus, int errorCode) => {
                 syncLoginStatus.ok = authStatus;
                 syncLoginStatus.errorCode = errorCode;
                 syncLoginStatus.Set();
-            }, token, attr, lang, timeout);
+            }, token, attr, ts, lang, timeout);
             if (!actionBegin)
             {
                 lock (interLocker)
@@ -690,7 +720,7 @@ namespace com.fpnn.rtm
                     StartNextRelogin();
                 }
             },
-            autoReloginInfo.token, autoReloginInfo.attr, autoReloginInfo.lang);
+            autoReloginInfo.token, autoReloginInfo.attr, autoReloginInfo.ts, autoReloginInfo.lang);
 
             if (!startLogin && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse == false)
             {

@@ -16,7 +16,7 @@ class MyAudioRecorderListener : AudioRecorderNative.IAudioRecorderListener {
     public void OnRecord(RTMAudioData audioData)
     {
         Debug.Log("OnRecord " + audioData.Duration);
-        AudioRecorderNative.Instance.Play(audioData);
+        AudioRecorderNative.Play(audioData);
     }
 
     public void OnVolumn(double db)
@@ -39,8 +39,8 @@ class AudioNative : Main.ITestCase
 
     public void Start(string endpoint, long pid, long uid, string token)
     {
-        AudioRecorderNative.Instance.Init("zh-CN", new MyAudioRecorderListener());
-        AudioRecorderNative.Instance.StartRecord();
+        AudioRecorderNative.Init("zh-CN", new MyAudioRecorderListener());
+        AudioRecorderNative.StartRecord();
 
         //System.Threading.Thread.Sleep(10 * 1000);
 

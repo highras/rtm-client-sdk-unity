@@ -4,6 +4,7 @@ namespace com.fpnn.rtm
     public delegate void AuthDelegate(long projectId, long uid, bool successful, int errorCode);
     public delegate void DoneDelegate(int errorCode);
     public delegate void MessageIdDelegate(long messageId, int errorCode);
+    public delegate void SendMessageDelegate(long messageId, long mtime, int errorCode);
 
     public class CheckResult
     {

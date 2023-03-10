@@ -42,9 +42,43 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendMessage(out messageId, uid, mtype, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out _, uid, mtype, message, attrs, timeout);
         }
 
+        public bool SendMessage(SendMessageDelegate callback, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
+        {
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendMesage interface require mtype large than 50, current mtype is " + mtype);
+
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
+                return false;
+            }
+
+            return InternalSendMessage(uid, mtype, message, attrs, callback, timeout);
+        }
+
+        public int SendMessage(out long messageId, out long mtime, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
+        {
+            messageId = 0;
+            mtime = 0;
+
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendMesage interface require mtype large than 50, current mtype is " + mtype);
+
+                return ErrorCode.RTM_EC_INVALID_MTYPE;
+            }
+
+            return InternalSendMessage(out messageId, out mtime, uid, mtype, message, attrs, timeout);
+        }
 
         public bool SendGroupMessage(MessageIdDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
         {
@@ -77,9 +111,43 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendGroupMessage(out messageId, groupId, mtype, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, mtype, message, attrs, timeout);
         }
 
+        public bool SendGroupMessage(SendMessageDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
+        {
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendGroupMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
+                return false;
+            }
+
+            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, timeout);
+        }
+
+        public int SendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
+        {
+            messageId = 0;
+            mtime = 0;
+
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendGroupMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                return ErrorCode.RTM_EC_INVALID_MTYPE;
+            }
+
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, mtype, message, attrs, timeout);
+        }
 
         public bool SendRoomMessage(MessageIdDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
         {
@@ -112,9 +180,43 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendRoomMessage(out messageId, roomId, mtype, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, mtype, message, attrs, timeout);
         }
 
+        public bool SendRoomMessage(SendMessageDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
+        {
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendRoomMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
+                return false;
+            }
+
+            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, timeout);
+        }
+
+        public int SendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
+        {
+            messageId = 0;
+            mtime = 0;
+
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendRoomMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                return ErrorCode.RTM_EC_INVALID_MTYPE;
+            }
+
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, mtype, message, attrs, timeout);
+        }
         //===========================[ Sending Binary Messages ]=========================//
         /**
          * mtype MUST large than 50, else this interface will return false.
@@ -150,7 +252,42 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendMessage(out messageId, uid, mtype, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out _, uid, mtype, message, attrs, timeout);
+        }
+
+        public bool SendMessage(SendMessageDelegate callback, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        {
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendMesage interface require mtype large than 50, current mtype is " + mtype);
+
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
+                return false;
+            }
+
+            return InternalSendMessage(uid, mtype, message, attrs, callback, timeout);
+        }
+
+        public int SendMessage(out long messageId, out long mtime, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        {
+            messageId = 0;
+            mtime = 0;
+
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendMesage interface require mtype large than 50, current mtype is " + mtype);
+
+                return ErrorCode.RTM_EC_INVALID_MTYPE;
+            }
+
+            return InternalSendMessage(out messageId, out mtime, uid, mtype, message, attrs, timeout);
         }
 
 
@@ -185,7 +322,42 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendGroupMessage(out messageId, groupId, mtype, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, mtype, message, attrs, timeout);
+        }
+
+        public bool SendGroupMessage(SendMessageDelegate callback, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        {
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendGroupMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
+                return false;
+            }
+
+            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, timeout);
+        }
+
+        public int SendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        {
+            messageId = 0;
+            mtime = 0;
+
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendGroupMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                return ErrorCode.RTM_EC_INVALID_MTYPE;
+            }
+
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, mtype, message, attrs, timeout);
         }
 
 
@@ -220,9 +392,43 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendRoomMessage(out messageId, roomId, mtype, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, mtype, message, attrs, timeout);
         }
 
+        public bool SendRoomMessage(SendMessageDelegate callback, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        {
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendRoomMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, 0, ErrorCode.RTM_EC_INVALID_MTYPE);
+                    });
+
+                return false;
+            }
+
+            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, timeout);
+        }
+
+        public int SendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        {
+            messageId = 0;
+            mtime = 0;
+
+            if (mtype <= 50)
+            {
+                if (errorRecorder != null)
+                    errorRecorder.RecordError("SendRoomMessage interface require mtype large than 50, current mtype is " + mtype);
+
+                return ErrorCode.RTM_EC_INVALID_MTYPE;
+            }
+
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, mtype, message, attrs, timeout);
+        }
         //===========================[ Messages Utilities ]=========================//
         internal static bool CheckBinaryType(object obj)
         {

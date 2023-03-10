@@ -9,6 +9,7 @@ namespace com.fpnn {
         public static T Instance {
             get {
                 if (instance == null) {
+#if UNITY_EDITOR
                     T[] managers = Object.FindObjectsOfType(typeof(T)) as T[];
 
                     if (managers.Length != 0) {
@@ -24,6 +25,7 @@ namespace com.fpnn {
                             }
                         }
                     }
+#endif
 
                     var go = new GameObject(typeof(T).Name, typeof(T));
                     instance = go.GetComponent<T>();
