@@ -188,7 +188,7 @@ namespace com.fpnn.rtm
         }
 
         //===========================[ Add Device ]=========================//
-        public bool AddDevice(DoneDelegate callback, string appType, string deviceToken, int timeout = 0)
+        public bool AddDevice(DoneDelegate callback, string appType, string deviceToken, string tag = null, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -205,6 +205,8 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("adddevice");
             quest.Param("apptype", appType);
             quest.Param("devicetoken", deviceToken);
+            if (tag != null)
+                quest.Param("tag", tag);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
 
@@ -217,7 +219,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int AddDevice(string appType, string deviceToken, int timeout = 0)
+        public int AddDevice(string appType, string deviceToken, string tag = null, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -226,12 +228,14 @@ namespace com.fpnn.rtm
             Quest quest = new Quest("adddevice");
             quest.Param("apptype", appType);
             quest.Param("devicetoken", deviceToken);
+            if (tag != null)
+                quest.Param("tag", tag);
             Answer answer = client.SendQuest(quest, timeout);
             return answer.ErrorCode();
         }
 
         //===========================[ Remove Device ]=========================//
-        public bool RemoveDevice(DoneDelegate callback, string deviceToken, int timeout = 0)
+        public bool RemoveDevice(DoneDelegate callback, string deviceToken, string tag = null, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -247,6 +251,8 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("removedevice");
             quest.Param("devicetoken", deviceToken);
+            if (tag != null)
+                quest.Param("tag", tag);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
 
@@ -259,7 +265,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int RemoveDevice(string deviceToken, int timeout = 0)
+        public int RemoveDevice(string deviceToken, string tag = null, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -267,6 +273,8 @@ namespace com.fpnn.rtm
 
             Quest quest = new Quest("removedevice");
             quest.Param("devicetoken", deviceToken);
+            if (tag != null)
+                quest.Param("tag", tag);
             Answer answer = client.SendQuest(quest, timeout);
             return answer.ErrorCode();
         }
