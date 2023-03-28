@@ -110,7 +110,6 @@ namespace com.fpnn.rtm
                 microphoneChanged = true;
             if (deviceType == AudioDeviceType.Speaker)
                 speakerChanged = true;
-            Debug.Log("AudioDeviceChangedCallback type = " + type);
         }
    
         [DllImport("RTMNative")]
@@ -264,6 +263,12 @@ namespace com.fpnn.rtm
             stopRecord(StopRecordCallback);
 #elif UNITY_ANDROID
             AndroidJavaObject audio = AudioRecord.Call<AndroidJavaObject>("stopRecord");
+            if (audio == null)
+            {
+                if (audioRecorderListener != null)
+                    audioRecorderListener.OnRecord(null);
+                return;
+            }
             int duration = audio.Get<int>("duration");
             byte[] audioData = audio.Get<byte[]>("audioData");
             //byte[] audioData = (byte[])(Array)audio.Get<sbyte[]>("audioData");
