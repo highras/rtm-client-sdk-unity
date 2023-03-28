@@ -101,7 +101,6 @@ namespace com.fpnn.rtm
         {
 #if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
             initNetworkStatusChecker(NetworkStatusCallback);
-            //Assert.IsTrue(false, "windows is not supported for now");
 #elif (UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX)
             initNetworkStatusChecker(NetworkStatusCallback);
 #elif UNITY_IOS

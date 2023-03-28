@@ -160,7 +160,9 @@ namespace com.fpnn.rtm
             if (questProcessor != null)
             { 
                 questProcessor.SessionClosed(ClosedByErrorCode);
-                questProcessor.SessionClosedCallback?.Invoke(ClosedByErrorCode);
+                RTMControlCenter.callbackQueue.PostAction(() => { 
+                    questProcessor.SessionClosedCallback?.Invoke(ClosedByErrorCode);
+                });
             }
 
             RTMControlCenter.UnregisterSession(connectionId);
@@ -174,7 +176,12 @@ namespace com.fpnn.rtm
                 if (questProcessor.ReloginWillStartCallback == null)
                     startRelogin = questProcessor.ReloginWillStart(lastErrorCode, retriedCount);
                 else
-                    questProcessor.ReloginWillStartCallback?.Invoke(lastErrorCode, retriedCount);
+                {
+                    RTMControlCenter.callbackQueue.PostAction(() =>
+                    {
+                        questProcessor.ReloginWillStartCallback?.Invoke(lastErrorCode, retriedCount);
+                    });
+                }
             }
 
             if (startRelogin)       //-- if startRelogin == false, will call SessionClosed(), the UnregisterSession() will be called in SessionClosed().
@@ -188,7 +195,10 @@ namespace com.fpnn.rtm
             if (questProcessor != null)
             { 
                 questProcessor.ReloginCompleted(successful, retryAgain, errorCode, retriedCount);
-                questProcessor.ReloginCompletedCallback?.Invoke(successful, retryAgain, errorCode, retriedCount);
+                RTMControlCenter.callbackQueue.PostAction(() => 
+                {
+                    questProcessor.ReloginCompletedCallback?.Invoke(successful, retryAgain, errorCode, retriedCount);
+                });
             }
         }
 
@@ -211,7 +221,10 @@ namespace com.fpnn.rtm
             if (questProcessor != null && closed == false)
             { 
                 questProcessor.Kickout();
-                questProcessor.KickoutCallback?.Invoke();
+                RTMControlCenter.callbackQueue.PostAction(() => 
+                {
+                    questProcessor.KickoutCallback?.Invoke();
+                });
             }
 
             return null;
@@ -223,7 +236,10 @@ namespace com.fpnn.rtm
             {
                 long roomId = quest.Want<Int64>("rid");
                 questProcessor.KickoutRoom(roomId);
-                questProcessor.KickoutRoomCallback?.Invoke(roomId);
+                RTMControlCenter.callbackQueue.PostAction(() => 
+                {
+                    questProcessor.KickoutRoomCallback?.Invoke(roomId);
+                });
             }
 
             return null;
@@ -365,23 +381,35 @@ namespace com.fpnn.rtm
                 if (rtmMessage.translatedInfo != null)
                 { 
                     questProcessor.PushChat(rtmMessage);
-                    questProcessor.PushChatCallback?.Invoke(rtmMessage);
+                    RTMControlCenter.callbackQueue.PostAction(() =>
+                    {
+                        questProcessor.PushChatCallback?.Invoke(rtmMessage);
+                    });
                 }
             }
             else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
                 questProcessor.PushCmd(rtmMessage);
-                questProcessor.PushCmdCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushCmdCallback?.Invoke(rtmMessage);
+                });
             }
             else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
                 questProcessor.PushFile(rtmMessage);
-                questProcessor.PushFileCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushFileCallback?.Invoke(rtmMessage);
+                });
             }
             else
             {
                 questProcessor.PushMessage(rtmMessage);
-                questProcessor.PushMessageCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushMessageCallback?.Invoke(rtmMessage);
+                });
             }
 
             return null;
@@ -408,23 +436,35 @@ namespace com.fpnn.rtm
                 if (rtmMessage.translatedInfo != null)
                 { 
                     questProcessor.PushGroupChat(rtmMessage);
-                    questProcessor.PushGroupChatCallback?.Invoke(rtmMessage);
+                    RTMControlCenter.callbackQueue.PostAction(() =>
+                    {
+                        questProcessor.PushGroupChatCallback?.Invoke(rtmMessage);
+                    });
                 }
             }
             else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
                 questProcessor.PushGroupCmd(rtmMessage);
-                questProcessor.PushGroupCmdCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushGroupCmdCallback?.Invoke(rtmMessage);
+                });
             }
             else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
                 questProcessor.PushGroupFile(rtmMessage);
-                questProcessor.PushGroupFileCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushGroupFileCallback?.Invoke(rtmMessage);
+                });
             }
             else
             {
                 questProcessor.PushGroupMessage(rtmMessage);
-                questProcessor.PushGroupMessageCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushGroupMessageCallback?.Invoke(rtmMessage);
+                });
             }
 
             return null;
@@ -451,23 +491,35 @@ namespace com.fpnn.rtm
                 if (rtmMessage.translatedInfo != null)
                 { 
                     questProcessor.PushRoomChat(rtmMessage);
-                    questProcessor.PushRoomChatCallback?.Invoke(rtmMessage);
+                    RTMControlCenter.callbackQueue.PostAction(() =>
+                    {
+                        questProcessor.PushRoomChatCallback?.Invoke(rtmMessage);
+                    });
                 }
             }
             else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
                 questProcessor.PushRoomCmd(rtmMessage);
-                questProcessor.PushRoomCmdCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushRoomCmdCallback?.Invoke(rtmMessage);
+                });
             }
             else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
                 questProcessor.PushRoomFile(rtmMessage);
-                questProcessor.PushRoomFileCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushRoomFileCallback?.Invoke(rtmMessage);
+                });
             }
             else
             {
                 questProcessor.PushRoomMessage(rtmMessage);
-                questProcessor.PushRoomMessageCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushRoomMessageCallback?.Invoke(rtmMessage);
+                });
             }
 
             return null;
@@ -493,23 +545,35 @@ namespace com.fpnn.rtm
                 if (rtmMessage.translatedInfo != null)
                 { 
                     questProcessor.PushBroadcastChat(rtmMessage);
-                    questProcessor.PushBroadcastChatCallback?.Invoke(rtmMessage);
+                    RTMControlCenter.callbackQueue.PostAction(() =>
+                    {
+                        questProcessor.PushBroadcastChatCallback?.Invoke(rtmMessage);
+                    });
                 }
             }
             else if (rtmMessage.messageType == (byte)MessageType.Cmd)
             {
                 questProcessor.PushBroadcastCmd(rtmMessage);
-                questProcessor.PushBroadcastCmdCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushBroadcastCmdCallback?.Invoke(rtmMessage);
+                });
             }
             else if (rtmMessage.messageType >= 40 && rtmMessage.messageType <= 50)
             {
                 questProcessor.PushBroadcastFile(rtmMessage);
-                questProcessor.PushBroadcastFileCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushBroadcastFileCallback?.Invoke(rtmMessage);
+                });
             }
             else
             {
                 questProcessor.PushBroadcastMessage(rtmMessage);
-                questProcessor.PushBroadcastMessageCallback?.Invoke(rtmMessage);
+                RTMControlCenter.callbackQueue.PostAction(() =>
+                {
+                    questProcessor.PushBroadcastMessageCallback?.Invoke(rtmMessage);
+                });
             }
 
             return null;
