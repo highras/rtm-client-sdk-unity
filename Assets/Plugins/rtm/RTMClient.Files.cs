@@ -423,7 +423,12 @@ namespace com.fpnn.rtm
                 }
 
                 if (errorCode != fpnn.ErrorCode.FPNN_EC_OK)
-                    info.callback(0, errorCode);
+                {
+                    if (info.callbackMtime == null)
+                        info.callback(0, errorCode);
+                    else
+                        info.callbackMtime(0, 0, errorCode);
+                }
 
                 if (connected)
                     client.SetConnectionConnectedDelegate(null);
@@ -501,7 +506,12 @@ namespace com.fpnn.rtm
                     return;
             }
             else
-                info.callback(0, errorCode);
+            {
+                if (info.callbackMtime == null)
+                    info.callback(0, errorCode);
+                else
+                    info.callbackMtime(0, 0, errorCode);
+            }
         }
 
         private void GetFileTokenUploadCallback(SendFileInfo info, string token, string endpoint, int errorCode)
