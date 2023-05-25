@@ -656,7 +656,10 @@ namespace com.fpnn.rtm
             int regressiveCount = autoReloginInfo.reloginCount - regressiveStrategy.startConnectFailedCount;
             long interval = regressiveStrategy.maxIntervalSeconds * 1000;
             if (regressiveCount > regressiveStrategy.maxRegressvieCount)
+            { 
+                processor.SessionClosed(autoReloginInfo.lastErrorCode);
                 return;
+            }
             if (regressiveCount < regressiveStrategy.linearRegressiveCount)
             {
                 interval = interval * regressiveCount / regressiveStrategy.linearRegressiveCount;
@@ -783,6 +786,71 @@ namespace com.fpnn.rtm
         public void Close(bool waitConnectingCannelled = true)
         {
             Close(true, waitConnectingCannelled);
+        }
+
+        public bool GetServerTime(Action<long, int> callback, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getservertime");
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                long msec = 0;
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    { msec = answer.Get<long>("mts", 0); }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(msec, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetServerTime(out long msec, int timeout = 0)
+        {
+            msec = 0;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getservertime");
+
+            Answer answer = client.SendQuest(quest, timeout);
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                msec = answer.Get<long>("mts", 0);
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
         }
     }
 }

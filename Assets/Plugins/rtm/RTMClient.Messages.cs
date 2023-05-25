@@ -27,7 +27,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendMessage(uid, mtype, message, attrs, callback, timeout);
+            return InternalSendMessage(uid, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendMessage(out long messageId, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -42,7 +42,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendMessage(out messageId, out _, uid, mtype, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out _, uid, mtype, message, attrs, 0, timeout);
         }
 
         public bool SendMessage(SendMessageDelegate callback, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -61,7 +61,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendMessage(uid, mtype, message, attrs, callback, timeout);
+            return InternalSendMessage(uid, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendMessage(out long messageId, out long mtime, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -77,7 +77,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendMessage(out messageId, out mtime, uid, mtype, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out mtime, uid, mtype, message, attrs, 0, timeout);
         }
 
         public bool SendGroupMessage(MessageIdDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -96,7 +96,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, timeout);
+            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendGroupMessage(out long messageId, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -111,7 +111,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendGroupMessage(out messageId, out _, groupId, mtype, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, mtype, message, attrs, 0, timeout);
         }
 
         public bool SendGroupMessage(SendMessageDelegate callback, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -130,7 +130,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, timeout);
+            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -146,7 +146,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendGroupMessage(out messageId, out mtime, groupId, mtype, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, mtype, message, attrs, 0, timeout);
         }
 
         public bool SendRoomMessage(MessageIdDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -165,7 +165,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, timeout);
+            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendRoomMessage(out long messageId, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -180,7 +180,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendRoomMessage(out messageId, out _, roomId, mtype, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, mtype, message, attrs, 0, timeout);
         }
 
         public bool SendRoomMessage(SendMessageDelegate callback, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -199,7 +199,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, timeout);
+            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
@@ -215,7 +215,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendRoomMessage(out messageId, out mtime, roomId, mtype, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, mtype, message, attrs, 0, timeout);
         }
         //===========================[ Sending Binary Messages ]=========================//
         /**
@@ -237,7 +237,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendMessage(uid, mtype, message, attrs, callback, timeout);
+            return InternalSendMessage(uid, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendMessage(out long messageId, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -252,7 +252,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendMessage(out messageId, out _, uid, mtype, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out _, uid, mtype, message, attrs, 0, timeout);
         }
 
         public bool SendMessage(SendMessageDelegate callback, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -271,7 +271,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendMessage(uid, mtype, message, attrs, callback, timeout);
+            return InternalSendMessage(uid, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendMessage(out long messageId, out long mtime, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -287,7 +287,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendMessage(out messageId, out mtime, uid, mtype, message, attrs, timeout);
+            return InternalSendMessage(out messageId, out mtime, uid, mtype, message, attrs, 0, timeout);
         }
 
 
@@ -307,7 +307,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, timeout);
+            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendGroupMessage(out long messageId, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -322,7 +322,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendGroupMessage(out messageId, out _, groupId, mtype, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, mtype, message, attrs, 0, timeout);
         }
 
         public bool SendGroupMessage(SendMessageDelegate callback, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -341,7 +341,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, timeout);
+            return InternalSendGroupMessage(groupId, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -357,7 +357,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendGroupMessage(out messageId, out mtime, groupId, mtype, message, attrs, timeout);
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, mtype, message, attrs, 0, timeout);
         }
 
 
@@ -377,7 +377,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, timeout);
+            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendRoomMessage(out long messageId, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -392,7 +392,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendRoomMessage(out messageId, out _, roomId, mtype, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, mtype, message, attrs, 0, timeout);
         }
 
         public bool SendRoomMessage(SendMessageDelegate callback, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -411,7 +411,7 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, timeout);
+            return InternalSendRoomMessage(roomId, mtype, message, attrs, callback, 0, timeout);
         }
 
         public int SendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
@@ -427,7 +427,7 @@ namespace com.fpnn.rtm
                 return ErrorCode.RTM_EC_INVALID_MTYPE;
             }
 
-            return InternalSendRoomMessage(out messageId, out mtime, roomId, mtype, message, attrs, timeout);
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, mtype, message, attrs, 0, timeout);
         }
         //===========================[ Messages Utilities ]=========================//
         internal static bool CheckBinaryType(object obj)

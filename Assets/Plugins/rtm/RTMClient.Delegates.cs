@@ -16,6 +16,7 @@ namespace com.fpnn.rtm
     {
         public string text;
         public List<string> wlist;
+        public string language;
     }
 
     public class FileInfo

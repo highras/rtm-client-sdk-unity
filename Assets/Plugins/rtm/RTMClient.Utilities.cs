@@ -69,6 +69,27 @@ namespace com.fpnn.rtm
             return rev;
         }
 
+        private static List<List<long>> GetLongListList(Message message, string key)
+        {
+            List<List<long>> rev = new List<List<long>>();
+            List<object> originalList = (List<object>)message.Get(key);
+            if (originalList == null)
+                return null;
+
+            foreach (object obj in originalList)
+            {
+                if (obj == null)
+                    continue;
+                List<long> list = new List<long>();
+                List<object> listObject = (List<object>)obj;
+                foreach (var val in listObject)
+                    list.Add((long)Convert.ChangeType(val, TypeCode.Int64));
+
+                rev.Add(list);
+            }
+            return rev;
+        }
+
         private static List<int> GetIntList(Message message, string key)
         {
             List<int> rev = new List<int>();

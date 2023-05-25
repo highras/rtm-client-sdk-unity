@@ -6,7 +6,7 @@ namespace com.fpnn.rtm
     public partial class RTMClient
     {
         //======================[ string message version ]================================//
-        private bool InternalSendMessage(long uid, byte mtype, string message, string attrs, MessageIdDelegate callback, int timeout = 0)
+        private bool InternalSendMessage(long uid, byte mtype, string message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -20,7 +20,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendmsg");
             quest.Param("to", uid);
@@ -47,7 +49,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendMessage(long uid, byte mtype, string message, string attrs, SendMessageDelegate callback, int timeout = 0)
+        private bool InternalSendMessage(long uid, byte mtype, string message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -61,7 +63,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendmsg");
             quest.Param("to", uid);
@@ -88,17 +92,19 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendMessage(out long messageId, out long mtime, long uid, byte mtype, string message, string attrs = "", int timeout = 0)
+        private int InternalSendMessage(out long messageId, out long mtime, long uid, byte mtype, string message, string attrs, long mid, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
             if (client == null)
             {
-                messageId = 0;
+                messageId = mid;
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
             }
 
-            messageId = MidGenerator.Gen();
+            messageId = mid;
+            if (mid == 0)
+                messageId = MidGenerator.Gen();
 
             Quest quest = new Quest("sendmsg");
             quest.Param("to", uid);
@@ -116,7 +122,7 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
-        private bool InternalSendGroupMessage(long groupId, byte mtype, string message, string attrs, MessageIdDelegate callback, int timeout = 0)
+        private bool InternalSendGroupMessage(long groupId, byte mtype, string message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -130,7 +136,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendgroupmsg");
             quest.Param("gid", groupId);
@@ -157,7 +165,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendGroupMessage(long groupId, byte mtype, string message, string attrs, SendMessageDelegate callback, int timeout = 0)
+        private bool InternalSendGroupMessage(long groupId, byte mtype, string message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -171,7 +179,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendgroupmsg");
             quest.Param("gid", groupId);
@@ -198,17 +208,19 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, string message, string attrs = "", int timeout = 0)
+        private int InternalSendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, string message, string attrs, long mid, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
             if (client == null)
             {
-                messageId = 0;
+                messageId = mid;
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
             }
 
-            messageId = MidGenerator.Gen();
+            messageId = mid;
+            if (mid == 0)
+                messageId = MidGenerator.Gen();
 
             Quest quest = new Quest("sendgroupmsg");
             quest.Param("gid", groupId);
@@ -226,7 +238,7 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
-        private bool InternalSendRoomMessage(long roomId, byte mtype, string message, string attrs, MessageIdDelegate callback, int timeout = 0)
+        private bool InternalSendRoomMessage(long roomId, byte mtype, string message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -240,7 +252,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendroommsg");
             quest.Param("rid", roomId);
@@ -267,7 +281,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendRoomMessage(long roomId, byte mtype, string message, string attrs, SendMessageDelegate callback, int timeout = 0)
+        private bool InternalSendRoomMessage(long roomId, byte mtype, string message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -281,7 +295,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendroommsg");
             quest.Param("rid", roomId);
@@ -308,17 +324,19 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, string message, string attrs = "", int timeout = 0)
+        private int InternalSendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, string message, string attrs, long mid, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
             if (client == null)
             {
-                messageId = 0;
+                messageId = mid;
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
             }
 
-            messageId = MidGenerator.Gen();
+            messageId = mid;
+            if (mid == 0)
+                messageId = MidGenerator.Gen();
 
             Quest quest = new Quest("sendroommsg");
             quest.Param("rid", roomId);
@@ -337,7 +355,7 @@ namespace com.fpnn.rtm
         }
 
         //======================[ binary message version ]================================//
-        private bool InternalSendMessage(long uid, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, int timeout = 0)
+        private bool InternalSendMessage(long uid, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -351,7 +369,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendmsg");
             quest.Param("to", uid);
@@ -378,7 +398,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendMessage(long uid, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, int timeout = 0)
+        private bool InternalSendMessage(long uid, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -392,7 +412,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendmsg");
             quest.Param("to", uid);
@@ -419,17 +441,19 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendMessage(out long messageId, out long mtime, long uid, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        private int InternalSendMessage(out long messageId, out long mtime, long uid, byte mtype, byte[] message, string attrs, long mid, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
             if (client == null)
             {
-                messageId = 0;
+                messageId = mid;
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
             }
 
-            messageId = MidGenerator.Gen();
+            messageId = mid;
+            if (mid == 0)
+                messageId = MidGenerator.Gen();
 
             Quest quest = new Quest("sendmsg");
             quest.Param("to", uid);
@@ -447,7 +471,7 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
-        private bool InternalSendGroupMessage(long groupId, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, int timeout = 0)
+        private bool InternalSendGroupMessage(long groupId, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -461,7 +485,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendgroupmsg");
             quest.Param("gid", groupId);
@@ -488,7 +514,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendGroupMessage(long groupId, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, int timeout = 0)
+        private bool InternalSendGroupMessage(long groupId, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -502,7 +528,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId; 
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendgroupmsg");
             quest.Param("gid", groupId);
@@ -529,17 +557,19 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        private int InternalSendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, byte[] message, string attrs, long mid, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
             if (client == null)
             {
-                messageId = 0;
+                messageId = mid;
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
             }
 
-            messageId = MidGenerator.Gen();
+            messageId = mid;
+            if (mid == 0)
+                messageId = MidGenerator.Gen();
 
             Quest quest = new Quest("sendgroupmsg");
             quest.Param("gid", groupId);
@@ -557,7 +587,7 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
-        private bool InternalSendRoomMessage(long roomId, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, int timeout = 0)
+        private bool InternalSendRoomMessage(long roomId, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -571,7 +601,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendroommsg");
             quest.Param("rid", roomId);
@@ -598,7 +630,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendRoomMessage(long roomId, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, int timeout = 0)
+        private bool InternalSendRoomMessage(long roomId, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -612,7 +644,9 @@ namespace com.fpnn.rtm
                 return false;
             }
 
-            long mid = MidGenerator.Gen();
+            long mid = messageId;
+            if (messageId == 0)
+                mid = MidGenerator.Gen();
 
             Quest quest = new Quest("sendroommsg");
             quest.Param("rid", roomId);
@@ -639,17 +673,19 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, byte[] message, string attrs = "", int timeout = 0)
+        private int InternalSendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, byte[] message, string attrs, long mid, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
             if (client == null)
             {
-                messageId = 0;
+                messageId = mid;
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
             }
 
-            messageId = MidGenerator.Gen();
+            messageId = mid;
+            if (mid == 0)
+                messageId = MidGenerator.Gen();
 
             Quest quest = new Quest("sendroommsg");
             quest.Param("rid", roomId);

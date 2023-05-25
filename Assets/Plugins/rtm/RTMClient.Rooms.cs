@@ -48,6 +48,46 @@ namespace com.fpnn.rtm
             return answer.ErrorCode();
         }
 
+        public bool EnterRooms(DoneDelegate callback, HashSet<long> roomIds, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("enterrooms");
+            quest.Param("rids", roomIds);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => { callback(errorCode); }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int EnterRooms(HashSet<long> roomIds, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("enterrooms");
+            quest.Param("rids", roomIds);
+
+            Answer answer = client.SendQuest(quest, timeout);
+            return answer.ErrorCode();
+        }
         //===========================[ Leave Room ]=========================//
         public bool LeaveRoom(DoneDelegate callback, long roomId, int timeout = 0)
         {
@@ -636,6 +676,110 @@ namespace com.fpnn.rtm
             try
             {
                 counts = WantLongIntDictionary(answer, "cn");
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
+        //===========================[ Get User Room Last Message ]=========================//
+        void GetRoomLastMessage(ref Dictionary<long, HistoryMessage> roomMessages, Answer answer)
+        {
+            Dictionary<object, object> originalDict = (Dictionary<object, object>)answer.Want("rooms");
+            foreach (KeyValuePair<object, object> kvp in originalDict)
+            {
+                long roomId = (long)Convert.ChangeType(kvp.Key, TypeCode.Int64);
+                List<object> items = (List<object>)kvp.Value;
+
+                HistoryMessage message = new HistoryMessage();
+                message.cursorId = (long)Convert.ChangeType(items[0], TypeCode.Int64);
+                message.fromUid = (long)Convert.ChangeType(items[1], TypeCode.Int64);
+                message.toId = roomId;
+                message.messageType = (byte)Convert.ChangeType(items[2], TypeCode.Byte);
+                message.messageId = (long)Convert.ChangeType(items[3], TypeCode.Int64);
+
+                if (!CheckBinaryType(items[5]))
+                    message.stringMessage = (string)Convert.ChangeType(items[5], TypeCode.String);
+                else
+                    message.binaryMessage = (byte[])items[5];
+
+                message.attrs = (string)Convert.ChangeType(items[6], TypeCode.String);
+                message.modifiedTime = (long)Convert.ChangeType(items[7], TypeCode.Int64);
+
+                if (message.messageType >= 40 && message.messageType <= 50)
+                    RTMClient.BuildFileInfo(message, errorRecorder);
+
+                roomMessages.Add(roomId, message);
+            }
+        }
+
+        public bool GetUserRoomLastMessage(Action<Dictionary<long, HistoryMessage>, int> callback, HashSet<long> mtypes, int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getuserroomsandlastmsg");
+            quest.Param("mtypes", mtypes);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
+
+                Dictionary<long, HistoryMessage> roomMessages = null;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        roomMessages = new Dictionary<long, HistoryMessage>();
+                        GetRoomLastMessage(ref roomMessages, answer);               
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(roomMessages, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetUserRoomLastMessage(out Dictionary<long, HistoryMessage> roomMessages, HashSet<long> roomIds, HashSet<long> mtypes, int timeout = 0)
+        {
+            roomMessages = null;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getuserroomsandlastmsg");
+            quest.Param("mtypes", mtypes);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                roomMessages = new Dictionary<long, HistoryMessage>();
+                GetRoomLastMessage(ref roomMessages, answer); ;
                 return fpnn.ErrorCode.FPNN_EC_OK;
             }
             catch (Exception)
