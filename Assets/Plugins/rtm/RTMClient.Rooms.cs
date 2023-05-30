@@ -715,7 +715,7 @@ namespace com.fpnn.rtm
             }
         }
 
-        public bool GetUserRoomLastMessage(Action<Dictionary<long, HistoryMessage>, int> callback, HashSet<long> mtypes, int timeout = 0)
+        public bool GetUserRoomLastMessage(Action<Dictionary<long, HistoryMessage>, int> callback, HashSet<long> mtypes = null, int timeout = 0)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -730,7 +730,8 @@ namespace com.fpnn.rtm
             }
 
             Quest quest = new Quest("getuserroomsandlastmsg");
-            quest.Param("mtypes", mtypes);
+            if (mtypes != null)
+                quest.Param("mtypes", mtypes);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
 
@@ -760,7 +761,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int GetUserRoomLastMessage(out Dictionary<long, HistoryMessage> roomMessages, HashSet<long> roomIds, HashSet<long> mtypes, int timeout = 0)
+        public int GetUserRoomLastMessage(out Dictionary<long, HistoryMessage> roomMessages, HashSet<long> roomIds, HashSet<long> mtypes = null, int timeout = 0)
         {
             roomMessages = null;
 
@@ -769,7 +770,8 @@ namespace com.fpnn.rtm
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
             Quest quest = new Quest("getuserroomsandlastmsg");
-            quest.Param("mtypes", mtypes);
+            if (mtypes != null)
+                quest.Param("mtypes", mtypes);
 
             Answer answer = client.SendQuest(quest, timeout);
 
