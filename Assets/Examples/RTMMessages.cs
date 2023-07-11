@@ -43,7 +43,7 @@ class Messages: Main.ITestCase
 
     static RTMClient LoginRTM(string rtmEndpoint, long pid, long uid, string token)
     {
-        RTMClient client = new RTMClient(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
+        RTMClient client = RTMClient.getInstance(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
 
         int errorCode = client.Login(out bool ok, token);
         if (ok)

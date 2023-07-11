@@ -1,6 +1,6 @@
 ﻿namespace com.fpnn.rtm
 {
-    internal class MidGenerator
+    public class MidGenerator
     {
         static private ushort order = 0;
         static private object interLocker = new object();

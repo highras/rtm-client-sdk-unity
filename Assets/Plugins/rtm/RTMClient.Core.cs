@@ -147,13 +147,14 @@ namespace com.fpnn.rtm
             //QuestTimeout = 0;
             //rtmGateConnectionId = 0;
 
-            RTMMasterProcessor processorCurrent = new RTMMasterProcessor();
-            processorCurrent.SetProcessor(serverPushProcessor);
+            //RTMMasterProcessor processorCurrent = new RTMMasterProcessor();
+            //processorCurrent.SetProcessor(serverPushProcessor);
 
             lock (interLocker)
             {
-                processorCurrent.SetConnectionId(rtmGateConnectionId);
-                processor = processorCurrent;
+                (processor as RTMMasterProcessor).SetProcessor(serverPushProcessor);
+                //processorCurrent.SetConnectionId(rtmGateConnectionId);
+                //processor = processorCurrent;
                 if (errorRecorder != null)
                     processor.SetErrorRecorder(errorRecorder);
 

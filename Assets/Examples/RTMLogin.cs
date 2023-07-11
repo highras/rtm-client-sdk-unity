@@ -30,7 +30,7 @@ class Login : Main.ITestCase
 
     static void AsyncLoginDemo(string rtmEndpoint, long pid, long uid, string token)
     {
-        RTMClient client = new RTMClient(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
+        RTMClient client = RTMClient.getInstance(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
         bool status = client.Login((long pid_, long uid_, bool authStatus, int errorCode) => {
             Debug.Log("Async login " + authStatus + ". pid " + pid_ + ", uid " + uid_ + ", code : " + errorCode);
         }, token);

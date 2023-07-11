@@ -4,6 +4,12 @@ using com.fpnn.msgpack;
 
 namespace com.fpnn.rtm
 {
+    public class InvalidAudioDataException : Exception
+    {
+        public InvalidAudioDataException(string message) : base(message) { }
+        public InvalidAudioDataException(String message, Exception ex) : base(message, ex) { }
+    }
+
     public class RTMAudioData
     {
 
@@ -50,12 +56,17 @@ namespace com.fpnn.rtm
         private void ParseAudioData()
         {
             byte[] wavBuffer = AudioConvert.ConvertToWav(audio);
-            
+
+            if (wavBuffer == null || wavBuffer.Length < 23)
+            {
+                throw new InvalidAudioDataException("Invalid audio data, convert failed.");
+            }
+
             int channelCount = wavBuffer[22];
             
             int pos = 12; 
             
-            while(! (wavBuffer[pos] == 100 && wavBuffer[pos+1] == 97 && wavBuffer[pos+2] == 116 && wavBuffer[pos+3] == 97)) {
+            while(! (wavBuffer.Length > pos+3 && wavBuffer[pos] == 100 && wavBuffer[pos+1] == 97 && wavBuffer[pos+2] == 116 && wavBuffer[pos+3] == 97)) {
                 pos += 4;
                 int chunkSize = wavBuffer[pos] + wavBuffer[pos + 1] * 256 + wavBuffer[pos + 2] * 65536 + wavBuffer[pos + 3] * 16777216;
                 pos += 4 + chunkSize;

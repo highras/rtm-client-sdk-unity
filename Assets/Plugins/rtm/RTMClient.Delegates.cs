@@ -129,8 +129,10 @@ namespace com.fpnn.rtm
 
     public enum ConversationType
     { 
+        INVALID = 0,
         P2P = 1,
         GROUP = 2,       
+        ROOM = 3,       
     }
 
     public class Conversation

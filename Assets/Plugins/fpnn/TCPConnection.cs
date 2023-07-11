@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using com.fpnn.proto;
 
 namespace com.fpnn
@@ -27,6 +28,7 @@ namespace com.fpnn
         private bool connectingCanBeCannelled;
         private int connectCompletedSignForUnityIl2CPPDisCompliantImplement;
 
+        private object socketLocker;
         private Socket socket;
         private SocketAsyncEventArgs receiveAsyncEventArgs;
         private SocketAsyncEventArgs sendAsyncEventArgs;
@@ -60,6 +62,7 @@ namespace com.fpnn
             connectingCanBeCannelled = false;
             connectCompletedSignForUnityIl2CPPDisCompliantImplement = 0;
 
+            socketLocker = new object();
             socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
             receiveAsyncEventArgs = new SocketAsyncEventArgs { RemoteEndPoint = endpoint };
             receiveAsyncEventArgs.Completed += IO_Completed;
@@ -124,7 +127,10 @@ namespace com.fpnn
 
                 CallConnectionConnectedDelegate(0, false, "Connecting cannel event exception. Remote endpoint: " + endpoint + ".");
                 connectionCloseDelegate = null;
-                socket.Close();
+                lock (socketLocker)
+                { 
+                    socket.Close();
+                }
                 return;
             }
 
@@ -138,7 +144,12 @@ namespace com.fpnn
 
             try
             {
-                if (!socket.ConnectAsync(receiveAsyncEventArgs))      //-- Synchronous
+                bool status;
+                lock (socketLocker)
+                {
+                    status = socket.ConnectAsync(receiveAsyncEventArgs);
+                }
+                if (!status)      //-- Synchronous
                     ConnectCompleted(socket, receiveAsyncEventArgs);
                 else
                 {
@@ -249,7 +260,10 @@ namespace com.fpnn
             }
             
             receiveAsyncEventArgs.SetBuffer(receiver.buffer, receiver.offset, receiver.requireLength - receiver.offset);
-            connectionId = socket.Handle.ToInt64();
+            lock (socketLocker)
+            { 
+                connectionId = socket.Handle.ToInt64();
+            }
 
             CallConnectionConnectedDelegate(connectionId, true, "Connected event exception. Remote endpoint: " + endpoint + ".");
 
@@ -274,7 +288,12 @@ namespace com.fpnn
 
             try
             {
-                if (!socket.ReceiveAsync(receiveAsyncEventArgs))
+                bool status;
+                lock (socketLocker)
+                {
+                    status = socket.ReceiveAsync(receiveAsyncEventArgs);
+                }
+                if (!status)
                     ReceiveCompleted(socket, receiveAsyncEventArgs);
             }
             catch (ObjectDisposedException ex)
@@ -340,7 +359,12 @@ namespace com.fpnn
 
             try
             {
-                if (!socket.ReceiveAsync(receiveAsyncEventArgs))
+                bool status;
+                lock (socketLocker)
+                {
+                    status = socket.ReceiveAsync(receiveAsyncEventArgs);
+                }
+                if (!status)
                 {
                     recursionDeepOfReceiveFunction += 1;
                     if (recursionDeepOfReceiveFunction <= MaxRecursionDeepOfReceiveFunction)
@@ -404,7 +428,12 @@ namespace com.fpnn
 
             try
             {
-                if (!socket.SendAsync(sendAsyncEventArgs))
+                bool status;
+                lock (socketLocker)
+                {
+                    status = socket.SendAsync(sendAsyncEventArgs);
+                }
+                if (!status)
                 {
                     recursionDeepOfSendFunction += 1;
                     if (recursionDeepOfSendFunction <= MaxRecursionDeepOfSendFunction)
@@ -460,7 +489,12 @@ namespace com.fpnn
             sendAsyncEventArgs.SetBuffer(currSendBuffer, 0, currSendBuffer.Length);
             try
             {
-                if (!socket.SendAsync(sendAsyncEventArgs))
+                bool status;
+                lock (socketLocker)
+                {
+                    status = socket.SendAsync(sendAsyncEventArgs);
+                }
+                if (!status)
                     SendCompleted(socket, sendAsyncEventArgs);
             }
             catch (ObjectDisposedException ex)
@@ -541,7 +575,10 @@ namespace com.fpnn
 
             if (socketDisposed)
             {
-                socket.Close();
+                lock (socketLocker)
+                { 
+                    socket.Close();
+                }
                 return;
             }
 
@@ -550,7 +587,12 @@ namespace com.fpnn
 
             try
             {
-                if (!socket.DisconnectAsync(closeAsyncEventArgs))
+                bool status;
+                lock (socketLocker)
+                {
+                    status = socket.DisconnectAsync(closeAsyncEventArgs);
+                }
+                if (!status)
                     FinallyShutdownClose();
 
                 return;
@@ -560,11 +602,17 @@ namespace com.fpnn
                 if (errorRecorder != null)
                     errorRecorder.RecordError("Internal closing failed. SocketException means accessing socket is failed.", e);
 
-                socket.Close();
+                lock (socketLocker)
+                { 
+                    socket.Close();
+                }
             }
             catch (ObjectDisposedException)
             {
-                socket.Close();
+                lock (socketLocker)
+                { 
+                    socket.Close();
+                }
             }
         }
 
@@ -620,15 +668,21 @@ namespace com.fpnn
 
             ClearAllCallback(ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
 
-            socket.Close();
+            lock (socketLocker)
+            { 
+                socket.Close();
+            }
         }
 
         private void FinallyShutdownClose()
         {
             try
             {
-                if (socket.Connected)
-                    socket.Shutdown(SocketShutdown.Both);
+                lock (socketLocker)
+                { 
+                    if (socket.Connected)
+                        socket.Shutdown(SocketShutdown.Both);
+                }
             }
             catch (ObjectDisposedException)
             { /* Do nothing. */ }
@@ -639,7 +693,10 @@ namespace com.fpnn
             }
             finally
             {
-                socket.Close();
+                lock (socketLocker)
+                { 
+                    socket.Close();
+                }
             }
         }
 

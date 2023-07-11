@@ -374,7 +374,16 @@ namespace com.fpnn.rtm
             {
                 Thread.Sleep(1000);
 
-                HashSet<RTMClient> clients = new HashSet<RTMClient>();
+                HashSet<RTMClient> clients;
+                try
+                {
+                    clients = new HashSet<RTMClient>();
+                }
+                catch (Exception e)
+                {
+                    RTMConfig.errorRecorder?.RecordError(e);
+                    continue;
+                }
 
                 lock (interLocker)
                 {

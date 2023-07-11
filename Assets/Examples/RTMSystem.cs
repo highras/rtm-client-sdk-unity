@@ -41,7 +41,7 @@ class RTMSystem : Main.ITestCase
 
         GetDevicePushOption(client);
 
-        client.Bye();
+        client.Close();
         Thread.Sleep(1000);
 
         Debug.Log("============== Demo completed ================");
@@ -51,7 +51,7 @@ class RTMSystem : Main.ITestCase
 
     static RTMClient LoginRTM(string rtmEndpoint, long pid, long uid, string token)
     {
-        RTMClient client = new RTMClient(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
+        RTMClient client = RTMClient.getInstance(rtmEndpoint, pid, uid, new example.common.RTMExampleQuestProcessor());
 
         int errorCode = client.Login(out bool ok, token, new Dictionary<string, string>() {
                 { "attr1", "demo 123" },
