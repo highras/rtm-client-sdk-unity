@@ -108,8 +108,20 @@ namespace com.fpnn
                 Thread.Sleep(1000);
 
                 Int64 currentSeconds = GetCurrentSeconds();
-                HashSet<TCPConnection> checkingConnections = new HashSet<TCPConnection>();
-                HashSet<TCPConnection> connectingTimeoutedConnections = new HashSet<TCPConnection>();
+                HashSet<TCPConnection> checkingConnections;
+                HashSet<TCPConnection> connectingTimeoutedConnections;
+ 
+                try
+                { 
+                    checkingConnections = new HashSet<TCPConnection>();
+                    connectingTimeoutedConnections = new HashSet<TCPConnection>();
+                }
+                catch (Exception e)
+                {
+                    errorRecorder?.RecordError(e);
+                    continue;
+                }
+
                 lock (interLocker)
                 {
                     foreach (TCPConnection conn in allConnections)

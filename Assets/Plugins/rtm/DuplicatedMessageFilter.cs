@@ -30,11 +30,11 @@ namespace com.fpnn.rtm
             interLocker = new object();
         }
 
-        public bool CheckP2PMessage(long uid, long mid)
+        public bool CheckP2PMessage(long uid, long mid, long to)
         {
             MessageIdUnit unit;
             unit.messageType = MessageCategories.P2PMessageType;
-            unit.bizId = 0;
+            unit.bizId = to;
             unit.uid = uid;
             unit.mid = mid;
 

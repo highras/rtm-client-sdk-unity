@@ -148,7 +148,7 @@ namespace com.fpnn.common
                     else
                         core.tempThreadCount--;
                 }
-                throw e;
+                core.errorRecorder?.RecordError(e);
             }
         }
 
