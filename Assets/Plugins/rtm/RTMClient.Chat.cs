@@ -295,6 +295,89 @@ namespace com.fpnn.rtm
             }
         }
 
+        public bool GetUnread(Action<List<long>, List<long>, long, int> callback, bool clear = false, bool gettime = false,  int timeout = 0)
+        {
+            TCPClient client = GetCoreClient();
+            if (client == null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(null, null, 0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                    });
+
+                return false;
+            }
+
+            Quest quest = new Quest("getunread");
+            quest.Param("clear", clear);
+            quest.Param("gettime", gettime);
+
+            bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
+            {
+
+                List<long> p2pList = null;
+                List<long> groupList = null;
+                long logoutTime = 0;
+
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_OK)
+                {
+                    try
+                    {
+                        p2pList = WantLongList(answer, "p2p");
+                        groupList = WantLongList(answer, "group");
+                        logoutTime = answer.Get<long>("logouttime", 0);
+                    }
+                    catch (Exception)
+                    {
+                        errorCode = fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+                    }
+                }
+                callback(p2pList, groupList, logoutTime, errorCode);
+            }, timeout);
+
+            if (!asyncStarted && RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                ClientEngine.RunTask(() =>
+                {
+                    callback(null, null, 0, fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION);
+                });
+
+            return asyncStarted;
+        }
+
+        public int GetUnread(out List<long> p2pList, out List<long> groupList, out long logoutTime, bool clear = false, bool gettime = false, int timeout = 0)
+        {
+            p2pList = null;
+            groupList = null;
+            logoutTime = 0;
+
+            TCPClient client = GetCoreClient();
+            if (client == null)
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
+
+            Quest quest = new Quest("getunread");
+            quest.Param("clear", clear);
+            quest.Param("gettime", gettime);
+
+            Answer answer = client.SendQuest(quest, timeout);
+
+            if (answer.IsException())
+                return answer.ErrorCode();
+
+            try
+            {
+                p2pList = WantLongList(answer, "p2p");
+                groupList = WantLongList(answer, "group");
+                logoutTime = answer.Get<long>("logouttime", 0);
+                
+                return fpnn.ErrorCode.FPNN_EC_OK;
+            }
+            catch (Exception)
+            {
+                return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_PACKAGE;
+            }
+        }
+
         //===========================[ Clear Unread ]=========================//
         public bool ClearUnread(DoneDelegate callback, int timeout = 0)
         {

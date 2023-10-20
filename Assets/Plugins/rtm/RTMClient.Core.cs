@@ -648,13 +648,7 @@ namespace com.fpnn.rtm
         //-------------[ Relogin interfaces ]--------------------------//
         private void StartNextRelogin()
         {
-            if (autoReloginInfo.reloginCount < regressiveStrategy.startConnectFailedCount)
-            {
-                StartRelogin();
-                return;
-            }
-
-            int regressiveCount = autoReloginInfo.reloginCount - regressiveStrategy.startConnectFailedCount;
+            int regressiveCount = autoReloginInfo.reloginCount;
             long interval = regressiveStrategy.maxIntervalSeconds * 1000;
             if (regressiveCount > regressiveStrategy.maxRegressvieCount)
             { 

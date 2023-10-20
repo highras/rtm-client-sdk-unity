@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using com.fpnn.common;
 using com.fpnn.proto;
 
 namespace com.fpnn.rtm
@@ -761,7 +762,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int GetUserRoomLastMessage(out Dictionary<long, HistoryMessage> roomMessages, HashSet<long> roomIds, HashSet<long> mtypes = null, int timeout = 0)
+        public int GetUserRoomLastMessage(out Dictionary<long, HistoryMessage> roomMessages, HashSet<long> mtypes = null, int timeout = 0)
         {
             roomMessages = null;
 

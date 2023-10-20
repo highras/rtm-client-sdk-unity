@@ -158,6 +158,13 @@ namespace com.fpnn.rtm
                 ClientEngine.RunTask(() => {
                     if (client.CheckRelogin())
                         client.StartRelogin();
+                    else
+                    {
+                        lock (interLocker)
+                        {
+                            reloginClients.Add(client, now);
+                        }
+                    }
                 });
             }
         }
@@ -219,13 +226,33 @@ namespace com.fpnn.rtm
                         {
                             if (!clients.ContainsKey(kvp.Value))
                             {
-                                activeClients.Add(kvp.Value);
-                                clients.Add(kvp.Value, now);
+                                if (kvp.Value.Status != ClientStatus.Connecting)
+                                {
+                                    activeClients.Add(kvp.Value);
+                                    clients.Add(kvp.Value, now);
+                                }
                             }
                         }
                         foreach (RTMClient client in activeClients)
                             client.Close(false, false);
+                    
                         reloginClients = clients;
+                    }
+                }
+                else if ((type == NetworkType.NetworkType_4G && oldType == NetworkType.NetworkType_Wifi) || (oldType == NetworkType.NetworkType_4G && type == NetworkType.NetworkType_Wifi))
+                { 
+                    lock (interLocker)
+                    {
+                        List<RTMClient> clients = new List<RTMClient>();
+                        foreach (KeyValuePair<Int64, RTMClient> kvp in rtmClients)
+                        {
+                            if (kvp.Value.Status != ClientStatus.Connecting)
+                            {
+                                clients.Add(kvp.Value);
+                            }
+                        }
+                        foreach (RTMClient client in clients)
+                            client.Close(false, false);
                     }
                 }
                 else
@@ -235,8 +262,11 @@ namespace com.fpnn.rtm
                         List<RTMClient> clients = new List<RTMClient>();
                         foreach (KeyValuePair<Int64, RTMClient> kvp in rtmClients)
                         {
-                            clients.Add(kvp.Value);
-                            reloginClients.Add(kvp.Value, now);
+                            if (kvp.Value.Status != ClientStatus.Connecting)
+                            {
+                                clients.Add(kvp.Value);
+                                reloginClients.Add(kvp.Value, now);
+                            }
                         }
                         foreach (RTMClient client in clients)
                             client.Close(false, false);
