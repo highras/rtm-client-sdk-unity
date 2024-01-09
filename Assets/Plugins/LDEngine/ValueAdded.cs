@@ -70,7 +70,7 @@ namespace com.fpnn.livedata
                 {
                     callback(result, errorCode);
                 });
-            }, text, strategyId, timeout);
+            }, text, strategyId, null, timeout);
         }
 
         public bool ImageCheck(Action<CheckResult, int> callback, string imageUrl, string strategyId = null, int timeout = 120)

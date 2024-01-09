@@ -6,7 +6,7 @@ namespace com.fpnn.rtm
     public partial class RTMClient
     {
         //======================[ string message version ]================================//
-        private bool InternalSendMessage(long uid, byte mtype, string message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
+        private bool InternalSendMessage(long uid, byte mtype, string message, string attrs, MessageIdDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -30,6 +30,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 //long mtime = 0;
@@ -49,7 +53,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendMessage(long uid, byte mtype, string message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
+        private bool InternalSendMessage(long uid, byte mtype, string message, string attrs, SendMessageDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -73,6 +77,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
@@ -92,7 +100,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendMessage(out long messageId, out long mtime, long uid, byte mtype, string message, string attrs, long mid, int timeout)
+        private int InternalSendMessage(out long messageId, out long mtime, long uid, byte mtype, string message, string attrs, long mid, string strategyId, string checkParams, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
@@ -112,6 +120,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -122,7 +134,7 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
-        private bool InternalSendGroupMessage(long groupId, byte mtype, string message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
+        private bool InternalSendGroupMessage(long groupId, byte mtype, string message, string attrs, MessageIdDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -146,6 +158,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 //long mtime = 0;
@@ -165,7 +181,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendGroupMessage(long groupId, byte mtype, string message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
+        private bool InternalSendGroupMessage(long groupId, byte mtype, string message, string attrs, SendMessageDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -189,6 +205,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
@@ -208,7 +228,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, string message, string attrs, long mid, int timeout)
+        private int InternalSendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, string message, string attrs, long mid, string strategyId, string checkParams, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
@@ -228,6 +248,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -238,7 +262,7 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
-        private bool InternalSendRoomMessage(long roomId, byte mtype, string message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
+        private bool InternalSendRoomMessage(long roomId, byte mtype, string message, string attrs, MessageIdDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -262,6 +286,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 //long mtime = 0;
@@ -281,7 +309,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendRoomMessage(long roomId, byte mtype, string message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
+        private bool InternalSendRoomMessage(long roomId, byte mtype, string message, string attrs, SendMessageDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -305,6 +333,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
@@ -324,7 +356,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, string message, string attrs, long mid, int timeout)
+        private int InternalSendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, string message, string attrs, long mid, string strategyId, string checkParams, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
@@ -344,6 +376,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -355,7 +391,7 @@ namespace com.fpnn.rtm
         }
 
         //======================[ binary message version ]================================//
-        private bool InternalSendMessage(long uid, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
+        private bool InternalSendMessage(long uid, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -379,6 +415,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 //long mtime = 0;
@@ -398,7 +438,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendMessage(long uid, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
+        private bool InternalSendMessage(long uid, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -422,6 +462,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
@@ -441,7 +485,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendMessage(out long messageId, out long mtime, long uid, byte mtype, byte[] message, string attrs, long mid, int timeout)
+        private int InternalSendMessage(out long messageId, out long mtime, long uid, byte mtype, byte[] message, string attrs, long mid, string strategyId, string checkParams, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
@@ -461,6 +505,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -471,7 +519,7 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
-        private bool InternalSendGroupMessage(long groupId, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
+        private bool InternalSendGroupMessage(long groupId, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -495,6 +543,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 //long mtime = 0;
@@ -514,7 +566,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendGroupMessage(long groupId, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
+        private bool InternalSendGroupMessage(long groupId, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -538,6 +590,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
@@ -557,7 +613,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, byte[] message, string attrs, long mid, int timeout)
+        private int InternalSendGroupMessage(out long messageId, out long mtime, long groupId, byte mtype, byte[] message, string attrs, long mid, string strategyId, string checkParams, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
@@ -577,6 +633,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             Answer answer = client.SendQuest(quest, timeout);
 
@@ -587,7 +647,7 @@ namespace com.fpnn.rtm
             return fpnn.ErrorCode.FPNN_EC_OK;
         }
 
-        private bool InternalSendRoomMessage(long roomId, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, long messageId, int timeout)
+        private bool InternalSendRoomMessage(long roomId, byte mtype, byte[] message, string attrs, MessageIdDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -611,6 +671,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 //long mtime = 0;
@@ -630,7 +694,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private bool InternalSendRoomMessage(long roomId, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, long messageId, int timeout)
+        private bool InternalSendRoomMessage(long roomId, byte mtype, byte[] message, string attrs, SendMessageDelegate callback, long messageId, string strategyId, string checkParams, int timeout)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -654,6 +718,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) => {
                 long mtime = 0;
@@ -673,7 +741,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        private int InternalSendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, byte[] message, string attrs, long mid, int timeout)
+        private int InternalSendRoomMessage(out long messageId, out long mtime, long roomId, byte mtype, byte[] message, string attrs, long mid, string strategyId, string checkParams, int timeout)
         {
             mtime = 0;
             TCPClient client = GetCoreClient();
@@ -693,6 +761,10 @@ namespace com.fpnn.rtm
             quest.Param("mtype", mtype);
             quest.Param("msg", message);
             quest.Param("attrs", attrs);
+            if (strategyId != null)
+                quest.Param("strategyid", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             Answer answer = client.SendQuest(quest, timeout);
 

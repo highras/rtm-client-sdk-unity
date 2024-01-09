@@ -18,7 +18,7 @@ namespace com.fpnn.livedata
                     {
                         callback(messageId, errorCode);
                     });
-                }, id, message, attrs, timeout);
+                }, id, message, attrs, null, timeout);
             }
             else if (messageCategory == MessageCategory.GroupMessage)
             {
@@ -28,7 +28,7 @@ namespace com.fpnn.livedata
                     {
                         callback(messageId, errorCode);
                     });
-                }, id, message, attrs, timeout);
+                }, id, message, attrs, null, timeout);
             }
             else if (messageCategory == MessageCategory.RoomMessage)
             {
@@ -38,7 +38,7 @@ namespace com.fpnn.livedata
                     {
                         callback(messageId, errorCode);
                     });
-                }, id, message, attrs, timeout);
+                }, id, message, attrs, null, timeout);
             }
             else
             {

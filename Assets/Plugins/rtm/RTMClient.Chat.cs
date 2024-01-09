@@ -7,124 +7,124 @@ namespace com.fpnn.rtm
     public partial class RTMClient
     {
         //===========================[ Sending Chat ]=========================//
-        public bool SendChat(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
+        public bool SendChat(MessageIdDelegate callback, long uid, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
+            return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, 0, null, checkParams, timeout);
         }
 
-        public int SendChat(out long messageId, long uid, string message, string attrs = "", int timeout = 0)
+        public int SendChat(out long messageId, long uid, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Chat, message, attrs, 0, timeout);
+            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Chat, message, attrs, 0, null, checkParams, timeout);
         }
 
-        public bool SendChat(SendMessageDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
+        public bool SendChat(SendMessageDelegate callback, long uid, string message, string attrs = "", string checkParams = null, int timeout = 0)
         { 
-            return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
+            return InternalSendMessage(uid, (byte)MessageType.Chat, message, attrs, callback, 0, null, checkParams, timeout);
         }
 
-        public int SendChat(out long messageId, out long mtime, long uid, string message, string attrs = "", int timeout = 0)
+        public int SendChat(out long messageId, out long mtime, long uid, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Chat, message, attrs, 0, timeout);
+            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Chat, message, attrs, 0, null, checkParams, timeout);
         }
 
-        public bool SendGroupChat(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
+        public bool SendGroupChat(MessageIdDelegate callback, long groupId, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, 0, null, checkParams, timeout);
         }
 
-        public int SendGroupChat(out long messageId, long groupId, string message, string attrs = "", int timeout = 0)
+        public int SendGroupChat(out long messageId, long groupId, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Chat, message, attrs, 0, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Chat, message, attrs, 0, null, checkParams, timeout);
         }
 
-        public bool SendGroupChat(SendMessageDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
+        public bool SendGroupChat(SendMessageDelegate callback, long groupId, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Chat, message, attrs, callback, 0, null, checkParams, timeout);
         }
 
-        public int SendGroupChat(out long messageId, out long mtime, long groupId, string message, string attrs = "", int timeout = 0)
+        public int SendGroupChat(out long messageId, out long mtime, long groupId, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Chat, message, attrs, 0, timeout);
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Chat, message, attrs, 0, null, checkParams, timeout);
         }
 
-        public bool SendRoomChat(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
+        public bool SendRoomChat(MessageIdDelegate callback, long roomId, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, 0, null, checkParams, timeout);
         }
 
-        public int SendRoomChat(out long messageId, long roomId, string message, string attrs = "", int timeout = 0)
+        public int SendRoomChat(out long messageId, long roomId, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Chat, message, attrs, 0, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Chat, message, attrs, 0, null, checkParams, timeout);
         }
 
-        public bool SendRoomChat(SendMessageDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
+        public bool SendRoomChat(SendMessageDelegate callback, long roomId, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, 0, timeout);
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Chat, message, attrs, callback, 0, null, checkParams, timeout);
         }
 
-        public int SendRoomChat(out long messageId, out long mtime, long roomId, string message, string attrs = "", int timeout = 0)
+        public int SendRoomChat(out long messageId, out long mtime, long roomId, string message, string attrs = "", string checkParams = null, int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Chat, message, attrs, 0, timeout);
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Chat, message, attrs, 0, null, checkParams, timeout);
         }
         //===========================[ Sending Cmd ]=========================//
         public bool SendCmd(MessageIdDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
+            return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, 0, null, null, timeout);
         }
 
         public int SendCmd(out long messageId, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Cmd, message, attrs, 0, timeout);
+            return InternalSendMessage(out messageId, out _, uid, (byte)MessageType.Cmd, message, attrs, 0, null, null, timeout);
         }
 
         public bool SendCmd(SendMessageDelegate callback, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
+            return InternalSendMessage(uid, (byte)MessageType.Cmd, message, attrs, callback, 0, null, null, timeout);
         }
 
         public int SendCmd(out long messageId, out long mtime, long uid, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Cmd, message, attrs, 0, timeout);
+            return InternalSendMessage(out messageId, out mtime, uid, (byte)MessageType.Cmd, message, attrs, 0, null, null, timeout);
         }
 
         public bool SendGroupCmd(MessageIdDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, 0, null, null, timeout);
         }
 
         public int SendGroupCmd(out long messageId, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Cmd, message, attrs, 0, timeout);
+            return InternalSendGroupMessage(out messageId, out _, groupId, (byte)MessageType.Cmd, message, attrs, 0, null, null, timeout);
         }
 
         public bool SendGroupCmd(SendMessageDelegate callback, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
+            return InternalSendGroupMessage(groupId, (byte)MessageType.Cmd, message, attrs, callback, 0, null, null, timeout);
         }
 
         public int SendGroupCmd(out long messageId, out long mtime, long groupId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Cmd, message, attrs, 0, timeout);
+            return InternalSendGroupMessage(out messageId, out mtime, groupId, (byte)MessageType.Cmd, message, attrs, 0, null, null, timeout);
         }
 
         public bool SendRoomCmd(MessageIdDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, 0, null, null, timeout);
         }
 
         public int SendRoomCmd(out long messageId, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Cmd, message, attrs, 0, timeout);
+            return InternalSendRoomMessage(out messageId, out _, roomId, (byte)MessageType.Cmd, message, attrs, 0, null, null, timeout);
         }
 
         public bool SendRoomCmd(SendMessageDelegate callback, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, 0, timeout);
+            return InternalSendRoomMessage(roomId, (byte)MessageType.Cmd, message, attrs, callback, 0, null, null, timeout);
         }
 
         public int SendRoomCmd(out long messageId, out long mtime, long roomId, string message, string attrs = "", int timeout = 0)
         {
-            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Cmd, message, attrs, 0, timeout);
+            return InternalSendRoomMessage(out messageId, out mtime, roomId, (byte)MessageType.Cmd, message, attrs, 0, null, null, timeout);
         }
         //===========================[ History Chat (Chat & Cmd & Audio) ]=========================//
         private static readonly List<byte> chatMTypes = new List<byte>
@@ -1386,7 +1386,7 @@ namespace com.fpnn.rtm
 
         //===========================[ TextCheck ]=========================//
         //-- Action<TextCheckResult result, errorCode>
-        public bool TextCheck(Action<TextCheckResult, int> callback, string text, string strategyId = null, int timeout = 120)
+        public bool TextCheck(Action<TextCheckResult, int> callback, string text, string strategyId = null, string checkParams = null, int timeout = 120)
         {
             TCPClient client = GetCoreClient();
             if (client == null)
@@ -1400,10 +1400,23 @@ namespace com.fpnn.rtm
                 return false;
             }
 
+            if (strategyId != null && checkParams != null)
+            {
+                if (RTMConfig.triggerCallbackIfAsyncMethodReturnFalse)
+                    ClientEngine.RunTask(() =>
+                    {
+                        callback(new TextCheckResult(), com.fpnn.rtm.ErrorCode.RTM_EC_INVALID_PARAMETER);
+                    });
+
+                return false;
+            }
+
             Quest quest = new Quest("tcheck");
             quest.Param("text", text);
             if (strategyId != null)
                 quest.Param("strategyId", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             bool asyncStarted = client.SendQuest(quest, (Answer answer, int errorCode) =>
             {
@@ -1437,7 +1450,7 @@ namespace com.fpnn.rtm
             return asyncStarted;
         }
 
-        public int TextCheck(out TextCheckResult result, string text, string strategyId = null, int timeout = 120)
+        public int TextCheck(out TextCheckResult result, string text, string strategyId = null, string checkParams = null, int timeout = 120)
         {
             result = new TextCheckResult();
 
@@ -1445,10 +1458,15 @@ namespace com.fpnn.rtm
             if (client == null)
                 return fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION;
 
+            if (strategyId != null && checkParams != null)
+                return com.fpnn.rtm.ErrorCode.RTM_EC_INVALID_PARAMETER;
+
             Quest quest = new Quest("tcheck");
             quest.Param("text", text);
             if (strategyId != null)
                 quest.Param("strategyId", strategyId);
+            if (checkParams != null)
+                quest.Param("checkParams", checkParams);
 
             Answer answer = client.SendQuest(quest, timeout);
 
