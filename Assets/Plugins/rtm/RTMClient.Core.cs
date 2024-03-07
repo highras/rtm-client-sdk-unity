@@ -465,9 +465,7 @@ namespace com.fpnn.rtm
                         callback(projectId, uid, successful, errorCode);                    
                 }
 
-                Debug.Log("ReloginWithBackupEndpoint callback");
             }, info.token, info.attr, info.ts, info.lang, info.remainedTimeout);
-            Debug.Log("ReloginWithBackupEndpoint");
             return false;
         }
 
@@ -504,10 +502,8 @@ namespace com.fpnn.rtm
                         callback(projectId, uid, successful, errorCode);                    
                 }
 
-                Debug.Log("ReloginWithIP ok = " + successful + ", errorCode = " + errorCode);
             }, info.token, info.attr, info.ts, info.lang, info.remainedTimeout);
              
-            Debug.Log("ReloginWithIP");
             return false;
         }
 
