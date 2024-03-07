@@ -42,7 +42,14 @@ namespace com.fpnn.rtm
 
             lock (interLocker)
             {
-                rtmClients.Add(connectionId, client);
+                try
+                {
+                    rtmClients.Add(connectionId, client);
+                }
+                catch (ArgumentException)
+                {
+                    
+                }
             }
         }
 

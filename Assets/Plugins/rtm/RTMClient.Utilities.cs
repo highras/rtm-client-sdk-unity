@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Collections.Generic;
 using com.fpnn.proto;
 using com.fpnn.common;
@@ -206,7 +207,39 @@ namespace com.fpnn.rtm
             }
             return rev;
         }
+        public static byte[] HexToByteArray(String hex)
+        {
+            int NumberChars = hex.Length;
+            byte[] bytes = new byte[NumberChars / 2];
+            for (int i = 0; i < NumberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            return bytes;
+        }
 
+        public static List<string> GetIPFromToken(string token)
+        {
+            if (token.Length < 33)
+                return null;
+            List<string> ips = new List<string>();
+            string originToken = token.Substring(0, 33);
+            string ipToken = token.Substring(33);
+            byte[] ipBytes = HexToByteArray(ipToken);
+            for (int i = 0; i < ipBytes.Length; ++i)
+                ipBytes[i] ^= Convert.ToByte(originToken[i % 33]);
+            Dictionary<Object, Object> unpack = com.fpnn.msgpack.MsgUnpacker.Unpack(ipBytes);
+            foreach (var kv in unpack)
+            {
+                string cluster = (string)Convert.ChangeType(kv.Key, TypeCode.String);
+                List<Object> list = (List<Object>)(kv.Value);
+                foreach (uint ip in list)
+                {
+                    long u = Convert.ToInt64((uint)IPAddress.NetworkToHostOrder((int)ip));
+                    IPAddress address = new IPAddress(u);
+                    ips.Add(address.ToString());
+                }
+            }
+            return ips;
+        }
         internal static void ParseFileMessage(BaseMessage baseMessage, ErrorRecorder errorRecorder)
         {
             try

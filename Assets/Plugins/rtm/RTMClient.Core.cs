@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using com.fpnn.proto;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace com.fpnn.rtm
 {
@@ -72,6 +73,15 @@ namespace com.fpnn.rtm
             public long lastActionMsecTimeStamp;
         }
 
+        private class LoginRetryInfo
+        {
+            public string backupEndpoint;
+            public bool usingBackupEndpoint;
+            public List<string> gameIpList;
+            public int gameIpIndex;
+            public int gameIpRetriedCount;
+        }
+
         //-------------[ Static Fields ]--------------------------//
         private static readonly HashSet<int> reloginStopCodes = new HashSet<int>
         {
@@ -108,6 +118,7 @@ namespace com.fpnn.rtm
         private AutoReloginInfo autoReloginInfo;
         private RegressiveStrategy regressiveStrategy;
         private common.ErrorRecorder errorRecorder;
+        private LoginRetryInfo loginRetryInfo;
 
         public RTMClient(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
         {
@@ -129,7 +140,7 @@ namespace com.fpnn.rtm
             if (errorRecorder != null)
                 processor.SetErrorRecorder(errorRecorder);
 
-            
+            loginRetryInfo = new LoginRetryInfo();
             BuildRtmGateClient(endpoint);
 
             if (autoRelogin)
@@ -141,20 +152,9 @@ namespace com.fpnn.rtm
 
         private void reset(RTMQuestProcessor serverPushProcessor, bool autoRelogin)
         {
-            //status = ClientStatus.Closed;
-            //requireClose = false;
-            //ConnectTimeout = 0;
-            //QuestTimeout = 0;
-            //rtmGateConnectionId = 0;
-
-            //RTMMasterProcessor processorCurrent = new RTMMasterProcessor();
-            //processorCurrent.SetProcessor(serverPushProcessor);
-
             lock (interLocker)
             {
                 (processor as RTMMasterProcessor).SetProcessor(serverPushProcessor);
-                //processorCurrent.SetConnectionId(rtmGateConnectionId);
-                //processor = processorCurrent;
                 if (errorRecorder != null)
                     processor.SetErrorRecorder(errorRecorder);
 
@@ -168,10 +168,9 @@ namespace com.fpnn.rtm
                     autoReloginInfo = null;
                     regressiveStrategy = null;
                 }
-            }
 
-            //authStatsInfo = null;
-            //syncConnectingEvent.Reset();
+                loginRetryInfo = new LoginRetryInfo();
+            }
         }
 
         public static RTMClient getInstance(string endpoint, long projectId, long uid, RTMQuestProcessor serverPushProcessor, bool autoRelogin = true)
@@ -359,6 +358,14 @@ namespace com.fpnn.rtm
             });
         }
 
+        public void SetBackupEndpoint(string endpoint)
+        {
+            lock (interLocker)
+            {
+                loginRetryInfo.backupEndpoint = endpoint;
+            }
+        }
+
         public bool CheckRelogin()
         {
             return autoReloginInfo.disabled == false && autoReloginInfo.canRelogin && RTMControlCenter.NetworkStatus != NetworkType.NetworkType_Unreachable;
@@ -421,11 +428,87 @@ namespace com.fpnn.rtm
                 RTMControlCenter.UnregisterSession(reservedRtmGateConnectionId);
 
             if (currInfo != null)
-                foreach (AuthDelegate callback in currInfo.authDelegates)
-                    callback(projectId, currUid, authStatus, errorCode);
+            {
+                bool finish = true;
+                if (errorCode == fpnn.ErrorCode.FPNN_EC_CORE_INVALID_CONNECTION || errorCode == fpnn.ErrorCode.FPNN_EC_CORE_CONNECTION_CLOSED)
+                {
+                    finish = ReloginWithBackupEndpoint(currInfo);
+                    if (finish)
+                        finish = ReloginWithIP(currInfo);
+                }
+
+                if (finish)
+                {
+                    foreach (AuthDelegate callback in currInfo.authDelegates)
+                        callback(projectId, currUid, authStatus, errorCode);                    
+                }
+            }
 
             if (authStatus)
                 processor.BeginCheckPingInterval();
+        }
+
+        private bool ReloginWithBackupEndpoint(AuthStatusInfo info)
+        {
+            lock (interLocker)
+            {
+                if (loginRetryInfo.backupEndpoint == null || loginRetryInfo.usingBackupEndpoint)
+                    return true;
+                loginRetryInfo.usingBackupEndpoint = true;
+                BuildRtmGateClient(loginRetryInfo.backupEndpoint);                
+            }
+            Login((long projectId, long uid, bool successful, int errorCode) =>
+            {
+                if (info != null)
+                {
+                    foreach (AuthDelegate callback in info.authDelegates)
+                        callback(projectId, uid, successful, errorCode);                    
+                }
+
+                Debug.Log("ReloginWithBackupEndpoint callback");
+            }, info.token, info.attr, info.ts, info.lang, info.remainedTimeout);
+            Debug.Log("ReloginWithBackupEndpoint");
+            return false;
+        }
+
+        private bool ReloginWithIP(AuthStatusInfo info)
+        {
+            if (info.ts != 0 || RTMConfig.reloginWithIP == false)
+                return true;
+            lock (interLocker)
+            {
+                if (loginRetryInfo.gameIpList == null)
+                {
+                    loginRetryInfo.gameIpList = GetIPFromToken(info.token);
+                    System.Random random = new System.Random();
+                    loginRetryInfo.gameIpIndex = random.Next(0, loginRetryInfo.gameIpList.Count);
+                }
+                else
+                {
+                    loginRetryInfo.gameIpIndex += 1;
+                    loginRetryInfo.gameIpIndex %= loginRetryInfo.gameIpList.Count;
+                }
+
+                if (loginRetryInfo.gameIpRetriedCount >= loginRetryInfo.gameIpList.Count)
+                    return true;
+
+                loginRetryInfo.gameIpRetriedCount += 1;
+                BuildRtmGateClient(loginRetryInfo.gameIpList[loginRetryInfo.gameIpIndex]+":13321");
+            }
+
+            Login((long projectId, long uid, bool successful, int errorCode) =>
+            {
+                if (info != null)
+                {
+                    foreach (AuthDelegate callback in info.authDelegates)
+                        callback(projectId, uid, successful, errorCode);                    
+                }
+
+                Debug.Log("ReloginWithIP ok = " + successful + ", errorCode = " + errorCode);
+            }, info.token, info.attr, info.ts, info.lang, info.remainedTimeout);
+             
+            Debug.Log("ReloginWithIP");
+            return false;
         }
 
         private bool AdjustAuthRemainedTimeout()
