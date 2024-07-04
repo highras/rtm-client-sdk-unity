@@ -9,6 +9,7 @@ namespace com.fpnn.rtm
     public delegate void SessionClosedDelegate(int ClosedByErrorCode);
     public delegate bool ReloginWillStartDelegate(int lastErrorCode, int retriedCount);
     public delegate void ReloginCompletedDelegate(bool successful, bool retryAgain, int errorCode, int retriedCount);
+    public delegate void ClientStatusChangedDelegate(RTMClient.ClientStatus status);
     public delegate void KickOutDelegate();
     public delegate void KickoutRoomDelegate(long roomId);
     public delegate void PushMessageDelegate(RTMMessage message);
@@ -25,6 +26,9 @@ namespace com.fpnn.rtm
 
         public virtual void ReloginCompleted(bool successful, bool retryAgain, int errorCode, int retriedCount) { }
         public ReloginCompletedDelegate ReloginCompletedCallback;
+
+        public virtual void ClientStatusChanged(RTMClient.ClientStatus status){}
+        public ClientStatusChangedDelegate ClientStatusChangedCallback;
 
         public virtual void Kickout() { }
         public KickOutDelegate KickoutCallback;
@@ -200,6 +204,18 @@ namespace com.fpnn.rtm
                     questProcessor.ReloginCompletedCallback?.Invoke(successful, retryAgain, errorCode, retriedCount);
                 });
             }
+        }
+
+        public void ClientStatusChanged(RTMClient.ClientStatus status)
+        {
+            if (questProcessor != null)
+            { 
+                questProcessor.ClientStatusChanged(status);
+                RTMControlCenter.callbackQueue.PostAction(() => 
+                {
+                    questProcessor.ClientStatusChangedCallback?.Invoke(status);
+                });
+            }    
         }
 
         //----------------------[ RTM Operations ]-------------------//

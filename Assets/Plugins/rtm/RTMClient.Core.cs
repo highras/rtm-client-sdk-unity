@@ -322,6 +322,7 @@ namespace com.fpnn.rtm
                 bool trigger = false;
                 bool isConnecting = false;
                 bool startRelogin = false;
+                bool stopByNetwork = false;
                 lock (interLocker)
                 {
                     trigger = rtmGateConnectionId == connectionId;
@@ -330,7 +331,14 @@ namespace com.fpnn.rtm
                         if (status == ClientStatus.Connecting)
                             isConnecting = true;
                         else
-                        { 
+                        {
+                            if (status != ClientStatus.Closed)
+                            {
+                                ClientEngine.RunTask(() =>
+                                {
+                                    processor?.ClientStatusChanged(ClientStatus.Closed);
+                                });                                
+                            }
                             status = ClientStatus.Closed;
                             rtmGateConnectionId = 0;
                         }
@@ -338,7 +346,7 @@ namespace com.fpnn.rtm
 
                     if (autoReloginInfo != null)
                     {
-                        startRelogin = CheckRelogin();
+                        startRelogin = CheckRelogin(out stopByNetwork);
                         autoReloginInfo.lastErrorCode = (causedByError ? fpnn.ErrorCode.FPNN_EC_CORE_CONNECTION_CLOSED : fpnn.ErrorCode.FPNN_EC_OK);
                     }
                 }
@@ -351,7 +359,7 @@ namespace com.fpnn.rtm
                     {
                         if (startRelogin)
                             StartRelogin();
-                        else
+                        else if (!stopByNetwork)
                             processor.SessionClosed(causedByError ? fpnn.ErrorCode.FPNN_EC_CORE_UNKNOWN_ERROR : fpnn.ErrorCode.FPNN_EC_OK);
                     }
                 }
@@ -366,9 +374,25 @@ namespace com.fpnn.rtm
             }
         }
 
-        public bool CheckRelogin()
+        public bool CheckRelogin(out bool stopByNetwork)
         {
-            return autoReloginInfo.disabled == false && autoReloginInfo.canRelogin && RTMControlCenter.NetworkStatus != NetworkType.NetworkType_Unreachable;
+            stopByNetwork = false;
+            lock (interLocker)
+            {
+                if (autoReloginInfo == null)
+                    return false;
+                if (autoReloginInfo.disabled)
+                    return false;
+                if (autoReloginInfo.canRelogin == false)
+                    return false;
+            }
+
+            if (RTMControlCenter.NetworkStatus == NetworkType.NetworkType_Unreachable)
+            {
+                stopByNetwork = true;
+                return false;
+            }
+            return true;
         }
 
         //-------------[ Auth(Login) processing functions ]--------------------------//
@@ -387,10 +411,24 @@ namespace com.fpnn.rtm
 
                 if (authStatus)
                 {
+                    if (status != ClientStatus.Connected)
+                    {
+                        ClientEngine.RunTask(() =>
+                        {
+                            processor?.ClientStatusChanged(ClientStatus.Connected);
+                        });                        
+                    }
                     status = ClientStatus.Connected;
                 }
                 else
                 {
+                    if (status != ClientStatus.Closed)
+                    {
+                        ClientEngine.RunTask(() =>
+                        {
+                            processor?.ClientStatusChanged(ClientStatus.Closed);
+                        });
+                    }
                     status = ClientStatus.Closed;
                     reservedRtmGateConnectionId = rtmGateConnectionId;
                     rtmGateConnectionId = 0;
@@ -501,7 +539,6 @@ namespace com.fpnn.rtm
                     foreach (AuthDelegate callback in info.authDelegates)
                         callback(projectId, uid, successful, errorCode);                    
                 }
-
             }, info.token, info.attr, info.ts, info.lang, info.remainedTimeout);
              
             return false;
@@ -618,6 +655,13 @@ namespace com.fpnn.rtm
                     return true;
                 }
 
+                if (status != ClientStatus.Connecting)
+                {
+                    ClientEngine.RunTask(() =>
+                    {
+                        processor?.ClientStatusChanged(ClientStatus.Connecting);
+                    });
+                }
                 status = ClientStatus.Connecting;
                 syncConnectingEvent.Reset();
 
@@ -827,7 +871,7 @@ namespace com.fpnn.rtm
         }
 
         //-------------[ Close interfaces ]--------------------------//
-        internal void Close(bool disableRelogin, bool waitConnectingCannelled)
+        internal void Close(bool disableRelogin, bool waitConnectingCannelled, bool callCloseEvent = true)
         {
             bool isConnecting = false;
 
@@ -847,11 +891,27 @@ namespace com.fpnn.rtm
                 }
                 else
                 {
+                    if (status != ClientStatus.Closed)
+                    {
+                        ClientEngine.RunTask(() => 
+                        { 
+                            processor?.ClientStatusChanged(ClientStatus.Closed);
+                        });     
+                    }
                     status = ClientStatus.Closed;
                 }
             }
+            
+            rtmGate.Close(callCloseEvent);
+            if (!callCloseEvent)
+            {
+                RTMControlCenter.UnregisterSession(rtmGateConnectionId);
+                lock (interLocker)
+                {
+                    rtmGateConnectionId = 0;
+                }
+            }
 
-            rtmGate.Close();
 
             if (isConnecting && waitConnectingCannelled)
                 syncConnectingEvent.WaitOne();

@@ -163,15 +163,11 @@ namespace com.fpnn.rtm
             foreach (RTMClient client in clients)
             {
                 ClientEngine.RunTask(() => {
-                    if (client.CheckRelogin())
+                    if (client.CheckRelogin(out bool stopByNetwork))
                         client.StartRelogin();
-                    else
-                    {
-                        lock (interLocker)
-                        {
-                            reloginClients.Add(client, now);
-                        }
-                    }
+                    
+                    if (stopByNetwork)
+                        DelayRelogin(client, now);
                 });
             }
         }
@@ -272,11 +268,11 @@ namespace com.fpnn.rtm
                             if (kvp.Value.Status != ClientStatus.Connecting)
                             {
                                 clients.Add(kvp.Value);
-                                reloginClients.Add(kvp.Value, now);
+                                DelayRelogin(kvp.Value, now);
                             }
                         }
                         foreach (RTMClient client in clients)
-                            client.Close(false, false);
+                            client.Close(false, false, RTMConfig.callCloseEventWhenNetworkClosed);
                     }
                 }
             });

@@ -146,6 +146,16 @@ namespace com.fpnn.rtm
         {
             return GetGroupMessage(out result, groupId, desc, count, beginMsec, endMsec, lastId, chatMTypes, timeout);
         }
+        
+        public bool GetGroupChatCount(Action<int, int> callback, long groupId, long beginMsec, long endMsec, int timeout = 0)
+        {
+            return GetGroupMessageCount(callback, groupId, beginMsec, endMsec, chatMTypes, timeout);
+        }
+        
+        public int GetGroupChatCount(out int count, long groupId, long beginMsec, long endMsec, int timeout = 0)
+        {
+            return GetGroupMessageCount(out count, groupId, beginMsec, endMsec, chatMTypes, timeout);
+        }
 
         public bool GetGroupChatByMessageId(HistoryMessageDelegate callback, long groupId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
         {
@@ -165,6 +175,16 @@ namespace com.fpnn.rtm
         public int GetRoomChat(out HistoryMessageResult result, long roomId, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0)
         {
             return GetRoomMessage(out result, roomId, desc, count, beginMsec, endMsec, lastId, chatMTypes, timeout);
+        }
+        
+        public bool GetRoomChatCount(Action<int, int> callback, long roomId, long beginMsec, long endMsec, int timeout = 0)
+        {
+            return GetRoomMessageCount(callback, roomId, beginMsec, endMsec, chatMTypes, timeout);
+        }
+        
+        public int GetRoomChatCount(out int count, long roomId, long beginMsec, long endMsec, int timeout = 0)
+        {
+            return GetRoomMessageCount(out count, roomId, beginMsec, endMsec, chatMTypes, timeout);
         }
 
         public bool GetRoomChatByMessageId(HistoryMessageDelegate callback, long roomId, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
@@ -186,6 +206,16 @@ namespace com.fpnn.rtm
         {
             return GetBroadcastMessage(out result, desc, count, beginMsec, endMsec, lastId, chatMTypes, timeout);
         }
+        
+        public bool GetBroadcastChatCount(Action<int, int> callback, long beginMsec, long endMsec, int timeout = 0)
+        {
+            return GetBroadcastMessageCount(callback, beginMsec, endMsec, chatMTypes, timeout);
+        }
+        
+        public int GetBroadcastChatCount(out int count, long beginMsec, long endMsec, int timeout = 0)
+        {
+            return GetBroadcastMessageCount(out count, beginMsec, endMsec, chatMTypes, timeout);
+        }
 
         public bool GetBroadcastChatByMessageId(HistoryMessageDelegate callback, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)
         {
@@ -205,6 +235,16 @@ namespace com.fpnn.rtm
         public int GetP2PChat(out HistoryMessageResult result, long peerUid, bool desc, int count, long beginMsec = 0, long endMsec = 0, long lastId = 0, int timeout = 0)
         {
             return GetP2PMessage(out result, peerUid, desc, count, beginMsec, endMsec, lastId, chatMTypes, timeout);
+        }
+        
+        public bool GetP2PChatCount(Action<int, int> callback, long peerUid, long beginMsec, long endMsec, int timeout = 0)
+        {
+            return GetP2PMessageCount(callback, peerUid, beginMsec, endMsec, chatMTypes, timeout);
+        }
+        
+        public int GetP2PChatCount(out int count, long peerUid, long beginMsec, long endMsec, int timeout = 0)
+        {
+            return GetP2PMessageCount(out count, peerUid, beginMsec, endMsec, chatMTypes, timeout);
         }
 
         public bool GetP2PChatByMessageId(HistoryMessageDelegate callback, long peerUid, bool desc, int count, long messageId, long beginMsec = 0, long endMsec = 0, int timeout = 0)

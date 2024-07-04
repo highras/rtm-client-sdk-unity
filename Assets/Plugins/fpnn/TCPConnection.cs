@@ -513,12 +513,12 @@ namespace com.fpnn
 
         //----------------[ Closing Operations ]-----------------------//
 
-        public void Close()
+        public void Close(bool callCloseEvent = true)
         {
-            Close(false);
+            Close(false, callCloseEvent);
         }
 
-        private void Close(bool socketDisposed)
+        private void Close(bool socketDisposed, bool callCloseEvent)
         {
             if (beginClosing)
                 return;
@@ -542,7 +542,7 @@ namespace com.fpnn
                 beginClosing = true;
             }
 
-            InternalClose(true, false, socketDisposed, false);
+            InternalClose(callCloseEvent, false, socketDisposed, false);
         }
 
         private void CloseByException(string message, Exception ex, bool socketDisposed)

@@ -251,7 +251,7 @@ namespace com.fpnn
             return SyncConnect();
         }
 
-        public void Close()
+        public void Close(bool callCloseEvent = true)
         {
             TCPConnection conn;
             lock (interLocker)
@@ -263,7 +263,7 @@ namespace com.fpnn
             }
 
             if (conn != null)
-                conn.Close();
+                conn.Close(callCloseEvent);
         }
 
         //----------------[ Operations ]-----------------------//

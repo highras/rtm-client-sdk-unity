@@ -20,7 +20,8 @@ namespace com.fpnn.rtm
         internal static int fileGateClientHoldingSeconds = 150;
         internal static common.ErrorRecorder errorRecorder = null;
         internal static bool triggerCallbackIfAsyncMethodReturnFalse = false;
-        internal static bool reloginWithIP = true;
+        internal static bool reloginWithIP = false;
+        internal static bool callCloseEventWhenNetworkClosed = true;
         internal static RegressiveStrategy globalRegressiveStrategy = new RegressiveStrategy();
 
         public int maxPingInterval;
@@ -30,6 +31,7 @@ namespace com.fpnn.rtm
         public common.ErrorRecorder defaultErrorRecorder;
         public bool forceTriggerCallbackWhenAsyncMethodReturnFalse;
         public bool enbleReloginWithIP;
+        public bool callCloseWhenNetworkClosed;
         public long adminID;
         public RegressiveStrategy regressiveStrategy;
 
@@ -41,6 +43,7 @@ namespace com.fpnn.rtm
             fileClientHoldingSeconds = 150;
             forceTriggerCallbackWhenAsyncMethodReturnFalse = false;
             enbleReloginWithIP = true;
+            callCloseWhenNetworkClosed = true;
             adminID = 111;
 
             regressiveStrategy = new RegressiveStrategy();
@@ -55,6 +58,7 @@ namespace com.fpnn.rtm
             errorRecorder = config.defaultErrorRecorder;
             triggerCallbackIfAsyncMethodReturnFalse = config.forceTriggerCallbackWhenAsyncMethodReturnFalse;
             reloginWithIP = config.enbleReloginWithIP;
+            callCloseEventWhenNetworkClosed = config.callCloseWhenNetworkClosed;
             globalRegressiveStrategy = config.regressiveStrategy;
         }
     }

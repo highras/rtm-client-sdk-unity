@@ -13,5 +13,7 @@ namespace com.fpnn.rtm
 
         bool ReloginWillStart(int lastErrorCode, int retriedCount);
         void ReloginCompleted(bool successful, bool retryAgain, int errorCode, int retriedCount);
+
+        void ClientStatusChanged(RTMClient.ClientStatus status);
     }
 }
