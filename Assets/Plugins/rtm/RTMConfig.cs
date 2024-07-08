@@ -10,7 +10,7 @@ namespace com.fpnn.rtm
 
     public class RTMConfig
     {
-        public static readonly string SDKVersion = "2.7.22";
+        public static readonly string SDKVersion = "2.7.23";
         public static readonly string InterfaceVersion = "2.7.3";
         public static readonly string RTMGameObjectName = "RTM_GAMEOBJECT";
 
@@ -42,7 +42,7 @@ namespace com.fpnn.rtm
             globalQuestTimeout = 30;
             fileClientHoldingSeconds = 150;
             forceTriggerCallbackWhenAsyncMethodReturnFalse = false;
-            enbleReloginWithIP = true;
+            enbleReloginWithIP = false;
             callCloseWhenNetworkClosed = true;
             adminID = 111;
 
