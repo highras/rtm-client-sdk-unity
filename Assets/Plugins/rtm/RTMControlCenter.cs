@@ -470,5 +470,13 @@ namespace com.fpnn.rtm
             reloginClients.Clear();
             fileClients.Clear();
         }
+
+        public static void Clear() 
+        {
+            rtmClients.Clear();
+            pidUidClients.Clear();
+            reloginClients.Clear();
+            fileClients.Clear();
+        }
     }
 }
